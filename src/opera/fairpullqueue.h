@@ -17,7 +17,7 @@ template<class PullPkt>
 class BasePullQueue {
  public:
     BasePullQueue();
-    virtual ~BasePullQueue();
+    virtual ~BasePullQueue() = default;
     virtual void enqueue(PullPkt& pkt) = 0;
     virtual PullPkt* dequeue() = 0;
     virtual void flush_flow(int32_t flow_id) = 0;
