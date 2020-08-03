@@ -26,7 +26,6 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
 
     auto tg_json = json::parse(tg_str);
 
-    int counter = 0;
     for (auto & jstask: tg_json["tasks"]) {
         string task_type = jstask["type"].get<std::string>();
         FFTask * task;
@@ -48,7 +47,6 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
             task = new FFTask(this, FFTask::FF_COMP, eventlist);
         }
         task->guid = jstask["guid"].get<int>();
-        assert(task->guid == counter++);
         task->workerId = jstask["workerId"].get<int>();
         task->readyTime = jstask["readyTime"].get<float>();
         task->startTime = jstask["startTime"].get<float>();
