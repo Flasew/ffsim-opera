@@ -54,7 +54,7 @@ public:
 	simtime_picosec sim_start, sim_finish, sim_duration;
 	bool started;
 	std::unordered_set<FFTask*> preTasks; 
-    std::vector<FFTask*> nextTasks;
+    std::unordered_map<int, FFTask*> nextTasks;
 };
 
 void taskfinish(void * task);

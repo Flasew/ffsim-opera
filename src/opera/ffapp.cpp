@@ -31,19 +31,19 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
         FFTask * task;
         if (task_type == "inter-communication") {            
             task = new FFTask(this, FFTask::FF_COMM, eventlist);
-            task->fromGuid = jstask["fromTask"].get<float>();
-            task->toGuid = jstask["toTask"].get<float>();
-            task->fromWorker = jstask["fromWorker"].get<float>();
-            task->toWorker = jstask["toWorker"].get<float>();
-            task->fromNode = jstask["fromNode"].get<float>();
-            task->toNode = jstask["toNode"].get<float>();
+            task->fromGuid = jstask["fromTask"].get<int>();
+            task->toGuid = jstask["toTask"].get<int>();
+            task->fromWorker = jstask["fromWorker"].get<int>();
+            task->toWorker = jstask["toWorker"].get<int>();
+            task->fromNode = jstask["fromNode"].get<int>();
+            task->toNode = jstask["toNode"].get<int>();
             task->xferSize = jstask["xferSize"].get<float>();
         } else if (task_type == "intra-communication") { 
             task = new FFTask(this, FFTask::FF_INTRA_COMM, eventlist);
-            task->fromGuid = jstask["fromTask"].get<float>();
-            task->toGuid = jstask["toTask"].get<float>();
-            task->fromWorker = jstask["fromWorker"].get<float>();
-            task->toWorker = jstask["toWorker"].get<float>();
+            task->fromGuid = jstask["fromTask"].get<int>();
+            task->toGuid = jstask["toTask"].get<int>();
+            task->fromWorker = jstask["fromWorker"].get<int>();
+            task->toWorker = jstask["toWorker"].get<int>();
             task->xferSize = jstask["xferSize"].get<float>();
         } else {
             task = new FFTask(this, FFTask::FF_COMP, eventlist);
@@ -54,7 +54,7 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
         task->startTime = jstask["startTime"].get<float>();
         task->computeTime = jstask["computeTime"].get<float>();
         
-        tasks.push_back(task);
+        tasks[task->guid] = task;
     }
 
     for (auto & jsedge: tg_json["edges"]) {
