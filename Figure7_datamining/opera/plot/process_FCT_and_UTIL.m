@@ -2,7 +2,7 @@
 
 clear;clc;
 
-perc=1;
+perc=25;
 
 fname=sprintf('../sim/FCT_pfab_cwnd20_%dperc.txt',perc);
 

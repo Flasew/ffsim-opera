@@ -10,13 +10,13 @@
 #include <set>
 #include <cmath>
 #include <time.h>
-#include "fakecnn.h"
+#include "cnn.h"
 
 #define MAX_NUM_DIMS 4
 #define MAX_NUM_WORKERS 64
 #define MAX_NUM_PARTS 64
 #define MAX_NUM_OPS 1000
-#define MAX_NUM_CONFIGS 1
+#define MAX_NUM_CONFIGS 20
 #define L2_FACTOR -0.0001
 #define DATA_XFER_FACTOR 0.01
 #define NOT_USE_SIMULATE_OPT
@@ -30,13 +30,13 @@ const int VOCAB_SIZE = 32000;
 const int LOCAL_BATCH_SIZE = 64;
 const int EMBEDDING_SIZE = 1024;
 const int HIDDEN_SIZE = 1024;
-const int NUM_NODES = 2;
+const int NUM_NODES = 8;
 const int WORKERS_PER_NODE = 4;
 const int NUM_WORKERS = NUM_NODES * WORKERS_PER_NODE; // NUM_WORKERS <= MAX_NUM_WORKERS
-const int NUM_PARTITIONS = 8;//NUM_NODES * WORKERS_PER_NODE; // NUM_PARTITIONS <= MAX_NUM_PARTS
+const int NUM_PARTITIONS = NUM_NODES * WORKERS_PER_NODE; // NUM_PARTITIONS <= MAX_NUM_PARTS
 const int BATCH_SIZE = NUM_PARTITIONS * LOCAL_BATCH_SIZE;
-const float INTRA_NODE_BANDWIDTH = 4 * 1024 * 1024;
-const float CROSS_NODE_BANDWIDTH = 1 * 1024 * 1024;
+const float INTRA_NODE_BANDWIDTH = 40.0 * 1024 * 1024 * 1024 / 8;
+const float CROSS_NODE_BANDWIDTH = 10.0 * 1024 * 1024 * 1024 / 8;
 
 using namespace std;
 
@@ -1255,7 +1255,6 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
   std::vector<Task*> updateTasks; 
   updateTasks.push_back(finalTask);
   for (int i = 0; i < parameters.size(); i++) {
-    printf("iter: %d\n", i);
     assert(parameters[i].size() > 0);
     std::vector<Op*> opList = parameters[i];
     std::vector<OpConfig> configs;
@@ -1265,10 +1264,8 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
       configs.push_back(it->second);
     }
     float updateCost = opList[0]->update(configs, updateTasks, taskEdges);
-    printf("Op: %s\n", opList[0]->name);
     totalTime += updateCost;
   }
-  printf("Update cost size: %d\n", updateTasks.size());
   updateTasks.erase(updateTasks.begin());
 #ifdef VERBOSE
   for (int i = 0; i < op_global_guid; i++) {
@@ -1480,7 +1477,7 @@ Tensor add_concat_layer(int n, Tensor* tensors, std::string name)
 
 void build_alexnet_model()
 {
-  //init_cudnn();
+  init_cudnn();
   Tensor x(4, BATCH_SIZE, 3, 224, 224, NULL, 0);
   Tensor t = add_conv_layer(x, 64, 11, 11, 4, 4, 2, 2, "conv1");
   t = add_pool_layer(t, 3, 3, 2, 2, 0, 0, "pool2");
@@ -1586,7 +1583,7 @@ Tensor InceptionE(Tensor input, std::string prefix)
 
 void build_inception_model()
 {
-  //init_cudnn();
+  init_cudnn();
   Tensor x(4, BATCH_SIZE, 3, 299, 299, NULL, 0);
   Tensor t = add_conv_layer(x, 32, 3, 3, 2, 2, 0, 0, "conv1");
   t = add_conv_layer(t, 32, 3, 3, 1, 1, 0, 0, "conv2");
@@ -1650,7 +1647,7 @@ Tensor Transition(Tensor input, int outputSize, std::string prefix)
 
 void build_densenet_model()
 {
-  //init_cudnn();
+  init_cudnn();
   Tensor x(4, BATCH_SIZE, 3, 224, 224, NULL, 0);
   Tensor t = add_conv_layer(x, 64, 7, 7, 2, 2, 3, 3, "conv1");
   t = add_pool_layer(t, 3, 3, 2, 2, 1, 1, "pool2");
@@ -1686,7 +1683,7 @@ Tensor BottleneckBlock(Tensor input, int outSize, int bnSize, int stride, std::s
 
 void build_resnet_model()
 {
-  //init_cudnn();
+  init_cudnn();
   Tensor x(4, BATCH_SIZE, 3, 224, 224, NULL, 0);
   Tensor t = add_conv_layer(x, 64, 7, 7, 2, 2, 3, 3, "conv1");
   t = add_pool_layer(t, 3, 3, 2, 2, 1, 1, "pool2");
@@ -1717,7 +1714,7 @@ void build_resnet_model()
 
 void build_nmt_model()
 {
-  //init_cudnn();
+  init_cudnn();
   Tensor hx_init(2, BATCH_SIZE, HIDDEN_SIZE, NULL, 0);
   Tensor cx_init(2, BATCH_SIZE, HIDDEN_SIZE, NULL, 0);
   Embed* embed[SRC_LENGTH + DST_LENGTH];
@@ -1809,7 +1806,7 @@ int main()
   float cur_runtime = optimal_runtime;
   long long start_time = current_time();
   int good_moves = 0, best_moves = 0;
-  for (int i = 0; i <= 1; i++) {
+  for (int i = 0; i <= 100; i++) {
     Op* updOp = rewrite(current, next);
     float next_runtime = simulate_time(next, i+1, false, true);
     if (i % 100 == 0) {

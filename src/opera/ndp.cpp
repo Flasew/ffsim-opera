@@ -43,8 +43,8 @@ simtime_picosec NdpSrc::_min_rto = timeFromUs((uint32_t)DEFAULT_RTO_MIN);
 RouteStrategy NdpSrc::_route_strategy = NOT_SET;
 RouteStrategy NdpSink::_route_strategy = NOT_SET;
 
-NdpSrc::NdpSrc(DynExpTopology* top, NdpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst)
-    : EventSource(eventlist,"ndp"),  _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), _top(top) {
+NdpSrc::NdpSrc(DynExpTopology* top, NdpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd)
+    : EventSource(eventlist,"ndp"),  _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), _top(top), application_callback(acf), application_callback_data(acd) {
     
     _mss = Packet::data_packet_size(); // maximum segment size (mss)
 
@@ -356,7 +356,10 @@ void NdpSrc::processAck(const NdpAck& ack) {
         
         cout << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<
             " " << timeAsMs(eventlist().now() - get_start_time()) << " " << fixed << timeAsMs(get_start_time()) << endl;
-
+        
+        if (application_callback != nullptr) {
+            application_callback(application_callback_data);
+        }
         // debug a certain connection:
         //if ( get_flow_src() == 84 && get_flow_dst() == 0) {
         //cout << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<

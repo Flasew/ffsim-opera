@@ -1,5 +1,5 @@
 
-loads=[1 10 25 30 40];
+loads=[10 25];
 Nloads=length(loads);
 
 fcts=cell(1,Nloads);
@@ -62,7 +62,7 @@ end
 
 % get the FCTs for basic RotorNet
 
-load('FCT_1perc_RLBonly.mat');
+% load('FCT_1perc_RLBonly.mat');
 fcts_RN=data_fct;
 Nrecorded_flows=length(fcts_RN);
 % get the number of flows in each size

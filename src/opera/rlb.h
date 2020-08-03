@@ -75,7 +75,7 @@ class RlbSrc : public EventSource {
 class RlbSink : public EventSource {
     friend class RlbSrc;
  public:
-    RlbSink(DynExpTopology* top, EventList &eventlist, int flow_src, int flow_dst);
+    RlbSink(DynExpTopology* top, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
  
 
     //uint32_t get_id(){ return id;} // this is for logging...
@@ -86,7 +86,10 @@ class RlbSink : public EventSource {
     virtual void doNextEvent(); // don't actually use this, but need it to get access to eventlist
     
     //virtual const string& nodename() { return _nodename; }
- 
+        
+    void (*application_callback)(void*);
+    void * application_callback_data;
+    
     RlbSrc* _src;
 
     int _flow_src; // the sender (source) for this flow

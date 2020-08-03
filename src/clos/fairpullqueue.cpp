@@ -6,9 +6,11 @@ template<class PullPkt>
 BasePullQueue<PullPkt>::BasePullQueue() : _pull_count(0), _preferred_flow(-1) {
 }
 
+/*
 template<class PullPkt>
 BasePullQueue<PullPkt>::~BasePullQueue() {
 }
+*/
 
 
 template<class PullPkt>
