@@ -10,7 +10,7 @@ u=k/2; % endpoint fanout, also == number of rotors
 load(sprintf('msol_N=%d_k=%d_G=%d.mat',N,k,G));
 % Note:
 % `m_sol` contains the matchings implemented by each rotor switch
-% m_sol{rotor_switch_index, matching_index}
+m_sol{rotor_switch_index, matching_index}
 
 mpr=N/u; % matchings / rotor
 

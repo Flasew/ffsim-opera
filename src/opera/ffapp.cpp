@@ -36,6 +36,8 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
             task->toGuid = jstask["toTask"].get<float>();
             task->fromWorker = jstask["fromWorker"].get<float>();
             task->toWorker = jstask["toWorker"].get<float>();
+            task->fromNode = jstask["fromNode"].get<float>();
+            task->toNode = jstask["toNode"].get<float>();
             task->xferSize = jstask["xferSize"].get<float>();
         } else if (task_type == "intra-communication") { 
             task = new FFTask(this, FFTask::FF_INTRA_COMM, eventlist);
@@ -44,6 +46,8 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
             task->fromWorker = jstask["fromWorker"].get<float>();
             task->toWorker = jstask["toWorker"].get<float>();
             task->xferSize = jstask["xferSize"].get<float>();
+            task->fromNode = jstask["node"].get<float>();
+            task->toNode = task->fromNode;
         } else {
             task = new FFTask(this, FFTask::FF_COMP, eventlist);
         }
@@ -83,7 +87,7 @@ void FFApplication::start_init_tasks() {
 FFTask::FFTask(FFApplication * app, FFTaskType type, EventList & eventlist)
     : ffapp(app), type(type), EventSource(eventlist, "FFTask") {
     if (type == FF_COMP) {
-        fromWorker = toWorker = fromGuid = toGuid = xferSize = -1;
+        fromNode = toNode = fromWorker = toWorker = fromGuid = toGuid = xferSize = -1;
     }
 }
 

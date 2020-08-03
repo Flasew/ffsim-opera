@@ -1321,11 +1321,14 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
     for (int i = 0; i < comm_task_id; i++) {
       Task * currTask = commTasks[i];
       output << "\t\t{" << std::endl; 
-      if ((currTask->fromWorker / WORKERS_PER_NODE) == (currTask->toWorker / WORKERS_PER_NODE)) {
+      if ((currTask->fromWorker % WORKERS_PER_NODE) == (currTask->toWorker % WORKERS_PER_NODE)) {
         output << "\t\t\t" << "\"type\": \"intra-communication\"," << std::endl;
+        output << "\t\t\t" << "\"node\":" << std::to_string(currTask->fromWorker / WORKERS_PER_NODE) << "," << std::endl;
       }
       else {
         output << "\t\t\t" << "\"type\": \"inter-communication\"," << std::endl;
+        output << "\t\t\t" << "\"fromNode\":" << std::to_string(currTask->fromWorker / WORKERS_PER_NODE) << "," << std::endl;
+        output << "\t\t\t" << "\"toNode\":" << std::to_string(currTask->toWorker / WORKERS_PER_NODE) << "," << std::endl;
       }
       output << "\t\t\t" << "\"commid\": " << std::to_string(i) << "," << std::endl;
       output << "\t\t\t" << "\"fromWorker\": " << std::to_string(currTask->fromWorker) << "," << std::endl;
