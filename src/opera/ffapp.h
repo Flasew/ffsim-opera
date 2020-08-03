@@ -22,7 +22,7 @@ public:
 
 	int rlb_cutoff, cwnd;
 	double pull_rate;
-    std::vector<FFTask*> tasks;
+    std::unordered_map<int, FFTask*> tasks;
 	DynExpTopology * topology; 
     EventList & eventlist;
 	NdpRtxTimerScanner & ndpRtxScanner;
@@ -54,7 +54,7 @@ public:
 	simtime_picosec sim_start, sim_finish, sim_duration;
 	bool started;
 	std::unordered_set<FFTask*> preTasks; 
-    std::unordered_map<int, FFTask*> nextTasks;
+    std::vector<FFTask*> nextTasks;
 };
 
 void taskfinish(void * task);

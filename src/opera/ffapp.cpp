@@ -66,17 +66,17 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
 }
 
 FFApplication::~FFApplication() {
-    for (FFTask * task: tasks) {
-        delete task;
+    for (auto task: tasks) {
+        delete task.second;
     }
 }
 
 void FFApplication::start_init_tasks() {
     simtime_picosec delta = 0;
     int count = 0;
-    for (FFTask * task: tasks) {
-        if (task->preTasks.size() == 0) {
-            task->eventlist().sourceIsPending(*task, delta++);
+    for (auto task: tasks) {
+        if (task.second->preTasks.size() == 0) {
+            task.second->eventlist().sourceIsPending(*(task.second), delta++);
         }
     }
     std::cerr << "added " << count << " init tasks." << std::endl;
