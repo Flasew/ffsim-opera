@@ -94,8 +94,8 @@ void RlbSrc::doNextEvent() {
 ////////////////////////////////////////////////////////////////
 
 
-RlbSink::RlbSink(DynExpTopology* top, EventList &eventlist, int flow_src, int flow_dst)
-    : EventSource(eventlist,"rlbsnk"), _total_received(0), _flow_src(flow_src), _flow_dst(flow_dst), _top(top)
+RlbSink::RlbSink(DynExpTopology* top, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd)
+    : EventSource(eventlist,"rlbsnk"), _total_received(0), _flow_src(flow_src), _flow_dst(flow_dst), _top(top), application_callback(acf), application_callback_data(acd) 
 {
     _src = 0;
     _nodename = "rlbsink";
@@ -153,5 +153,9 @@ void RlbSink::receivePacket(Packet& pkt) {
 
         cout << "FCT " << _src->get_flow_src() << " " << _src->get_flow_dst() << " " << _src->get_flowsize() <<
             " " << timeAsMs(eventlist().now() - _src->get_start_time()) << " " << fixed << timeAsMs(_src->get_start_time()) << endl;
+
+        if (application_callback != nullptr) {
+            application_callback(application_callback_data);
+        }
     }
 }

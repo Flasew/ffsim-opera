@@ -1,4 +1,4 @@
-Building 3:1 Fat Tree with 648 nodes
+Building 3:1 Fat Tree with 648 nodes (k=12)
 FCT 226 156 100001 0.0943072 0.618412
 FCT 381 206 560 0.0073024 1.83625
 FCT 644 345 900 0.0089344 4.20182

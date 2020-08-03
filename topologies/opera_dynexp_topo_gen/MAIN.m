@@ -1,10 +1,10 @@
 
 %% inputs:
 
-N=108; % number of racks total
-k=12; % packet switch ToR radix, N must be divisible by k/2
+N=8; % number of racks total
+k=8; % packet switch ToR radix, N must be divisible by k/2
 
-Nruns=1; % number of random topology realizations to try
+Nruns=10000; % number of random topology realizations to try
 
 topotype=1;
 % topotype == 1 -> 1st shortest path between each ToR in each slice
