@@ -1,4 +1,4 @@
-CC = g++-9
+CC = g++
 CFLAGS = -Wall -ggdb -O3
 CRT=`pwd`
 INCLUDE= -I/$(CRT)/.. -I$(CRT) 

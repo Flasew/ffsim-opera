@@ -45,8 +45,6 @@ FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, in
             task->fromWorker = jstask["fromWorker"].get<float>();
             task->toWorker = jstask["toWorker"].get<float>();
             task->xferSize = jstask["xferSize"].get<float>();
-            task->fromNode = jstask["node"].get<float>();
-            task->toNode = task->fromNode;
         } else {
             task = new FFTask(this, FFTask::FF_COMP, eventlist);
         }
@@ -75,11 +73,13 @@ FFApplication::~FFApplication() {
 
 void FFApplication::start_init_tasks() {
     simtime_picosec delta = 0;
+    int count = 0;
     for (FFTask * task: tasks) {
         if (task->preTasks.size() == 0) {
             task->eventlist().sourceIsPending(*task, delta++);
         }
     }
+    std::cerr << "added " << count << " init tasks." << std::endl;
 }
 
 FFTask::FFTask(FFApplication * app, FFTaskType type, EventList & eventlist)
@@ -89,8 +89,7 @@ FFTask::FFTask(FFApplication * app, FFTaskType type, EventList & eventlist)
     }
 }
 
-// FFTask::FFTask(FFTask::FFTaskType type, EventList & eventlist,
-//          float rTime, float sTime, float cTime, float xfsz, 
+// FFTask::FFTask(FFTask::FFTaskType type, EventList & eventlist, //          float rTime, float sTime, float cTime, float xfsz, 
 //          int wid, int gid, int fworker, int tworker, int fGuid, int tGuid)
 //     : EventSource(eventlist, "FFTask") {
 
@@ -179,8 +178,7 @@ void taskfinish(void * task) {
     assert(fftask->type == FFTask::FF_COMM);
 
     fftask->sim_finish = fftask->eventlist().now();
-    fftask->sim_duration = (float)(fftask->sim_finish - fftask->sim_start) / 1000000000000;
+    fftask->sim_duration = (fftask->sim_finish - fftask->sim_start);
 
     fftask->cleanup();
-
 }

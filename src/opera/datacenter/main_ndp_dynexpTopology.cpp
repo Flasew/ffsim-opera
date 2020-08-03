@@ -18,6 +18,7 @@
 #include "topology.h"
 #include <list>
 #include "main.h"
+#include "ffapp.h"
 
 // Choose the topology here:
 #include "dynexp_topology.h"
@@ -163,91 +164,16 @@ int main(int argc, char **argv) {
     NdpSink::setRouteStrategy(route_strategy);
 
     // debug:
-    cout << "Loading traffic..." << endl;
+    cout << "Loading app..." << endl;
 
-    //ifstream input("flows.txt");
-    ifstream input(flowfile);
-    if (input.is_open()){
-        string line;
-        int64_t temp;
-        // get flows. Format: (src) (dst) (bytes) (starttime nanoseconds)
-        while(!input.eof()){
-            vector<int64_t> vtemp;
-            getline(input, line);
-            stringstream stream(line);
-            while (stream >> temp)
-                vtemp.push_back(temp);
-            //cout << "src = " << vtemp[0] << ", dest = " << vtemp[1] << ", bytes =  " << vtemp[2] << ", start_time[us] " << vtemp[3] << endl;
-
-            // source and destination hosts for this flow
-            int flow_src = vtemp[0];
-            int flow_dst = vtemp[1];
-
-            if (vtemp[2] < cutoff && vtemp[2] != rlbflow) { // priority flow, sent it over NDP
-
-                // generate an NDP source/sink:
-                NdpSrc* flowSrc = new NdpSrc(top, NULL, NULL, eventlist, flow_src, flow_dst);
-                flowSrc->setCwnd(cwnd*Packet::data_packet_size()); // congestion window
-                flowSrc->set_flowsize(vtemp[2]); // bytes
-
-                // Set the pull rate to something reasonable.
-                // we can be more aggressive if the load is lower
-                NdpPullPacer* flowpacer = new NdpPullPacer(eventlist, pull_rate); // 1 = pull at line rate
-                //NdpPullPacer* flowpacer = new NdpPullPacer(eventlist, .17);
-
-                NdpSink* flowSnk = new NdpSink(top, flowpacer, flow_src, flow_dst);
-                ndpRtxScanner.registerNdp(*flowSrc);
-
-                // set up the connection event
-                flowSrc->connect(*flowSnk, timeFromNs(vtemp[3]/1.));
-
-                sinkLogger.monitorSink(flowSnk);
-
-            }  else { // background flow, send it over RLB
-
-                // generate an RLB source/sink:
-
-                RlbSrc* flowSrc = new RlbSrc(top, NULL, NULL, eventlist, flow_src, flow_dst);
-                // debug:
-                //cout << "setting flow size to " << vtemp[2] << " bytes..." << endl;
-                flowSrc->set_flowsize(vtemp[2]); // bytes
-
-                RlbSink* flowSnk = new RlbSink(top, eventlist, flow_src, flow_dst);
-
-                // set up the connection event
-                flowSrc->connect(*flowSnk, timeFromNs(vtemp[3]/1.));
-
-            }
-        }
-    }
-
-    cout << "Traffic loaded." << endl;
-
-    RlbMaster* master = new RlbMaster(top, eventlist); // synchronizes the RLBmodules
-    master->start();
-
-    // NOTE: UtilMonitor defined in "pipe"
-    UtilMonitor* UM = new UtilMonitor(top, eventlist);
-    UM->start(timeFromSec(utiltime)); // print utilization every X milliseconds.
-
-    // debug:
-    //cout << "Starting... " << endl;
-
-
-    // Record the setup
-    //int pktsize = Packet::data_packet_size();
-    //logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
-    //logfile.write("# hostnicrate = " + ntoa(HOST_NIC) + " pkt/sec");
-    //logfile.write("# corelinkrate = " + ntoa(HOST_NIC*CORE_TO_HOST) + " pkt/sec");
-    //double rtt_rack = timeAsUs(timeFromNs(RTT_rack));
-    //logfile.write("# rtt_rack = " + ntoa(rtt_rack) + " microseconds");
-    //double rtt_net = timeAsUs(timeFromNs(RTT_net));
-    //logfile.write("# rtt_net = " + ntoa(rtt_net) + " microseconds");
-
+    FFApplication app = FFApplication(top, cwnd, pull_rate, cutoff, ndpRtxScanner, sinkLogger, eventlist, flowfile);
+    app.start_init_tasks();
+ 
     // GO!
     while (eventlist.doNextEvent()) {
     }
-    //cout << "Done" << endl;
+    cerr << "Done" << endl;
+    cerr << eventlist.now() << endl;
 
 }
 
