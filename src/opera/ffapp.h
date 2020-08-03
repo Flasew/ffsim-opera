@@ -50,7 +50,7 @@ public:
 	FFApplication * ffapp;
 	FFTaskType type;
     float readyTime, startTime, computeTime, xferSize;
-    int workerId, guid, fromWorker, toWorker, fromGuid, toGuid;
+    int workerId, guid, fromWorker, toWorker, fromGuid, toGuid, fromNode, toNode;
 	simtime_picosec sim_start, sim_finish, sim_duration;
 	bool started;
 	std::unordered_set<FFTask*> preTasks; 

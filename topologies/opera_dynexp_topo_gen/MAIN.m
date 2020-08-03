@@ -6,7 +6,7 @@ k=8; % packet switch ToR radix, N must be divisible by k/2
 
 Nruns=10000; % number of random topology realizations to try
 
-topotype=1;
+topotype=2;
 % topotype == 1 -> 1st shortest path between each ToR in each slice
 % topotype == 2 -> k-shortest Opera paths
 
