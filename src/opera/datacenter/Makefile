@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -ggdb -O3
+CFLAGS = -Wall -ggdb
 CRT=`pwd`
 INCLUDE= -I/$(CRT)/.. -I$(CRT) 
 LIB=-L..

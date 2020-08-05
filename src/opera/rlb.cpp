@@ -38,7 +38,7 @@ void RlbSrc::startflow() {
     _sent = 0;
 
     // debug:
-    //cout << "flow size = " << _flow_size << " bytes" << endl;
+    // cout << "flow size = " << _flow_size << " bytes" << endl;
 
     while (_sent < _flow_size) {
         sendToRlbModule();
@@ -84,6 +84,7 @@ void RlbSrc::doNextEvent() {
 
     // debug:
     //cout << "Starting flow at " << timeAsUs(eventlist().now()) << " us (current slice = " << slice << ")" << endl;
+    //cout << "Starting flow at " << timeAsUs(eventlist().now()) << " us" << endl;
 
     startflow();
 }
@@ -135,9 +136,9 @@ void RlbSink::receivePacket(Packet& pkt) {
 
     // debug:
     _pkts_received++;
-    //cout << " RlbSink[" << _flow_dst << "] has received " << _pkts_received << " packets" << endl;
-    //cout << ">>>Sink: pkt# = " << _pkts_received << ", seqno = " << p->seqno() << " received." << endl;
-    //cout << "   received at: " << timeAsMs(eventlist().now()) << " ms" << endl;
+    // cout << " RlbSink[" << _flow_dst << "] has received " << _pkts_received << " packets" << endl;
+    // cout << ">>>Sink: pkt# = " << _pkts_received << ", seqno = " << p->seqno() << " received." << endl;
+    // cout << "   received at: " << timeAsMs(eventlist().now()) << " ms" << endl;
 
     int size = p->size()-HEADER;
     _total_received += size;

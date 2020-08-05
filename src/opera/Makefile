@@ -7,7 +7,7 @@ CRT=`pwd`
 INC= -I/$(CRT)/datacenter -I$(CRT) 
 
 CC=g++
-CFLAGS= -Wall -g -O3 $(INC) 
+CFLAGS= -Wall -g $(INC) 
 
 all:	lib parse_output
 

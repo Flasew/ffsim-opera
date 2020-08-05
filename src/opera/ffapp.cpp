@@ -12,7 +12,7 @@ using json = nlohmann::json;
 
 FFApplication::FFApplication(DynExpTopology* top, int cwnd, double pull_rate, int rlb_cutoff, 
         NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph) 
-    : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
+    : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist), rlb_cutoff(rlb_cutoff) {
     
     // read the taskgraph and parse it
     std::ifstream t(taskgraph);
@@ -75,8 +75,10 @@ void FFApplication::start_init_tasks() {
     simtime_picosec delta = 0;
     int count = 0;
     for (auto task: tasks) {
+        //std::cerr << "guid:" << task.second->guid << "size: " << task.second->preTasks.size() << std::endl;
         if (task.second->preTasks.size() == 0) {
             task.second->eventlist().sourceIsPending(*(task.second), delta++);
+            count++;
         }
     }
     std::cerr << "added " << count << " init tasks." << std::endl;
@@ -87,6 +89,7 @@ FFTask::FFTask(FFApplication * app, FFTaskType type, EventList & eventlist)
     if (type == FF_COMP) {
         fromNode = toNode = fromWorker = toWorker = fromGuid = toGuid = xferSize = -1;
     }
+    started = false;
 }
 
 // FFTask::FFTask(FFTask::FFTaskType type, EventList & eventlist, //          float rTime, float sTime, float cTime, float xfsz, 
@@ -104,25 +107,30 @@ void FFTask::add_nextask(FFTask * task) {
 }
 
 void FFTask::taskstart() {
+    std::cerr << "Guid: " << guid << " try start at " << eventlist().now() << std::endl;
     if (preTasks.size() != 0 || started) {
+        std::cerr << "can't start, pre.size = " << preTasks.size() << std::endl;
         return;
     }
     sim_start = eventlist().now() + 1;
     started = true;
+    std::cerr << "started" << std::endl;
 
     if (type == FFTask::FF_COMM) {
         start_flow();
     } 
     else {
-        sim_duration = (simtime_picosec)(computeTime * 1000000000000ULL); 
+        sim_duration = (simtime_picosec)((double)computeTime * 1000000000ULL); 
         cleanup();
     }
 }
 
 void FFTask::cleanup() {
     sim_finish = sim_start + sim_duration;
+    std::cerr << "Finish " << guid << " at " << sim_finish << std::endl;
     for (FFTask * task: nextTasks) {
         task->preTasks.erase(this);
+        std::cerr << "Finish " << guid << ", Guid: " << task->guid << " has " << task->preTasks.size() << "pres." << std::endl;
         eventlist().sourceIsPending(*task, sim_finish);
     }
 }
@@ -133,12 +141,14 @@ void FFTask::doNextEvent() {
 
 void FFTask::start_flow() {
     
+    std::cerr << "Guid: " << guid << " start flow ";
     // from ndp main application: generate flow
 
     if (xferSize < ffapp->rlb_cutoff) { // priority flow, sent it over NDP
+        std::cerr << "NDP" <<std::endl;
 
         // generate an NDP source/sink:
-        NdpSrc* flowSrc = new NdpSrc(ffapp->topology, nullptr, nullptr, eventlist(), fromWorker, toWorker, taskfinish, this);
+        NdpSrc* flowSrc = new NdpSrc(ffapp->topology, nullptr, nullptr, eventlist(), fromNode, toNode, taskfinish, this);
         flowSrc->setCwnd(ffapp->cwnd * Packet::data_packet_size()); // congestion window
         flowSrc->set_flowsize(xferSize); // bytes
 
@@ -147,7 +157,7 @@ void FFTask::start_flow() {
         NdpPullPacer* flowpacer = new NdpPullPacer(eventlist(), ffapp->pull_rate); // 1 = pull at line rate
         //NdpPullPacer* flowpacer = new NdpPullPacer(eventlist(), .17);
 
-        NdpSink* flowSnk = new NdpSink(ffapp->topology, flowpacer, fromWorker, toWorker);
+        NdpSink* flowSnk = new NdpSink(ffapp->topology, flowpacer, fromNode, toNode);
         ffapp->ndpRtxScanner.registerNdp(*flowSrc);
 
         // set up the connection event
@@ -158,13 +168,14 @@ void FFTask::start_flow() {
     }  else { // background flow, send it over RLB
 
         // generate an RLB source/sink:
+        std::cerr << "RLB " << fromNode << " to " << toNode << std::endl;
 
-        RlbSrc* flowSrc = new RlbSrc(ffapp->topology, NULL, NULL, eventlist(), fromWorker, toWorker);
+        RlbSrc* flowSrc = new RlbSrc(ffapp->topology, NULL, NULL, eventlist(), fromNode, toNode);
         // debug:
         //cout << "setting flow size to " << vtemp[2] << " bytes..." << endl;
         flowSrc->set_flowsize(xferSize); // bytes
 
-        RlbSink* flowSnk = new RlbSink(ffapp->topology, eventlist(), fromWorker, toWorker, taskfinish, this);
+        RlbSink* flowSnk = new RlbSink(ffapp->topology, eventlist(), fromNode, toNode, taskfinish, this);
 
         // set up the connection event
         flowSrc->connect(*flowSnk, sim_start);
@@ -174,7 +185,9 @@ void FFTask::start_flow() {
 
 // for comunication task
 void taskfinish(void * task) {
+
     FFTask * fftask = (FFTask*) task;
+    std::cerr << "Guid: " << fftask->guid << " finished, calling back " <<std::endl;
     assert(fftask->type == FFTask::FF_COMM);
 
     fftask->sim_finish = fftask->eventlist().now();

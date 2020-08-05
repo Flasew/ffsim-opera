@@ -24,7 +24,7 @@
 
 const int SRC_LENGTH = 5;
 const int DST_LENGTH = 5;
-const int LSTM_PER_NODE_LENGTH = 8;
+const int LSTM_PER_NODE_LENGTH = 1;
 const int NUM_LAYERS = 2;
 const int VOCAB_SIZE = 32000;
 const int LOCAL_BATCH_SIZE = 64;
@@ -35,8 +35,8 @@ const int WORKERS_PER_NODE = 4;
 const int NUM_WORKERS = NUM_NODES * WORKERS_PER_NODE; // NUM_WORKERS <= MAX_NUM_WORKERS
 const int NUM_PARTITIONS = NUM_NODES * WORKERS_PER_NODE; // NUM_PARTITIONS <= MAX_NUM_PARTS
 const int BATCH_SIZE = NUM_PARTITIONS * LOCAL_BATCH_SIZE;
-const float INTRA_NODE_BANDWIDTH = 40.0 * 1024 * 1024 * 1024 / 8;
-const float CROSS_NODE_BANDWIDTH = 10.0 * 1024 * 1024 * 1024 / 8;
+const float INTRA_NODE_BANDWIDTH = 40.0 * 1024 * 1024 / 8;
+const float CROSS_NODE_BANDWIDTH = 10.0 * 1024 * 1024 / 8;
 
 using namespace std;
 
@@ -245,7 +245,7 @@ float Conv2D::compute(OpConfig c) {
 };
 
 float Conv2D::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks, std::vector<std::pair<Task*, Task*>>& edges) {
-  printf("calling update\n");
+  //printf("calling update\n");
   int used[NUM_WORKERS];
   assert(vec.size() == 1);
   OpConfig config = vec[0];
@@ -277,15 +277,19 @@ float Conv2D::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks
     }
   }
 
-  printf("Cross cnt: %d, Intra_cnt: %d\n", cross_cnt, intra_cnt);
+  //printf("Cross cnt: %d, Intra_cnt: %d\n", cross_cnt, intra_cnt);
   float xfer = kernelH * kernelW * inputSize * outputSize * sizeof(float);
 
   if (intra_cnt > 1) {
     int comm_device_id = (nodes_used.front() + 1) * MAX_NUM_WORKERS + (nodes_used.front() + 2);
     Task * task = new Task(comm_device_id, xfer * (intra_cnt - 1));
+    task->fromWorker = nodes_used.front();
+    task->toWorker = nodes_used.front() + 1;
     task->fromGuid = tasks.back()->guid;
     task->xferSize = xfer * (intra_cnt - 1);
     task->computeTime = task->xferSize / INTRA_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->toGuid = task->guid; 
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
@@ -308,9 +312,11 @@ float Conv2D::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks
     task->xferSize = xfer;
     assert((curr / WORKERS_PER_NODE) != (next / WORKERS_PER_NODE));
     task->computeTime = xfer / CROSS_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
-    printf("Conv adding %d, %d\n", tasks.back()->guid, task->guid);
+    //printf("Conv adding %d, %d\n", tasks.back()->guid, task->guid);
     edges.push_back(std::make_pair(tasks.back(), task));
     tasks.push_back(task);
     curr = next;
@@ -403,7 +409,7 @@ private:
 };
 
 float Pool2D::compute(OpConfig c) {
-  printf("name: %s, c.ndims: %d\n",name.c_str(), c.nDims);
+  //printf("name: %s, c.ndims: %d\n",name.c_str(), c.nDims);
   assert(c.nDims == 1);
   int idx = 0;
   for (; idx < nConfigs; idx++)
@@ -680,13 +686,17 @@ float LSTM::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks, 
   if (intra_cnt > 1) {
     int comm_device_id = (nodes_used.front() + 1) * MAX_NUM_WORKERS + (nodes_used.front() + 2);
     Task * task = new Task(comm_device_id, xfer * (intra_cnt - 1));
+    task->fromWorker = nodes_used.front();
+    task->toWorker = nodes_used.front() + 1;
     task->fromGuid = tasks.back()->guid;
     task->xferSize = xfer * (intra_cnt - 1);
     task->computeTime = task->xferSize / INTRA_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->toGuid = task->guid; 
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
-    printf("LSTM adding %d, %d\n", tasks.back()->guid, task->guid);
+    //printf("LSTM adding %d, %d\n", tasks.back()->guid, task->guid);
     edges.push_back(std::make_pair(tasks.back(), task));
     tasks.push_back(task);
   }
@@ -699,7 +709,7 @@ float LSTM::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks, 
     int comm_device_id = (curr + 1) * MAX_NUM_WORKERS + next;
     Task* task = new Task(comm_device_id, xfer);
     task->fromWorker = curr;
-    printf("Adding %d, %d \n", curr, next);
+    //printf("Adding %d, %d \n", curr, next);
     task->fromGuid = tasks.back()->guid;
     tasks.back()->toGuid = task->guid;
     task->toWorker = next;
@@ -707,9 +717,11 @@ float LSTM::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks, 
     task->xferSize = xfer;
     assert((curr / WORKERS_PER_NODE) != (next / WORKERS_PER_NODE));
     task->computeTime = xfer / CROSS_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
-    printf("LSTM adding %d, %d\n", tasks.back()->guid, task->guid);
+    //printf("LSTM adding %d, %d\n", tasks.back()->guid, task->guid);
     edges.push_back(std::make_pair(tasks.back(), task));
     tasks.push_back(task);
     curr = next;
@@ -866,14 +878,18 @@ float Softmax::update(const std::vector<OpConfig>& vec, std::vector<Task*>& task
     if (intra_cnt > 1) {
       int comm_device_id = (nodes_used.front() + 1) * MAX_NUM_WORKERS + (nodes_used.front() + 2);
       Task * task = new Task(comm_device_id, xfer * (intra_cnt - 1));
+      task->fromWorker = nodes_used.front();
+      task->toWorker = nodes_used.front() + 1;
       task->fromGuid = tasks.back()->guid;
       task->xferSize = xfer * (intra_cnt - 1);
       task->computeTime = task->xferSize / INTRA_NODE_BANDWIDTH;
+      task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+      task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
       tasks.back()->toGuid = task->guid; 
       tasks.back()->add_next_task(task);
       task->add_next_task(tasks.back());
       edges.push_back(std::make_pair(tasks.back(), task));
-      printf("Softmax: adding %d, %d\n", tasks.back()->guid, task->guid);
+      //printf("Softmax: adding %d, %d\n", tasks.back()->guid, task->guid);
       tasks.push_back(task);
     }
 
@@ -885,7 +901,7 @@ float Softmax::update(const std::vector<OpConfig>& vec, std::vector<Task*>& task
       int comm_device_id = (curr + 1) * MAX_NUM_WORKERS + next;
       Task* task = new Task(comm_device_id, xfer);
       task->fromWorker = curr;
-      printf("Adding %d, %d \n", curr, next);
+      //printf("Adding %d, %d \n", curr, next);
       task->fromGuid = tasks.back()->guid;
       tasks.back()->toGuid = task->guid;
       task->toWorker = next;
@@ -893,10 +909,12 @@ float Softmax::update(const std::vector<OpConfig>& vec, std::vector<Task*>& task
       task->xferSize = xfer;
       assert((curr / WORKERS_PER_NODE) != (next / WORKERS_PER_NODE));
       task->computeTime = xfer / CROSS_NODE_BANDWIDTH;
+      task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+      task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
       tasks.back()->add_next_task(task);
       task->add_next_task(tasks.back());
       edges.push_back(std::make_pair(tasks.back(), task));
-      printf("Softmax: adding %d, %d\n", tasks.back()->guid, task->guid);
+      //printf("Softmax: adding %d, %d\n", tasks.back()->guid, task->guid);
       tasks.push_back(task);
       curr = next;
     }
@@ -1025,12 +1043,16 @@ float Embed::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks,
     Task * task = new Task(comm_device_id, xfer * (intra_cnt - 1));
     task->fromGuid = tasks.back()->guid;
     task->xferSize = xfer * (intra_cnt - 1);
+    task->fromWorker = nodes_used.front();
+    task->toWorker = nodes_used.front() + 1;
     task->computeTime = task->xferSize / INTRA_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->toGuid = task->guid; 
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
     edges.push_back(std::make_pair(tasks.back(), task));
-    printf("embed: adding %d, %d\n", tasks.back()->guid, task->guid);
+    //printf("embed: adding %d, %d\n", tasks.back()->guid, task->guid);
     tasks.push_back(task);
   }
 
@@ -1042,7 +1064,7 @@ float Embed::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks,
     int comm_device_id = (curr + 1) * MAX_NUM_WORKERS + next;
     Task* task = new Task(comm_device_id, xfer);
     task->fromWorker = curr;
-    printf("Adding %d, %d \n", curr, next);
+    //printf("Adding %d, %d \n", curr, next);
     task->fromGuid = tasks.back()->guid;
     tasks.back()->toGuid = task->guid;
     task->toWorker = next;
@@ -1050,10 +1072,12 @@ float Embed::update(const std::vector<OpConfig>& vec, std::vector<Task*>& tasks,
     task->xferSize = xfer;
     assert((curr / WORKERS_PER_NODE) != (next / WORKERS_PER_NODE));
     task->computeTime = xfer / CROSS_NODE_BANDWIDTH;
+    task->readyTime = tasks.back()->readyTime + tasks.back()->computeTime;
+    task->startTime = tasks.back()->startTime + tasks.back()->computeTime;
     tasks.back()->add_next_task(task);
     task->add_next_task(tasks.back());
     edges.push_back(std::make_pair(tasks.back(), task));
-    printf("embed: adding %d, %d\n", tasks.back()->guid, task->guid);
+    //printf("embed: adding %d, %d\n", tasks.back()->guid, task->guid);
     tasks.push_back(task);
     curr = next;
   }
@@ -1135,10 +1159,10 @@ float intersect(Rect a, Rect b)
 
 inline float bandwidth(int gpu1, int gpu2)
 {
-  int node1 = gpu1 % WORKERS_PER_NODE;
-  int node2 = gpu2 % WORKERS_PER_NODE;
+  int node1 = gpu1 / WORKERS_PER_NODE;
+  int node2 = gpu2 / WORKERS_PER_NODE;
   if (gpu1 == gpu2)
-    return 1024 * 1024 * 1024;
+    return 1024.0 * 1024 * 400 / 8;
   else if (node1 == node2)
     return INTRA_NODE_BANDWIDTH;//NVLink Bandwidth
   else
@@ -1162,7 +1186,7 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
   for (int i = 0; i < op_global_guid; i++) {
     Op* op = guidToOp[i];
     OpConfig config = global.find(op)->second;
-    printf("opname: %s, id: %d, ndim:%d\n", op->name.c_str(), i, config.nDims);
+    //printf("opname: %s, id: %d, ndim:%d\n", op->name.c_str(), i, config.nDims);
     for (int j = 0; j < config.nParts; j++) {
       tasks[i][j] = new Task(config.map[j], op->compute(config));
       accCompTime += tasks[i][j]->computeTime;
@@ -1321,7 +1345,7 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
     for (int i = 0; i < comm_task_id; i++) {
       Task * currTask = commTasks[i];
       output << "\t\t{" << std::endl; 
-      if ((currTask->fromWorker % WORKERS_PER_NODE) == (currTask->toWorker % WORKERS_PER_NODE)) {
+      if ((currTask->fromWorker / WORKERS_PER_NODE) == (currTask->toWorker / WORKERS_PER_NODE)) {
         output << "\t\t\t" << "\"type\": \"intra-communication\"," << std::endl;
         output << "\t\t\t" << "\"node\":" << std::to_string(currTask->fromWorker / WORKERS_PER_NODE) << "," << std::endl;
       }
@@ -1351,7 +1375,7 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
     for (int i = 0; i < updateTasks.size(); i++) {
       Task * currTask = updateTasks[i];
       output << "\t\t{" << std::endl; 
-      if ((currTask->fromWorker % WORKERS_PER_NODE) == (currTask->toWorker % WORKERS_PER_NODE)) {
+      if ((currTask->fromWorker / WORKERS_PER_NODE) == (currTask->toWorker / WORKERS_PER_NODE)) {
         output << "\t\t\t" << "\"type\": \"intra-communication\"," << std::endl;
         output << "\t\t\t" << "\"node\":" << std::to_string(currTask->fromWorker / WORKERS_PER_NODE) << "," << std::endl;
       }
@@ -1431,7 +1455,7 @@ Op* rewrite(const std::map<Op*, OpConfig>& current,
   next = current;
   int opId = std::rand() % op_global_guid;
   next[guidToOp[opId]] = guidToOp[opId]->get_random_config();
-  printf("rewrite: name: %s, c.ndims: %d\n",guidToOp[opId]->name.c_str(), next[guidToOp[opId]].nDims);
+  //printf("rewrite: name: %s, c.ndims: %d\n",guidToOp[opId]->name.c_str(), next[guidToOp[opId]].nDims);
   return guidToOp[opId];
 }
 
@@ -1808,13 +1832,13 @@ int main()
   }
   */
   optimal = current;
-  float optimal_runtime = simulate_time(current, 0, true, true), optimalDataXfer = 0.0f;
+  float optimal_runtime = simulate_time(current, 0, false, false), optimalDataXfer = 0.0f;
   float cur_runtime = optimal_runtime;
   long long start_time = current_time();
   int good_moves = 0, best_moves = 0;
-  for (int i = 0; i <= 100; i++) {
+  for (int i = 0; i <= 10000; i++) {
     Op* updOp = rewrite(current, next);
-    float next_runtime = simulate_time(next, i+1, false, true);
+    float next_runtime = simulate_time(next, i+1, false, i == 10000);
     if (i % 100 == 0) {
       printf("cur(%.2lf) next(%.2lf) best(%.2lf) optimalDataXfer(%.2lf)\n", cur_runtime, next_runtime, optimal_runtime, optimalDataXfer);
       long long end_time = current_time();

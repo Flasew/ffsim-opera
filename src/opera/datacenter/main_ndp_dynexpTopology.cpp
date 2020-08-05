@@ -164,10 +164,17 @@ int main(int argc, char **argv) {
     NdpSink::setRouteStrategy(route_strategy);
 
     // debug:
-    cout << "Loading app..." << endl;
+    //cout << "Loading app..." << endl;
 
     FFApplication app = FFApplication(top, cwnd, pull_rate, cutoff, ndpRtxScanner, sinkLogger, eventlist, flowfile);
     app.start_init_tasks();
+
+    RlbMaster* master = new RlbMaster(top, eventlist); // synchronizes the RLBmodules
+    master->start();
+
+    // NOTE: UtilMonitor defined in "pipe"
+    UtilMonitor* UM = new UtilMonitor(top, eventlist);
+    UM->start(timeFromSec(utiltime)); // print utilization every X milliseconds.
  
     // GO!
     while (eventlist.doNextEvent()) {

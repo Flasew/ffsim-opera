@@ -93,12 +93,12 @@ void DynExpTopology::read_params(string topfile) {
     }
 
     // debug:
-    cout << "Loading topology..." << endl;
+    //cout << "Loading topology..." << endl;
 
     int sz = 0;
+    int slice; // which topology slice we're in
     while(!input.eof()) {
       int s, d; // current source and destination tor
-      int slice; // which topology slice we're in
       vector<int> vtemp;
       getline(input, line);
       stringstream stream(line);
@@ -119,7 +119,7 @@ void DynExpTopology::read_params(string topfile) {
     }
 
     // debug:
-    cout << "Loaded topology." << endl;
+    //cout << "Loaded topology." << endl;
 
   }
 }

@@ -480,7 +480,7 @@ void NdpSrc::pull_packets(NdpPull::seq_t pull_no, NdpPull::seq_t pacer_no) {
 
 Queue* NdpSrc::sendToNIC(NdpPacket* pkt) {
     DynExpTopology* top = pkt->get_topology();
-    Queue* nic = top->get_queue_serv_tor(pkt->get_src()); // returns pointer to nic queue
+    PriorityQueue* nic = (PriorityQueue*)top->get_queue_serv_tor(pkt->get_src()); // returns pointer to nic queue
     nic->receivePacket(*pkt); // send this packet to the nic queue
     return nic; // return pointer so NDP source can update send time
 }
@@ -566,7 +566,9 @@ void NdpSrc::send_packet(NdpPull::seq_t pacer_no) {
         //PacketSink* sink = p->sendOn();
         //PacketSink* sink = p->sendToNIC();
         Queue* sink = sendToNIC(p);
+        //printf("Sink: %p\n", sink);
         PriorityQueue *q = dynamic_cast<PriorityQueue*>(sink);
+        //printf("pq: %p\n", q);
         assert(q);
         //Figure out how long before the feeder queue sends this
         //packet, and add it to the sent time. Packets can spend quite
