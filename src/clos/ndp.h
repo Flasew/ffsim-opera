@@ -45,7 +45,7 @@ class ReceiptEvent {
 class NdpSrc : public PacketSink, public EventSource {
     friend class NdpSink;
  public:
-    NdpSrc(NdpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst);
+    NdpSrc(NdpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
     uint32_t get_id(){ return id;}
     virtual void connect(Route& routeout, Route& routeback, NdpSink& sink, simtime_picosec startTime);
     void set_traffic_logger(TrafficLogger* pktlogger);
@@ -154,6 +154,9 @@ class NdpSrc : public PacketSink, public EventSource {
 
     int _flow_src; // the sender (source) for this flow
     int _flow_dst; // the receiver (sink) for this flow
+
+    void (*application_callback)(void*);
+    void * application_callback_data;
 
  private:
     // Housekeeping

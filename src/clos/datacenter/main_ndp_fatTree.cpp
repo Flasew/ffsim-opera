@@ -18,6 +18,7 @@
 #include "compositequeue.h"
 #include "firstfit.h"
 #include "topology.h"
+#include "ffapp.h"
 
 #include "fat_tree_topology.h"
 
@@ -120,7 +121,7 @@ int main(int argc, char **argv) {
 	} else if (!strcmp(argv[i],"-utiltime")) {
             utiltime = atof(argv[i+1]);
             i++;
-    } else
+    } else 
         exit_error(argv[0]);
         i++;
     }
@@ -175,56 +176,54 @@ int main(int argc, char **argv) {
     NdpSrc::setRouteStrategy(route_strategy);
     NdpSink::setRouteStrategy(route_strategy);
 
-
     //ifstream input("flows.txt");
-    ifstream input(flowfile);
-    if (input.is_open()){
-        string line;
-        int64_t temp;
-        // get flows. Format: (src) (dst) (bytes) (starttime microseconds)
-        while(!input.eof()){
-            vector<int64_t> vtemp;
-            getline(input, line);
-            stringstream stream(line);
-            while (stream >> temp)
-                vtemp.push_back(temp);
-            //cout << "src = " << vtemp[0] << " dest = " << vtemp[1] << " bytes " << vtemp[2] << " time " << vtemp[3] << endl;
+    // ifstream input(flowfile);
+    // if (input.is_open()){
+    //     string line;
+    //     int64_t temp;
+    //     // get flows. Format: (src) (dst) (bytes) (starttime microseconds)
+    //     while(!input.eof()){
+    //         vector<int64_t> vtemp;
+    //         getline(input, line);
+    //         stringstream stream(line);
+    //         while (stream >> temp)
+    //             vtemp.push_back(temp);
+    //         //cout << "src = " << vtemp[0] << " dest = " << vtemp[1] << " bytes " << vtemp[2] << " time " << vtemp[3] << endl;
             
-            // source and destination hosts for this flow
-            int flow_src = vtemp[0];
-            int flow_dst = vtemp[1];
+    //         // source and destination hosts for this flow
+    //         int flow_src = vtemp[0];
+    //         int flow_dst = vtemp[1];
 
-            NdpSrc* flowSrc = new NdpSrc(NULL, NULL, eventlist, flow_src, flow_dst);
-            flowSrc->setCwnd(cwnd*Packet::data_packet_size());
-            flowSrc->set_flowsize(vtemp[2]); // bytes
-            NdpPullPacer* flowpacer = new NdpPullPacer(eventlist, pull_rate); // 1 = pull at line rate   
-            NdpSink* flowSnk = new NdpSink(flowpacer);
-            ndpRtxScanner.registerNdp(*flowSrc);
-            Route* routeout, *routein;
+    //         NdpSrc* flowSrc = new NdpSrc(NULL, NULL, eventlist, flow_src, flow_dst);
+    //         flowSrc->setCwnd(cwnd*Packet::data_packet_size());
+    //         flowSrc->set_flowsize(vtemp[2]); // bytes
+    //         NdpPullPacer* flowpacer = new NdpPullPacer(eventlist, pull_rate); // 1 = pull at line rate   
+    //         NdpSink* flowSnk = new NdpSink(flowpacer);
+    //         ndpRtxScanner.registerNdp(*flowSrc);
+    //         Route* routeout, *routein;
 
-            vector<const Route*>* srcpaths = top->get_paths(flow_src, flow_dst);
-            routeout = new Route(*(srcpaths->at(0)));
-            routeout->push_back(flowSnk);
+    //         vector<const Route*>* srcpaths = top->get_paths(flow_src, flow_dst);
+    //         routeout = new Route(*(srcpaths->at(0)));
+    //         routeout->push_back(flowSnk);
 
-            vector<const Route*>* dstpaths = top->get_paths(flow_dst, flow_src);
-            routein = new Route(*(dstpaths->at(0)));
-            routein->push_back(flowSrc);
+    //         vector<const Route*>* dstpaths = top->get_paths(flow_dst, flow_src);
+    //         routein = new Route(*(dstpaths->at(0)));
+    //         routein->push_back(flowSrc);
 
-            flowSrc->connect(*routeout, *routein, *flowSnk, timeFromNs(vtemp[3]/1.));
+    //         flowSrc->connect(*routeout, *routein, *flowSnk, timeFromNs(vtemp[3]/1.));
 
-            flowSrc->set_paths(srcpaths);
-            flowSnk->set_paths(dstpaths);
-            sinkLogger.monitorSink(flowSnk);
+    //         flowSrc->set_paths(srcpaths);
+    //         flowSnk->set_paths(dstpaths);
+    //         sinkLogger.monitorSink(flowSnk);
 
-        }
-    }
+    //     }
+    // }
 
+    FFApplication app = FFApplication(top, cwnd, pull_rate, ndpRtxScanner, sinkLogger, eventlist, flowfile);
+    app.start_init_tasks();
 
     UtilMonitor* UM = new UtilMonitor(top, eventlist);
     UM->start(timeFromSec(utiltime));
-
-
-
 
     // Record the setup
     int pktsize = Packet::data_packet_size();

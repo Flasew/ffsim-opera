@@ -56,9 +56,9 @@ typedef uint16_t port_t;
 using namespace std;
 #endif
 
-#ifdef _WIN32
-#define max(a,b) (((a)>(b))?(a):(b))
-#define min(a,b) (((a)<(b))?(a):(b))
-#endif
+// #ifdef _WIN32
+// #define max(a,b) (((a)>(b))?(a):(b))
+// #define min(a,b) (((a)<(b))?(a):(b))
+// #endif
 
 #endif

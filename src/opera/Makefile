@@ -6,7 +6,7 @@ HDRS=network.h rlb.h ndp.h compositequeue.h cpqueue.h queue.h loggers.h loggerty
 CRT=`pwd`
 INC= -I/$(CRT)/datacenter -I$(CRT) 
 
-CC=g++
+CC=g++-10
 CFLAGS= -Wall -g $(INC) 
 
 all:	lib parse_output
