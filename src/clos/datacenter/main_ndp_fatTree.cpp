@@ -32,7 +32,7 @@
 #include "main.h"
 
 uint32_t RTT_rack = 0; // ns
-uint32_t RTT_net = 500; // ns
+uint32_t RTT_net = 0; // ns
 int DEFAULT_NODES = 16;
 
 FirstFit* ff = NULL; // not really necessary

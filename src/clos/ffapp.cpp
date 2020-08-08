@@ -142,7 +142,7 @@ void FFTask::doNextEvent() {
 
 void FFTask::start_flow() {
     
-    std::cerr << "Guid: " << guid << " start flow ";
+    std::cerr << "Guid: " << guid << " start flow (" << fromNode << ", " << toNode << ")\n";
     // from ndp main application: generate flow
 
     NdpSrc* flowSrc = new NdpSrc(nullptr, nullptr, eventlist(), fromNode, toNode, taskfinish, (void*)this);
