@@ -145,7 +145,7 @@ void FFTaskTCP::start_flow() {
     std::cerr << "Guid: " << guid << " start flow (" << fromNode << ", " << toNode << ")\n";
     // from ndp main application: generate flow
 
-    TcpSrc* flowSrc = new TcpSrc(NULL, &ffapp->tcpTrafficLogger, eventlist(), fromNode, toNode);
+    TcpSrc* flowSrc = new TcpSrc(NULL, &ffapp->tcpTrafficLogger, eventlist(), fromNode, toNode, fftcptaskfinish, this);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(xferSize); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());

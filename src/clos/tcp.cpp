@@ -10,8 +10,8 @@
 ////////////////////////////////////////////////////////////////
 
 TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, 
-	       EventList &eventlist, int flow_src, int flow_dst)
-    : EventSource(eventlist,"tcp"),  _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst)
+	       EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd)
+    : EventSource(eventlist,"tcp"),  _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), application_callback(acf), application_callback_data(acd)
 {
     _mss = Packet::data_packet_size();
     _maxcwnd = 0xffffffff;//MAX_SENT*_mss;
@@ -234,6 +234,9 @@ TcpSrc::receivePacket(Packet& pkt)
 		// FCT output for processing: (src dst bytes fct_ms timestarted_ms)
         cout << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<
             " " << timeAsMs(eventlist().now() - get_start_time()) << " " << timeAsMs(get_start_time()) << endl;
+        if (application_callback != nullptr) {
+            application_callback(application_callback_data);
+        }
     }
   
     if (seqno > _last_acked) { // a brand new ack

@@ -29,7 +29,7 @@ class MultipathTcpSink;
 class TcpSrc : public PacketSink, public EventSource {
     friend class TcpSink;
  public:
-    TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst);
+    TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
     uint32_t get_id(){ return id;}
     virtual void connect(const Route& routeout, const Route& routeback, 
 			 TcpSink& sink, simtime_picosec startTime);
@@ -37,6 +37,10 @@ class TcpSrc : public PacketSink, public EventSource {
     inline void joinMultipathConnection(MultipathTcpSrc* multipathSrc) {
 	_mSrc = multipathSrc;
     };
+
+
+    void (*application_callback)(void*);
+    void * application_callback_data;
 
     void doNextEvent();
     virtual void receivePacket(Packet& pkt);
