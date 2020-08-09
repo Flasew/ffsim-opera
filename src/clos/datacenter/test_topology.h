@@ -54,7 +54,7 @@ class TestTopology: public Topology{
   Queue* alloc_queue(QueueLogger* q, mem_b queuesize);
   Queue* alloc_queue(QueueLogger* q, uint64_t speed, mem_b queuesize);
 
-  Pipe* get_pipe(int to) { return pipes_ns_nlp[0][to]; }
+  Pipe* get_pipe(int to) { return pipes_ns_nlp[to][0]; }
 
   void count_queue(Queue*);
   void print_path(std::ofstream& paths,int src,const Route* route);
