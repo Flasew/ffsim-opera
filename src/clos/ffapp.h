@@ -1,11 +1,14 @@
 #ifndef FF_APP_H
 #define FF_APP_H
-#include "fat_tree_topology.h"
-#undef max
+
+#include "loggers.h"
+#undef max 
+
 #include <vector>
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include "topology.h"
 #include "eventlist.h"
 #include "ndp.h"
 
@@ -17,7 +20,7 @@ class FFTask;
 
 class FFApplication {
 public:
-    FFApplication(FatTreeTopology* top, int cwnd, double pull_rate,  
+    FFApplication(Topology* top, int cwnd, double pull_rate,  
 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
 	~FFApplication();
 
@@ -26,7 +29,7 @@ public:
 	int cwnd;
 	double pull_rate;
     std::unordered_map<int, FFTask*> tasks;
-	FatTreeTopology * topology; 
+	Topology * topology; 
     EventList & eventlist;
 	NdpRtxTimerScanner & ndpRtxScanner;
 	NdpSinkLoggerSampling & sinkLogger;

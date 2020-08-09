@@ -11,7 +11,7 @@
 
 using json = nlohmann::json;
 
-FFApplication::FFApplication(FatTreeTopology* top, int cwnd, double pull_rate,  
+FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
 
