@@ -1,4 +1,4 @@
-CC=g++
+CC=g++-10
 CXX=g++
 CFLAGS=-Wall -g -O0
 CRT=`pwd`
@@ -17,8 +17,8 @@ all:	htsim_ndp_fatTree_3to1_k12 htsim_ndp_fatTree_6to1_hybrid htsim_ndp_fatTree 
 htsim_ndp_fatTree: main_ndp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fatTree.o fat_tree_topology.o $(LIB) -lhtsim -o htsim_ndp_fatTree
 
-htsim_ndp_fc: main_ndp_fc.o firstfit.o ../libhtsim.a test_topology.o
-	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o test_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
+htsim_ndp_fc: main_ndp_fc.o firstfit.o ../libhtsim.a fc_topology.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o fc_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
 
 htsim_tcp_fc: main_tcp_fc.o firstfit.o ../libhtsim.a test_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o test_topology.o $(LIB) -lhtsim -o htsim_tcp_fc
@@ -65,6 +65,9 @@ firstfit.o: firstfit.cpp
 
 test_topology.o: test_topology.cpp test_topology.h topology.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c test_topology.cpp
+
+fc_topology.o: fc_topology.cpp fc_topology.h topology.h
+	$(CC) $(INCLUDE) $(CFLAGS) -c fc_topology.cpp
 
 fat_tree_topology.o: fat_tree_topology.cpp fat_tree_topology.h topology.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c fat_tree_topology.cpp

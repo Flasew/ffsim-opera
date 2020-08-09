@@ -20,7 +20,7 @@
 #include "topology.h"
 #include "ffapp.h"
 
-#include "test_topology.h"
+#include "fc_topology.h"
 
 #include <list>
 
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
 
     NdpRtxTimerScanner ndpRtxScanner(timeFromMs(1), eventlist);
 
-    TestTopology* top = new TestTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, COMPOSITE);
+    FCTopology* top = new FCTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, COMPOSITE);
 
     // initialize all sources/sinks
     NdpSrc::setMinRTO(1000); //increase RTO to avoid spurious retransmits
