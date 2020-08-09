@@ -7,8 +7,7 @@ INCLUDE= -I/$(CRT)/.. -I$(CRT)
 LIB=-L.. 
 #-Lksp
 
-all:	htsim_ndp_fatTree_3to1_k12 htsim_ndp_fatTree_6to1_hybrid htsim_ndp_fatTree htsim_ndp_fc
-
+all:	htsim_ndp_fatTree_3to1_k12 htsim_ndp_fatTree_6to1_hybrid htsim_ndp_fatTree htsim_ndp_fc htsim_tcp_fc
 # htsim_dctcp_fatTree: main_dctcp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology.o
 # 	$(CC) $(CFLAGS) firstfit.o main_dctcp_fatTree.o fat_tree_topology.o $(LIB) -lhtsim -o htsim_dctcp_fatTree
 
@@ -20,6 +19,9 @@ htsim_ndp_fatTree: main_ndp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology
 
 htsim_ndp_fc: main_ndp_fc.o firstfit.o ../libhtsim.a test_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o test_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
+
+htsim_tcp_fc: main_tcp_fc.o firstfit.o ../libhtsim.a test_topology.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o test_topology.o $(LIB) -lhtsim -o htsim_tcp_fc
 
 htsim_ndp_fatTree_3to1_k12: main_ndp_fatTree_3to1_k12.o firstfit.o ../libhtsim.a fat_tree_topology_3to1_k12.o
 	$(CC) $(CFLAGS) firstfit.o main_ndp_fatTree_3to1_k12.o fat_tree_topology_3to1_k12.o $(LIB) -lhtsim -o htsim_ndp_fatTree_3to1_k12
@@ -41,6 +43,10 @@ main_tcp_fatTree.o: main_tcp_fatTree.cpp
 
 main_ndp_fc.o: main_ndp_fc.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c main_ndp_fc.cpp
+
+main_tcp_fc.o: main_tcp_fc.cpp
+	$(CC) $(INCLUDE) $(CFLAGS) -c main_tcp_fc.cpp
+
 
 main_ndp_fatTree.o: main_ndp_fatTree.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c main_ndp_fatTree.cpp
