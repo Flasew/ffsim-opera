@@ -20,7 +20,7 @@
 #include "topology.h"
 #include "ffapp.h"
 
-#include "fat_tree_topology.h"
+#include "test_topology.h"
 
 #include <list>
 
@@ -31,9 +31,8 @@
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT_rack = 0; // ns
-uint32_t RTT_net = 0; // ns
-int DEFAULT_NODES = 16;
+uint32_t RTT = 0; // ns
+int DEFAULT_NODES = 4;
 
 FirstFit* ff = NULL; // not really necessary
 //unsigned int subflow_count = 1;
@@ -56,11 +55,11 @@ void exit_error(char* progr) {
 
 void print_path(std::ofstream &paths,const Route* rt){
     for (unsigned int i=1;i<rt->size()-1;i+=2){
-	RandomQueue* q = (RandomQueue*)rt->at(i);
-	if (q!=NULL)
-	    paths << q->str() << " ";
-	else 
-	    paths << "NULL ";
+  RandomQueue* q = (RandomQueue*)rt->at(i);
+  if (q!=NULL)
+      paths << q->str() << " ";
+  else 
+      paths << "NULL ";
     }
 
     paths<<endl;
@@ -85,40 +84,40 @@ int main(int argc, char **argv) {
     RouteStrategy route_strategy = NOT_SET;
 
     while (i<argc) {
-	if (!strcmp(argv[i],"-o")){
-	    filename.str(std::string());
-	    filename << argv[i+1];
-	    i++;
-	} else if (!strcmp(argv[i],"-nodes")){
-	    no_of_nodes = atoi(argv[i+1]);
-	    i++;
-	} else if (!strcmp(argv[i],"-cwnd")){
-	    cwnd = atoi(argv[i+1]);
-	    i++;
-	} else if (!strcmp(argv[i],"-q")){
-	    queuesize = atoi(argv[i+1]) * DEFAULT_PACKET_SIZE;
-	    i++;
-	} else if (!strcmp(argv[i],"-strat")){
-	    if (!strcmp(argv[i+1], "perm")) {
-			route_strategy = SCATTER_PERMUTE;
-	    } else if (!strcmp(argv[i+1], "rand")) {
-			route_strategy = SCATTER_RANDOM;
-	    } else if (!strcmp(argv[i+1], "pull")) {
-			route_strategy = PULL_BASED;
-	    } else if (!strcmp(argv[i+1], "single")) {
-			route_strategy = SINGLE_PATH;
-	    }
-	    i++;
-	} else if (!strcmp(argv[i],"-flowfile")) {
-		flowfile = argv[i+1];
-		i++;
+  if (!strcmp(argv[i],"-o")){
+      filename.str(std::string());
+      filename << argv[i+1];
+      i++;
+  } else if (!strcmp(argv[i],"-nodes")){
+      no_of_nodes = atoi(argv[i+1]);
+      i++;
+  } else if (!strcmp(argv[i],"-cwnd")){
+      cwnd = atoi(argv[i+1]);
+      i++;
+  } else if (!strcmp(argv[i],"-q")){
+      queuesize = atoi(argv[i+1]) * DEFAULT_PACKET_SIZE;
+      i++;
+  } else if (!strcmp(argv[i],"-strat")){
+      if (!strcmp(argv[i+1], "perm")) {
+      route_strategy = SCATTER_PERMUTE;
+      } else if (!strcmp(argv[i+1], "rand")) {
+      route_strategy = SCATTER_RANDOM;
+      } else if (!strcmp(argv[i+1], "pull")) {
+      route_strategy = PULL_BASED;
+      } else if (!strcmp(argv[i+1], "single")) {
+      route_strategy = SINGLE_PATH;
+      }
+      i++;
+  } else if (!strcmp(argv[i],"-flowfile")) {
+    flowfile = argv[i+1];
+    i++;
     } else if (!strcmp(argv[i],"-pullrate")) {
         pull_rate = atof(argv[i+1]);
         i++;
     } else if (!strcmp(argv[i],"-simtime")) {
         simtime = atof(argv[i+1]);
         i++;
-	} else if (!strcmp(argv[i],"-utiltime")) {
+  } else if (!strcmp(argv[i],"-utiltime")) {
             utiltime = atof(argv[i+1]);
             i++;
     } else 
@@ -133,8 +132,8 @@ int main(int argc, char **argv) {
 
 
     if (route_strategy == NOT_SET) {
-	fprintf(stderr, "Route Strategy not set.  Use the -strat param.  \nValid values are perm, rand, pull, rg and single\n");
-	exit(1);
+  fprintf(stderr, "Route Strategy not set.  Use the -strat param.  \nValid values are perm, rand, pull, rg and single\n");
+  exit(1);
     }
 
     Logfile logfile(filename.str(), eventlist);
@@ -144,8 +143,8 @@ int main(int argc, char **argv) {
     cout << "Logging path choices to " << filename.str() << endl;
     std::ofstream paths(filename.str().c_str());
     if (!paths){
-	cout << "Can't open for writing paths file!"<<endl;
-	exit(1);
+  cout << "Can't open for writing paths file!"<<endl;
+  exit(1);
     }
 #endif
 
@@ -167,9 +166,7 @@ int main(int argc, char **argv) {
 
     NdpRtxTimerScanner ndpRtxScanner(timeFromMs(1), eventlist);
 
-#ifdef FAT_TREE
-    FatTreeTopology* top = new FatTreeTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, COMPOSITE);
-#endif
+    TestTopology* top = new TestTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, COMPOSITE);
 
     // initialize all sources/sinks
     NdpSrc::setMinRTO(1000); //increase RTO to avoid spurious retransmits

@@ -375,7 +375,7 @@ void NdpSrc::processAck(const NdpAck& ack) {
     NdpAck::seq_t cum_ackno = ack.cumulative_ack();
     bool pull = ack.pull();
     if (pull) {
-	if (_log_me)
+	// if (_log_me)
 	    //cout << "PULLACK\n"; // modification !!!
 	_pull_window--;
     }
@@ -598,6 +598,7 @@ void NdpSrc::pull_packets(NdpPull::seq_t pull_no, NdpPull::seq_t pacer_no) {
 void NdpSrc::send_packet(NdpPull::seq_t pacer_no) {
     NdpPacket* p;
     if (!_rtx_queue.empty()) {
+	cerr << "dealing with rtx queue" << endl;
 	// There are packets in the RTX queue for us to send
 
 	p = _rtx_queue.front();
@@ -622,7 +623,7 @@ void NdpSrc::send_packet(NdpPull::seq_t pacer_no) {
 	//have the feeder queue update the sent time, because the
 	//feeder queue isn't a FIFO but that would be hard to
 	//implement in a real system, so this is a rough proxy.
-	uint32_t service_time = q->serviceTime(*p);  
+	uint64_t service_time = q->serviceTime(*p);  
 	_sent_times[p->seqno()] = eventlist().now() + service_time;
 	_packets_sent ++;
 	_rtx_packets_sent++;
@@ -670,6 +671,7 @@ void NdpSrc::send_packet(NdpPull::seq_t pacer_no) {
 	    abort();
 	}
 	p->flow().logTraffic(*p,*this,TrafficLogger::PKT_CREATESEND);
+	cerr << "Flow " << p->flow_id() << " packet "<< pacer_no << " set_ts " << eventlist().now() << endl;
 	p->set_ts(eventlist().now());
     
 	_flight_size += _pkt_size;
@@ -689,7 +691,9 @@ void NdpSrc::send_packet(NdpPull::seq_t pacer_no) {
 	//have the feeder queue update the sent time, because the
 	//feeder queue isn't a FIFO but that would be hard to
 	//implement in a real system, so this is a rough proxy.
-	uint32_t service_time = q->serviceTime(*p);  
+	uint64_t service_time = q->serviceTime(*p);  
+	
+	cerr << "\tservice time " << service_time << " qs " << q->queuesize() << endl;
 	//cout << "service_time2: " << service_time << endl;
 	_sent_times[p->seqno()] = eventlist().now() + service_time;
 	_first_sent_times[p->seqno()] = eventlist().now();
@@ -749,7 +753,7 @@ NdpSrc::process_cumulative_ack(NdpPacket::seq_t cum_ackno) {
 
 void 
 NdpSrc::retransmit_packet() {
-    //cout << "starting retransmit_packet\n";
+    cerr << "starting retransmit_packet\n";
     NdpPacket* p;
     map<NdpPacket::seq_t, simtime_picosec>::iterator i, i_next;
     i = _sent_times.begin();

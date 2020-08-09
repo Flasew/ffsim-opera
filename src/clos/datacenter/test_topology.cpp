@@ -254,3 +254,64 @@ void TestTopology::print_path(std::ofstream &paths,int src,const Route* route){
   
   paths << endl;
 }
+
+
+
+UtilMonitor::UtilMonitor(TestTopology* top, EventList &eventlist)
+  : EventSource(eventlist,"utilmonitor"), _top(top)
+{
+    _H = _top->no_of_nodes(); // number of hosts
+    uint64_t rate = 10000000000 / 8; // bytes / second
+    rate = rate * _H;
+    
+    _max_agg_Bps = rate;
+
+    // debug:
+    //cout << "max packets per second = " << rate << endl;
+
+}
+
+void UtilMonitor::start(simtime_picosec period) {
+    _period = period;
+    _max_B_in_period = _max_agg_Bps * timeAsSec(_period);
+
+    // debug:
+    //cout << "_max_pkts_in_period = " << _max_pkts_in_period << endl;
+
+    eventlist().sourceIsPending(*this, _period);
+}
+
+void UtilMonitor::doNextEvent() {
+    printAggUtil();
+}
+
+void UtilMonitor::printAggUtil() {
+
+    uint64_t B_sum = 0;
+
+    // int host = 0;
+    // for (int tor = 0; tor < _N; tor++) {
+    //     for (int downlink = 0; downlink < _hpr; downlink++) {
+    //         Pipe* pipe = _top->get_downlink(tor, host);
+    //         B_sum = B_sum + pipe->reportBytes();
+    //         host++;
+    //     }
+    // }
+    for (int i = 0; i < _H; i++) {
+      Pipe * pipe = _top->get_pipe(i);
+      B_sum = B_sum + pipe->reportBytes();
+    }
+
+    // debug:
+    //cout << "Bsum = " << B_sum << endl;
+    //cout << "_max_B_in_period = " << _max_B_in_period << endl;
+
+    double util = (double)B_sum / (double)_max_B_in_period;
+
+    cout << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+
+    //if (eventlist().now() + _period < eventlist().getEndtime())
+    eventlist().sourceIsPendingRel(*this, _period);
+
+}
+

@@ -54,6 +54,8 @@ class TestTopology: public Topology{
   Queue* alloc_queue(QueueLogger* q, mem_b queuesize);
   Queue* alloc_queue(QueueLogger* q, uint64_t speed, mem_b queuesize);
 
+  Pipe* get_pipe(int to) { return pipes_ns_nlp[0][to]; }
+
   void count_queue(Queue*);
   void print_path(std::ofstream& paths,int src,const Route* route);
   vector<int>* get_neighbours(int src) { return NULL;};
@@ -66,6 +68,23 @@ class TestTopology: public Topology{
   int K, NSRV;
   int _no_of_nodes;
   mem_b _queuesize;
+};
+
+class UtilMonitor : public EventSource {
+ public:
+
+    UtilMonitor(TestTopology* top, EventList &eventlist);
+
+    void start(simtime_picosec period);
+    void doNextEvent();
+    void printAggUtil();
+
+    TestTopology* _top;
+    simtime_picosec _period; // picoseconds between utilization reports
+    int64_t _max_agg_Bps; // delivered to endhosts, across the whole network
+    int64_t _max_B_in_period;
+    int _H; // number of hosts
+
 };
 
 #endif
