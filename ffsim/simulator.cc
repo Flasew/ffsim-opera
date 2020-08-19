@@ -30,13 +30,13 @@ const int VOCAB_SIZE = 32000;
 const int LOCAL_BATCH_SIZE = 64;
 const int EMBEDDING_SIZE = 1024;
 const int HIDDEN_SIZE = 1024;
-const int NUM_NODES = 4;
+const int NUM_NODES = 16;
 const int WORKERS_PER_NODE = 1;
 const int NUM_WORKERS = NUM_NODES * WORKERS_PER_NODE; // NUM_WORKERS <= MAX_NUM_WORKERS
 const int NUM_PARTITIONS = NUM_NODES * WORKERS_PER_NODE; // NUM_PARTITIONS <= MAX_NUM_PARTS
 const int BATCH_SIZE = NUM_PARTITIONS * LOCAL_BATCH_SIZE;
-const float INTRA_NODE_BANDWIDTH = 40.0 * 1000 * 1000 / 8;
-const float CROSS_NODE_BANDWIDTH = 10.0 * 1000 * 1000 / 8;
+const float INTRA_NODE_BANDWIDTH = 40.0 * 1024 * 1024 / 8;
+const float CROSS_NODE_BANDWIDTH = 10.0 * 1024 * 1024 / 8;
 
 using namespace std;
 
@@ -442,7 +442,7 @@ OpConfig Pool2D::get_random_config()
 {
   OpConfig config;
   config.nDims = 1;
-  printf("  name: %s, c.ndims: %d\n",name.c_str(), config.nDims);
+  //printf("  name: %s, c.ndims: %d\n",name.c_str(), config.nDims);
 
   int idx = std::rand() % nConfigs;
   //int idx = nConfigs - 1;
@@ -1332,6 +1332,7 @@ float simulate_time(const std::map<Op*, OpConfig>& global, int iter,
         output << "\t\t\t" << "\"part\": " << std::to_string(j) << "," << std::endl;
         output << "\t\t\t" << "\"guid\": " << std::to_string(currTask->guid) << "," << std::endl;
         output << "\t\t\t" << "\"workerId\": " << std::to_string(currTask->workerId) << "," << std::endl;
+        output << "\t\t\t" << "\"node\":" << std::to_string(currTask->workerId / WORKERS_PER_NODE) << "," << std::endl;
         output << "\t\t\t" << "\"counter\": " << std::to_string(currTask->counter) << "," << std::endl;
         output << "\t\t\t" << "\"readyTime\": " << std::to_string(currTask->readyTime) << "," << std::endl;
         output << "\t\t\t" << "\"startTime\": " << std::to_string(currTask->startTime) << "," << std::endl;
@@ -1836,9 +1837,10 @@ int main()
   float cur_runtime = optimal_runtime;
   long long start_time = current_time();
   int good_moves = 0, best_moves = 0;
-  for (int i = 0; i <= 10000; i++) {
+  int nsim = 25000;
+  for (int i = 0; i <= nsim; i++) {
     Op* updOp = rewrite(current, next);
-    float next_runtime = simulate_time(next, i+1, false, i == 10000);
+    float next_runtime = simulate_time(next, i+1, false, i == nsim);
     if (i % 100 == 0) {
       printf("cur(%.2lf) next(%.2lf) best(%.2lf) optimalDataXfer(%.2lf)\n", cur_runtime, next_runtime, optimal_runtime, optimalDataXfer);
       long long end_time = current_time();
