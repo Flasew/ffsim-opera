@@ -17,34 +17,67 @@
  * and simulates it on top of the opera network
  */
 class FFTask;
+class FFDevice;
 
 class FFApplication {
 public:
-    FFApplication(Topology* top, int cwnd, double pull_rate,  
-			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
+    // FFApplication(Topology* top, int cwnd, double pull_rate,  
+	// 		NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
+    FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+        TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
 	~FFApplication();
 
     void start_init_tasks();
 
 	int cwnd;
 	double pull_rate;
-    std::unordered_map<int, FFTask*> tasks;
+    std::unordered_map<uint64_t, FFTask> tasks;
+    std::unordered_map<uint64_t, FFDevice> devices;
 	Topology * topology; 
     EventList & eventlist;
-	NdpRtxTimerScanner & ndpRtxScanner;
-	NdpSinkLoggerSampling & sinkLogger;
+	// NdpRtxTimerScanner & ndpRtxScanner;
+	// NdpSinkLoggerSampling & sinkLogger;
+    int ssthresh;
+    TcpSinkLoggerSampling & sinkLogger;
+    TcpTrafficLogger & tcpTrafficLogger;
+    TcpRtxTimerScanner & tcpRtxScanner;
+};
+
+class FFDevice {
+public:
+    enum FFDeviceType {
+        DEVICE_GPU,
+        DEVICE_CPU,
+        DEVICE_GPU_COMM,
+        DEVICE_DRAM_COMM,
+        DEVICE_NW_COMM,
+    };
+    int node_id, gpu_id;
+    float bandwidth;
+    FFDeviceType type;
+
+    int from_gpu, to_gpu, from_node, to_node;
+
+    simtime_picosec busy_up_to;
+
+    FFDevice(std::string type, float bandwidth, int node_id, int gpu_id, 
+             int from_node, int to_node, int from_gpu, int to_gpu);
 };
 
 class FFTask : public EventSource {
 public:
-    enum FFTaskType {FF_COMM, FF_COMP, FF_INTRA_COMM};
+    static FFApplication * ffapp;
+    static EventList & evl;
 
-    // FFTask(FFTaskType type, EventList & eventlist,
-    //        float rTime, float sTime, float cTime, float xfsz, 
-    //        int wid, int gid, int fworker, int tworker, int fGuid, int tGuid);
-	FFTask(FFApplication * ffapp, FFTaskType type, EventList & eventlist);
+    enum FFTaskType {
+        TASK_FORWARD,
+        TASK_BACKWARD,
+        TASK_COMM,
+        TASK_UPDATE,
+        TASK_BARRIER,
+        TASK_LATENCY,
+    };
 
-    void add_pretask(FFTask * task);
     void add_nextask(FFTask * task);
 
     void taskstart();
@@ -52,16 +85,20 @@ public:
 	void start_flow();
     
     virtual void doNextEvent(); // call task event
+    void execute_compute();
 
-	FFApplication * ffapp;
-	FFTaskType type;
-    float readyTime, startTime, computeTime, xferSize;
-    int workerId, guid, fromWorker, toWorker, fromGuid, toGuid, fromNode, toNode;
-	simtime_picosec sim_start, sim_finish, sim_duration;
-	bool started;
-	std::unordered_set<FFTask*> preTasks; 
-    std::vector<FFTask*> nextTasks;
+    FFTaskType type;
+    FFDevice* device;
+    int counter;
+    uint64_t xfersize = 0;
+    std::vector<uint64_t> next_tasks;
+    int src_node, dst_node;
+	simtime_picosec ready_time, run_time;
+	simtime_picosec start_time, finish_time;
+
+    FFTask(std::string type, FFDevice * device, uint64_t xfersize, float runtime);
 };
+FFApplication * FFTask::ffapp = nullptr;
 
 void taskfinish(void * task);
 

@@ -11,9 +11,16 @@
 
 using json = nlohmann::json;
 
-FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
-			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
-    : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
+// FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
+// 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
+//     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
+FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+    TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph)
+    : topology(top), ssthresh(ss), eventlist(eventlist), sinkLogger(sl), tcpTrafficLogger(tl), tcpRtxScanner(rtx){
+
+
+    FFTask::ffapp = this;
+    FFTask::evl = this->eventlist;
 
     // read the taskgraph and parse it
     std::ifstream t(taskgraph);
@@ -27,49 +34,48 @@ FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,
 
     auto tg_json = json::parse(tg_str);
 
-    for (auto & jstask: tg_json["tasks"]) {
-        string task_type = jstask["type"].get<std::string>();
-        FFTask * task;
-        if (task_type == "inter-communication") {            
-            task = new FFTask(this, FFTask::FF_COMM, eventlist);
-            task->fromGuid = jstask["fromTask"].get<int>();
-            task->toGuid = jstask["toTask"].get<int>();
-            task->fromWorker = jstask["fromWorker"].get<int>();
-            task->toWorker = jstask["toWorker"].get<int>();
-            task->fromNode = jstask["fromNode"].get<int>();
-            task->toNode = jstask["toNode"].get<int>();
-            task->xferSize = jstask["xferSize"].get<float>();
-        } else if (task_type == "intra-communication") { 
-            task = new FFTask(this, FFTask::FF_INTRA_COMM, eventlist);
-            task->fromGuid = jstask["fromTask"].get<int>();
-            task->toGuid = jstask["toTask"].get<int>();
-            task->fromWorker = jstask["fromWorker"].get<int>();
-            task->toWorker = jstask["toWorker"].get<int>();
-            task->xferSize = jstask["xferSize"].get<float>();
-        } else {
-            task = new FFTask(this, FFTask::FF_COMP, eventlist);
-        }
-        task->guid = jstask["guid"].get<int>();
-        task->workerId = jstask["workerId"].get<int>();
-        task->readyTime = jstask["readyTime"].get<float>();
-        task->startTime = jstask["startTime"].get<float>();
-        task->computeTime = jstask["computeTime"].get<float>();
-        
-        tasks[task->guid] = task;
+    for (auto & jsdev: tg_json["devices"]) {
+        devices.emplace(jsdev["deviceid"].get<uint64_t>(),
+            jsdev["type"].get<std::string>(), 
+            jsdev["bandwidth"].get<float>(), 
+            jsdev["nodeid"].get<int>(), 
+            jsdev["gpuid"].get<int>(), 
+            jsdev["fromnode"].get<int>(), 
+            jsdev["tonode"].get<int>(), 
+            jsdev["fromgpu"].get<int>(), 
+            jsdev["togpu"].get<int>()
+        );
     }
 
-    for (auto & jsedge: tg_json["edges"]) {
-        int from = jsedge[0].get<int>();
-        int to = jsedge[1].get<int>();
-        tasks[from]->add_nextask(tasks[to]);
-        tasks[to]->add_pretask(tasks[from]);
+    unordered_map<uint64_t, unsigned int> counters;
+
+    for (auto & jstask: tg_json["tasks"]) {
+        uint64_t this_task = jstask["taskid"].get<uint64_t>();
+        tasks.emplace(this_task,
+            jstask["type"].get<std::string>(), 
+            &(devices[jstask["deviceid"].get<float>()]), 
+            jstask["xfersize"].get<uint64_t>(), 
+            jstask["runtime"].get<float>()
+        );        
+        for (auto & jsnext: jstask["next_tasks"]) {
+            uint64_t next_id = jsnext.get<uint64_t>();
+            tasks[this_task].next_tasks.push_back(next_id);
+            if (counters.find(next_id) == counters.end()) {
+                counters[next_id] = 1;
+            }
+            else {
+                counters[next_id]++;
+            }
+        }
+    }
+
+    for (auto item: counters) {
+        tasks[item.first].counter = item.second;
     }
 }
 
 FFApplication::~FFApplication() {
-    for (auto task: tasks) {
-        delete task.second;
-    }
+
 }
 
 void FFApplication::start_init_tasks() {
@@ -77,62 +83,85 @@ void FFApplication::start_init_tasks() {
     int count = 0;
     for (auto task: tasks) {
         //std::cerr << "guid:" << task.second->guid << "size: " << task.second->preTasks.size() << std::endl;
-        if (task.second->preTasks.size() == 0) {
-            task.second->eventlist().sourceIsPending(*(task.second), delta++);
+        if (task.second.counter == 0) {
+            task.second.eventlist().sourceIsPending(task.second, delta++);
             count++;
         }
     }
     std::cerr << "added " << count << " init tasks." << std::endl;
 }
 
-FFTask::FFTask(FFApplication * app, FFTaskType type, EventList & eventlist)
-    : ffapp(app), type(type), EventSource(eventlist, "FFTask") {
-    if (type == FF_COMP) {
-        fromNode = toNode = fromWorker = toWorker = fromGuid = toGuid = xferSize = -1;
+FFTask::FFTask(std::string type, FFDevice * device, uint64_t xfersize, 
+    float runtime): EventSource(FFTask::evl, "FFTask") {
+
+    if (type == "TASK_FORWARD") {
+        this->type = FFTaskType::TASK_FORWARD;
     }
-    started = false;
+    else if (type == "TASK_BACKWARD") {
+        this->type = FFTaskType::TASK_BACKWARD;
+    }
+    else if (type == "TASK_COMM") {
+        this->type = FFTaskType::TASK_COMM;
+    }
+    else if (type == "TASK_UPDATE") {
+        this->type = FFTaskType::TASK_UPDATE;
+    }
+    else if (type == "TASK_BARRIER") {
+        this->type = FFTaskType::TASK_BARRIER;
+    }
+    else {
+        throw "Unsupported task type!";
+    }
+
+    this->device = device;
+    this->run_time = runtime * 1000000000ULL;
+    this->xfersize = xfersize * 1000;
+
+    if (device->type == FFDevice::DEVICE_NW_COMM) {
+        this->src_node = device->from_node;
+        this->dst_node = device->to_node;
+    }
+    else {
+        this->src_node = this->dst_node = -1; 
+    }
+
+    ready_time = 0;
+    start_time = 0;
+    finish_time = 0;
+    counter = 0;
 }
 
-// FFTask::FFTask(FFTask::FFTaskType type, EventList & eventlist, //          float rTime, float sTime, float cTime, float xfsz, 
-//          int wid, int gid, int fworker, int tworker, int fGuid, int tGuid)
-//     : EventSource(eventlist, "FFTask") {
-
-// }
-
-void FFTask::add_pretask(FFTask * task) {
-    preTasks.insert(task);
-}
-
-void FFTask::add_nextask(FFTask * task) {
-    nextTasks.push_back(task);
-}
 
 void FFTask::taskstart() {
-    std::cerr << "Guid: " << guid << " try start at " << eventlist().now() << std::endl;
-    if (preTasks.size() != 0 || started) {
-        std::cerr << "can't start, pre.size = " << preTasks.size() << std::endl;
-        return;
-    }
-    sim_start = eventlist().now() + 1;
-    started = true;
-    std::cerr << "started" << std::endl;
+    // std::cerr << "Guid: " << guid << " try start at " << eventlist().now() << std::endl;
+    assert(counter == 0);
 
-    if (type == FFTask::FF_COMM) {
+    if (src_node != -1) {
         start_flow();
     } 
     else {
-        sim_duration = (simtime_picosec)((double)computeTime * 1000000000ULL); 
-        cleanup();
+        execute_compute();
     }
 }
 
+void FFTask::execute_compute() {
+    start_time = std::max(ready_time, device->busy_up_to);
+    finish_time = start_time + run_time;
+    device->busy_up_to = finish_time;
+
+    std::cerr << "Task " << (uint64_t)this << " finished at time " << finish_time << std::endl;
+
+    cleanup();
+}
+
 void FFTask::cleanup() {
-    sim_finish = sim_start + sim_duration;
-    std::cerr << "Finish " << guid << " at " << sim_finish << std::endl;
-    for (FFTask * task: nextTasks) {
-        task->preTasks.erase(this);
-        std::cerr << "Finish " << guid << ", Guid: " << task->guid << " has " << task->preTasks.size() << "pres." << std::endl;
-        eventlist().sourceIsPending(*task, sim_finish);
+    for (uint64_t next_id: next_tasks) {
+        FFTask & task = FFTask::ffapp->tasks[next_id];
+        task.counter--;
+        if (task.counter == 0) {
+            task.ready_time = finish_time;
+            eventlist().sourceIsPending(task, task.ready_time);
+        }
     }
 }
 
@@ -142,31 +171,55 @@ void FFTask::doNextEvent() {
 
 void FFTask::start_flow() {
     
-    std::cerr << "Guid: " << guid << " start flow (" << fromNode << ", " << toNode << ")\n";
-    // from ndp main application: generate flow
+    std::cerr << "task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ")\n";
+    start_time = ready_time;
+    // // from ndp main application: generate flow
 
-    NdpSrc* flowSrc = new NdpSrc(nullptr, nullptr, eventlist(), fromNode, toNode, taskfinish, (void*)this);
-    flowSrc->setCwnd(ffapp->cwnd*Packet::data_packet_size());
-    flowSrc->set_flowsize(xferSize); // bytes
-    NdpPullPacer* flowpacer = new NdpPullPacer(eventlist(), ffapp->pull_rate); // 1 = pull at line rate   
-    NdpSink* flowSnk = new NdpSink(flowpacer);
-    ffapp->ndpRtxScanner.registerNdp(*flowSrc);
+    // NdpSrc* flowSrc = new NdpSrc(nullptr, nullptr, eventlist(), src_node, dst_node, taskfinish, (void*)this);
+    // flowSrc->setCwnd(ffapp->cwnd*Packet::data_packet_size());
+    // flowSrc->set_flowsize(xfersize); // bytes
+    // NdpPullPacer* flowpacer = new NdpPullPacer(eventlist(), ffapp->pull_rate); // 1 = pull at line rate   
+    // NdpSink* flowSnk = new NdpSink(flowpacer);
+    // ffapp->ndpRtxScanner.registerNdp(*flowSrc);
+    // Route* routeout, *routein;
+
+    // vector<const Route*>* srcpaths = ffapp->topology->get_paths(src_node, dst_node);
+    // routeout = new Route(*(srcpaths->at(0)));
+    // routeout->push_back(flowSnk);
+
+    // vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
+    // routein = new Route(*(dstpaths->at(0)));
+    // routein->push_back(flowSrc);
+
+    // flowSrc->connect(*routeout, *routein, *flowSnk, ready_time);
+
+    // flowSrc->set_paths(srcpaths);
+    // flowSnk->set_paths(dstpaths);
+    // ffapp->sinkLogger.monitorSink(flowSnk);
+    
+    TcpSrc* flowSrc = new TcpSrc(NULL, &ffapp->tcpTrafficLogger, eventlist(), src_node, dst_node, taskfinish, this);
+    TcpSink* flowSnk = new TcpSink();
+    flowSrc->set_flowsize(xfersize); // bytes
+    flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
+    flowSrc->_rto = timeFromMs(1);
+    
+    ffapp->tcpRtxScanner.registerTcp(*flowSrc);
+
     Route* routeout, *routein;
 
-    vector<const Route*>* srcpaths = ffapp->topology->get_paths(fromNode, toNode);
-    routeout = new Route(*(srcpaths->at(0)));
+    int choice = 0;
+    vector<const Route*>* srcpaths = ffapp->topology->get_paths(src_node, dst_node);
+    choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
+    routeout = new Route(*(srcpaths->at(choice)));
     routeout->push_back(flowSnk);
 
-    vector<const Route*>* dstpaths = ffapp->topology->get_paths(fromNode, toNode);
-    routein = new Route(*(dstpaths->at(0)));
+    choice = 0;
+    vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
+    choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+    routein = new Route(*(dstpaths->at(choice)));
     routein->push_back(flowSrc);
 
-    flowSrc->connect(*routeout, *routein, *flowSnk, sim_start);
-
-    flowSrc->set_paths(srcpaths);
-    flowSnk->set_paths(dstpaths);
-    ffapp->sinkLogger.monitorSink(flowSnk);
-
+    flowSrc->connect(*routeout, *routein, *flowSnk, start_time);
 
 }
 
@@ -174,11 +227,44 @@ void FFTask::start_flow() {
 void taskfinish(void * task) {
 
     FFTask * fftask = (FFTask*) task;
-    std::cerr << "Guid: " << fftask->guid << " finished, calling back " <<std::endl;
-    assert(fftask->type == FFTask::FF_COMM);
+    std::cerr << (uint64_t)task << " finished, calling back " <<std::endl;
 
-    fftask->sim_finish = fftask->eventlist().now();
-    fftask->sim_duration = (fftask->sim_finish - fftask->sim_start);
+    fftask->finish_time = fftask->eventlist().now();
+    fftask->run_time = (fftask->finish_time - fftask->start_time);
 
     fftask->cleanup();
+}
+
+/* FFDevice */
+FFDevice::FFDevice(std::string type, float bandwidth, int node_id, int gpu_id,
+                   int from_node, int to_node, int from_gpu, int to_gpu) {
+
+    if (type == "DEVICE_GPU") {
+        this->type = FFDeviceType::DEVICE_GPU;
+    }
+    else if (type == "DEVICE_CPU") {
+        this->type = FFDeviceType::DEVICE_CPU;
+    }
+    else if (type == "DEVICE_GPU_COMM") {
+        this->type = FFDeviceType::DEVICE_GPU_COMM;
+    }
+    else if (type == "DEVICE_DRAM_COMM") {
+        this->type = FFDeviceType::DEVICE_DRAM_COMM;
+    }
+    else if (type == "DEVICE_NW_COMM") {
+        this->type = FFDeviceType::DEVICE_NW_COMM;
+    }
+    else {
+        throw "Unsupported device type!";
+    }
+
+    this->bandwidth = bandwidth * 8 * 1000; 
+    this->node_id = node_id;
+    this->gpu_id = node_id;
+    this->from_node = from_node;
+    this->to_node = to_node;
+    this->from_gpu = from_gpu;
+    this->to_gpu = from_gpu;
+    
+    this->busy_up_to = 0;
 }
