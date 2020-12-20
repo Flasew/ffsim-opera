@@ -1,0 +1,130 @@
+syntax = "proto2";
+
+package TaskGraphProtoBuf;
+
+message Operator {
+  required uint64 opid = 1;
+  enum OperatorType {
+    OP_INPUT = 0;
+    OP_WEIGHT = 1;
+    OP_ANY = 2;
+    OP_CONV2D = 3;
+    OP_DROPOUT = 4;
+    OP_LINEAR = 5;
+    OP_BATCHMATMUL = 6;
+    OP_POOL2D = 7;
+    OP_RELU = 8;
+    OP_SIGMOID = 9;
+    OP_TANH = 10;
+    OP_ELU = 11;
+    OP_FLAT = 12;
+    OP_SOFTMAX = 13;
+    OP_BATCHNORM = 14;
+    OP_CONCAT = 15;
+    OP_SPLIT = 16;
+    OP_EMBEDDING = 17;
+    //OP_ELEMENTWISE = 18;
+    OP_RESHAPE = 19;
+    OP_REVERSE = 20;
+    OP_TRANSPOSE = 21;
+    OP_EW_ADD = 22;
+    OP_EW_MUL = 23;
+    OP_MATMUL = 24;
+    OP_MUL = 25;
+    OP_ENLARGE = 26;
+    OP_MERGE_GCONV = 27;
+    OP_CONSTANT_IMM = 28;
+    OP_CONSTANT_ICONV = 29;
+    OP_CONSTANT_ONE = 30;
+    OP_CONSTANT_POOL = 31;
+    OP_SQUEEZE = 32; 
+    OP_UNSQUEEZE = 33; 
+    OP_EW_SUB = 34; 
+    OP_EW_DIV = 35; 
+    OP_EW_EQUAL = 36; 
+    OP_EW_GREATER = 37; 
+    OP_EW_LESS = 38; 
+    OP_EW_MAX = 39; 
+    OP_EW_MIN = 40; 
+    OP_REDUCE_ARGMAX = 41; 
+    OP_REDUCE_ARGMIN = 42; 
+    OP_REDUCE_MAX = 43; 
+    OP_REDUCE_MEAN = 44; 
+    OP_REDUCE_MIN = 45; 
+    OP_REDUCE_PROD = 46; 
+    OP_REDUCE_SUM = 47; 
+    OP_PAD = 48; 
+    OP_SHAPE = 49; 
+    OP_SIZE = 50; 
+    OP_TOPK = 51; 
+    OP_WHERE = 52; 
+    OP_CEIL = 53; 
+    OP_CAST = 54; 
+    OP_EXP = 55; 
+    OP_ROUND = 56; 
+    OP_LOG = 57; 
+    OP_LOGICAL_NOT = 58; 
+    OP_SQRT = 59; 
+    OP_LEAKYRELU = 60;
+    OP_SLICE = 61; 
+    OP_RESIZE = 62; 
+    OP_PRELU = 63; 
+  }; 
+  required OperatorType type = 2;
+  required string name = 3;
+}
+
+message Task {
+  enum SimTaskType {
+    TASK_FORWARD = 0;
+    TASK_BACKWARD = 1;
+    TASK_COMM = 2;
+    TASK_UPDATE = 3;
+    TASK_BARRIER = 4;
+    TASK_LATENCY = 5;
+  };
+  required SimTaskType type = 1;
+  required uint64 taskid = 2;
+  required uint64 deviceid = 3;
+  required uint64 opid = 4;
+  required float runtime = 5;
+  optional uint64 xfersize = 6 [default = 0];
+  repeated uint64 nexttasks = 7 [packed=true]; 
+}
+
+message Device {
+  enum DeviceType {
+    DEVICE_GPU = 0;
+    DEVICE_CPU = 1;
+    DEVICE_GPU_COMM = 2;
+    DEVICE_DRAM_COMM = 3;
+    DEVICE_NW_COMM = 4;
+  };
+  required DeviceType type = 1;
+  required uint64 deviceid = 2;
+  optional uint32 nodeid = 3 [default = 0];
+  optional uint32 gpuid = 4 [default = 0];
+  optional uint64 bandwidth = 5 [default = 0];
+  optional uint32 fromgpu = 6 [default = 0];
+  optional uint32 togpu = 7 [default = 0];
+  optional uint32 fromnode = 8 [default = 0];
+  optional uint32 tonode = 9 [default = 0];
+}
+
+message Connection {
+  required uint32 from = 1;
+  required uint32 to = 2;
+  required uint32 nconn = 3;
+}
+
+message TaskGraph {
+  required uint32 nGPUPerNode = 1;
+  required uint32 nNode = 2;
+  required float interGPUBW = 3;
+  required float dramBW = 4;
+  required float netBW = 5;
+  repeated Connection conn = 6;
+  repeated Operator ops = 7;
+  repeated Task tasks = 8;
+  repeated Device devices = 9;
+}

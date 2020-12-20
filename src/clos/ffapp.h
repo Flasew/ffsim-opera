@@ -12,36 +12,14 @@
 #include "eventlist.h"
 #include "ndp.h"
 
+#include "taskgraph.pb.h"
+
 /*
  * An application that takes a Flex-flow generated task graph
  * and simulates it on top of the opera network
  */
-class FFTask;
-class FFDevice;
 
-class FFApplication {
-public:
-    // FFApplication(Topology* top, int cwnd, double pull_rate,  
-	// 		NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
-    FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
-        TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
-	~FFApplication();
-
-    void start_init_tasks();
-
-	int cwnd;
-	double pull_rate;
-    std::unordered_map<uint64_t, FFTask> tasks;
-    std::unordered_map<uint64_t, FFDevice> devices;
-	Topology * topology; 
-    EventList & eventlist;
-	// NdpRtxTimerScanner & ndpRtxScanner;
-	// NdpSinkLoggerSampling & sinkLogger;
-    int ssthresh;
-    TcpSinkLoggerSampling & sinkLogger;
-    TcpTrafficLogger & tcpTrafficLogger;
-    TcpRtxTimerScanner & tcpRtxScanner;
-};
+class FFApplication;
 
 class FFDevice {
 public:
@@ -52,13 +30,22 @@ public:
         DEVICE_DRAM_COMM,
         DEVICE_NW_COMM,
     };
+
+    enum FFDeviceState {
+        DEVICE_IDLE,
+        DEVICE_BUSY,
+    };
+
+
     int node_id, gpu_id;
     float bandwidth;
     FFDeviceType type;
+    FFDeviceState state;
 
     int from_gpu, to_gpu, from_node, to_node;
 
     simtime_picosec busy_up_to;
+    // int nqueued_tasks;
 
     FFDevice(std::string type, float bandwidth, int node_id, int gpu_id, 
              int from_node, int to_node, int from_gpu, int to_gpu);
@@ -78,6 +65,13 @@ public:
         TASK_LATENCY,
     };
 
+    enum FFTaskState {
+        TASK_NOT_READY,
+        TASK_READY,
+        TASK_RUNNING,
+        TASK_FINISHED,
+    };
+
     void add_nextask(FFTask * task);
 
     void taskstart();
@@ -88,6 +82,7 @@ public:
     void execute_compute();
 
     FFTaskType type;
+    FFTaskState state;
     FFDevice* device;
     int counter;
     uint64_t xfersize = 0;
@@ -99,6 +94,36 @@ public:
     FFTask(std::string type, FFDevice * device, uint64_t xfersize, float runtime);
 };
 FFApplication * FFTask::ffapp = nullptr;
+
+class FFApplication {
+public:
+    // FFApplication(Topology* top, int cwnd, double pull_rate,  
+	// 		NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
+    // FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+    //     TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
+    FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+        TcpRtxTimerScanner & rtx, EventList & eventlist);
+        
+	~FFApplication();
+
+    void load_taskgraph_json(std::string & taskgraph);
+    void load_taskgraph_protobuf(std::string & taskgraph);
+    void start_init_tasks();
+
+	int cwnd;
+	double pull_rate;
+    std::unordered_map<uint64_t, FFTask*> tasks;
+    std::unordered_map<uint64_t, FFDevice*> devices;
+	Topology * topology; 
+    int ssthresh;
+    EventList & eventlist;
+	// NdpRtxTimerScanner & ndpRtxScanner;
+	// NdpSinkLoggerSampling & sinkLogger;
+    TcpSinkLoggerSampling & sinkLogger;
+    TcpTrafficLogger & tcpTrafficLogger;
+    TcpRtxTimerScanner & tcpRtxScanner;
+};
+
 
 void taskfinish(void * task);
 

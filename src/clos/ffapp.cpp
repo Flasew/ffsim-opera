@@ -15,13 +15,19 @@ using json = nlohmann::json;
 // 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
 //     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
 FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
-    TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph)
+    TcpRtxTimerScanner & rtx, EventList & eventlist)
     : topology(top), ssthresh(ss), eventlist(eventlist), sinkLogger(sl), tcpTrafficLogger(tl), tcpRtxScanner(rtx){
-
 
     FFTask::ffapp = this;
     FFTask::evl = this->eventlist;
+   
+}
 
+FFApplication::~FFApplication() {
+
+}
+
+void FFApplication::load_taskgraph_json(std::string & taskgraph) {
     // read the taskgraph and parse it
     std::ifstream t(taskgraph);
     std::string tg_str;
@@ -35,7 +41,7 @@ FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, 
     auto tg_json = json::parse(tg_str);
 
     for (auto & jsdev: tg_json["devices"]) {
-        devices.emplace(jsdev["deviceid"].get<uint64_t>(),
+        devices[jsdev["deviceid"].get<uint64_t>()] = new FFDevice(
             jsdev["type"].get<std::string>(), 
             jsdev["bandwidth"].get<float>(), 
             jsdev["nodeid"].get<int>(), 
@@ -51,15 +57,16 @@ FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, 
 
     for (auto & jstask: tg_json["tasks"]) {
         uint64_t this_task = jstask["taskid"].get<uint64_t>();
-        tasks.emplace(this_task,
+        tasks[this_task] = new FFTask(
             jstask["type"].get<std::string>(), 
-            &(devices[jstask["deviceid"].get<float>()]), 
+            devices[jstask["deviceid"].get<uint64_t>()], 
             jstask["xfersize"].get<uint64_t>(), 
             jstask["runtime"].get<float>()
-        );        
+        );
+              
         for (auto & jsnext: jstask["next_tasks"]) {
             uint64_t next_id = jsnext.get<uint64_t>();
-            tasks[this_task].next_tasks.push_back(next_id);
+            tasks[this_task]->next_tasks.push_back(next_id);
             if (counters.find(next_id) == counters.end()) {
                 counters[next_id] = 1;
             }
@@ -70,12 +77,18 @@ FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, 
     }
 
     for (auto item: counters) {
-        tasks[item.first].counter = item.second;
+        tasks[item.first]->counter = item.second;
     }
 }
 
-FFApplication::~FFApplication() {
-
+void load_taskgraph_protobuf(std::string & taskgraph) {
+    TaskGraphProtoBuf::TaskGraph tg;
+    std::fstream input(taskgraph, std::ios::in | std::ios::binary);
+    if (!tg.ParseFromIstream(&input)) {
+        std::cerr << "Failed to parse taskgraph." << std::endl;
+        assert(false);
+    }
+    
 }
 
 void FFApplication::start_init_tasks() {
@@ -83,8 +96,10 @@ void FFApplication::start_init_tasks() {
     int count = 0;
     for (auto task: tasks) {
         //std::cerr << "guid:" << task.second->guid << "size: " << task.second->preTasks.size() << std::endl;
-        if (task.second.counter == 0) {
-            task.second.eventlist().sourceIsPending(task.second, delta++);
+        FFTask * t = task.second;
+        if (t->counter == 0) {
+            t->state = FFTask::TASK_READY;
+            t->eventlist().sourceIsPending(*t, delta++);
             count++;
         }
     }
@@ -113,6 +128,7 @@ FFTask::FFTask(std::string type, FFDevice * device, uint64_t xfersize,
         throw "Unsupported task type!";
     }
 
+    this->state = TASK_NOT_READY;
     this->device = device;
     this->run_time = runtime * 1000000000ULL;
     this->xfersize = xfersize * 1000;
@@ -145,22 +161,51 @@ void FFTask::taskstart() {
 }
 
 void FFTask::execute_compute() {
-    start_time = std::max(ready_time, device->busy_up_to);
-    finish_time = start_time + run_time;
-    device->busy_up_to = finish_time;
 
-    std::cerr << "Task " << (uint64_t)this << " finished at time " << finish_time << std::endl;
+    if (this->state == FFTask::TASK_NOT_READY) {
+        std::cerr << "ERROR: Executing not ready task!" << std::endl;
+        assert(false);
+    }
 
-    cleanup();
+    if (this->state == FFTask::TASK_FINISHED) {
+        std::cerr << "ERROR: Executing finished task!" << std::endl;
+        assert(false);
+    }
+
+    // check if the device has running task. If not, schedule this task.
+    // Otherwise schedule it at the time the other task finishes. 
+    if (this->state == FFTask::TASK_READY) {
+        if (device->state == FFDevice::DEVICE_IDLE) {
+            this->state = FFTask::TASK_RUNNING;
+            device->state = FFDevice::DEVICE_BUSY;
+            start_time = eventlist().now();
+            finish_time = start_time + run_time;
+            eventlist().sourceIsPending(*this, finish_time);
+            device->busy_up_to = finish_time;
+        }
+        else {
+            eventlist().sourceIsPending(*this, device->busy_up_to);
+        }
+    }
+    // This means this task has finished
+    else if (this->state == FFTask::TASK_RUNNING) {
+        assert(device->state == FFDevice::DEVICE_BUSY);
+
+        this->state = FFTask::TASK_FINISHED;
+        device->state = FFDevice::DEVICE_IDLE;
+
+        cleanup();
+    }
+    
 }
 
 void FFTask::cleanup() {
     for (uint64_t next_id: next_tasks) {
-        FFTask & task = FFTask::ffapp->tasks[next_id];
-        task.counter--;
-        if (task.counter == 0) {
-            task.ready_time = finish_time;
-            eventlist().sourceIsPending(task, task.ready_time);
+        FFTask * task = FFTask::ffapp->tasks[next_id];
+        task->counter--;
+        if (task->counter == 0) {
+            task->ready_time = finish_time;
+            eventlist().sourceIsPending(*task, task->ready_time);
         }
     }
 }
@@ -258,6 +303,7 @@ FFDevice::FFDevice(std::string type, float bandwidth, int node_id, int gpu_id,
         throw "Unsupported device type!";
     }
 
+    this->state = FFDevice::DEVICE_IDLE;
     this->bandwidth = bandwidth * 8 * 1000; 
     this->node_id = node_id;
     this->gpu_id = node_id;
