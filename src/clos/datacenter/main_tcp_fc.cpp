@@ -23,18 +23,18 @@
 
 // Choose the topology here:
 #include "test_topology.h"
-#include "ffapptcp.h"
+#include "ffapp.h"
 
 #include <list>
 
 // Simulation params
 
-#define PRINT_PATHS 0
+#define PRINT_PATHS 1
 
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT = 0; // ns
+uint32_t RTT = 1; // us
 int DEFAULT_NODES = 16;
 
 FirstFit* ff = NULL;
@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
 
-    TestTopology* top = new TestTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, RANDOM);
+    TestTopology* top = new TestTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, ECN);
     // note that 'queuesize' does not pass through currently for RANDOM...
 
 
@@ -233,7 +233,8 @@ int main(int argc, char **argv) {
 //         }
 //     }
 
-    FFApplicationTCP app = FFApplicationTCP(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist, flowfile);
+    FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
+    app.load_taskgraph_protobuf(flowfile);
     app.start_init_tasks();
 
     UtilMonitor* UM = new UtilMonitor(top, eventlist);

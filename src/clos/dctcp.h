@@ -10,7 +10,7 @@
 
 class DCTCPSrc : public TcpSrc {
  public:
-    DCTCPSrc(TcpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst);
+    DCTCPSrc(TcpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
     ~DCTCPSrc(){}
 
     // Mechanism

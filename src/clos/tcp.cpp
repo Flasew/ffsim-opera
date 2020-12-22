@@ -27,6 +27,7 @@ TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger,
     _app_limited = -1;
     _established = false;
     _effcwnd = 0;
+		_finished = false;
 
     //_ssthresh = 30000;
     _ssthresh = 0xffffffff;
@@ -60,6 +61,29 @@ TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger,
     _RFC2988_RTO_timeout = timeInf;
 
     _nodename = "tcpsrc";
+}
+
+TcpSrc::~TcpSrc() {
+	if (_route) 
+        delete _route;
+    if (_sink) {
+        delete _sink;
+    }
+    if (_old_route) {
+        delete _old_route;
+    }
+    // if (_mSrc) {
+    //    delete _mSrc; 
+    // }
+#ifdef PACKET_SCATTER 
+    if (_paths) {
+        for (Route * r: _paths) {
+            delete r;
+        }
+        delete _paths;
+    }
+#endif 
+
 }
 
 #ifdef PACKET_SCATTER
@@ -137,6 +161,10 @@ uint32_t TcpSrc::effective_window() {
 }
 
 void TcpSrc::replace_route(const Route* newroute) {
+    
+    if (_old_route)
+        delete _old_route;
+
     _old_route = _route;
     _route = newroute;
     _last_packet_with_old_route = _highest_sent;
@@ -180,10 +208,14 @@ TcpSrc::receivePacket(Packet& pkt)
     ts = p->ts();
     p->free();
 
+		// cout << "O seqno" << seqno << " last acked "<< _last_acked;
     if (seqno < _last_acked) {
-		//cout << "O seqno" << seqno << " last acked "<< _last_acked;
+		cout << "O seqno" << seqno << " last acked "<< _last_acked;
 		return;
     }
+
+		// if (_finished)
+		// 	return;
 
     if (seqno==1){
     	// debug:
@@ -225,9 +257,10 @@ TcpSrc::receivePacket(Packet& pkt)
 		_rto = timeFromMs(1);
 
 	// debug:
-	//cout << "seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << endl;
+	cout << "seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << endl;
 
-    if (seqno >= _flow_size){
+    if (seqno >= _flow_size && !_finished){
+			_finished = true;
 		// original:
 		//cout << "Flow " << nodename() << " finished at " << timeAsMs(eventlist().now()) << endl;
 
@@ -465,7 +498,7 @@ TcpSrc::send_packets() {
 		//printf("%d\n",c);
     }
 
-    while ((_last_acked + c >= _highest_sent + _mss) && (_highest_sent+_mss <= _flow_size+1)) {
+    while ((_last_acked + c >= _highest_sent + _mss) && (_highest_sent < _flow_size)) {
 	uint64_t data_seq = 0;
 
 #ifdef MODEL_RECEIVE_WINDOW
@@ -517,6 +550,7 @@ TcpSrc::send_packets() {
 	_packets_sent += _mss;
 
 	p->sendOn();
+	     cout << "Transmit packet on " << _flow.id << " " << _highest_sent+1 << "[" << p->size() << "] " << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
 
 	if(_RFC2988_RTO_timeout == timeInf) {// RFC2988 5.1
 	    _RFC2988_RTO_timeout = eventlist().now() + _rto;
@@ -568,6 +602,7 @@ TcpSrc::retransmit_packet() {
     p->flow().logTraffic(*p,*this,TrafficLogger::PKT_CREATESEND);
     p->set_ts(eventlist().now());
     p->sendOn();
+     cout << "Retransmit packet on " << _flow.id << " " << _last_acked+1 << " " << data_seq << endl;
 
     _packets_sent += _mss;
 
@@ -670,6 +705,20 @@ TcpSink::TcpSink()
     _nodename = "tcpsink";
 }
 
+TcpSink::~TcpSink() {
+    if (_route) {
+        delete _route;
+    }
+#ifdef PACKET_SCATTER 
+    if (_paths) {
+        for (Route * r: _paths) {
+            delete r;
+        }
+        delete _paths;
+    }
+#endif 
+}
+
 void 
 TcpSink::connect(TcpSrc& src, const Route& route) {
     _src = &src;
@@ -698,7 +747,7 @@ TcpSink::receivePacket(Packet& pkt) {
 
     _packets+= p->size();
 
-    //cout << "Sink: received seqno " << seqno << " size " << size << endl;
+    cout << "Sink: received seqno " << seqno << " size " << size << endl;
 
     if (seqno == _cumulative_ack+1) { // it's the next expected seq no
 		_cumulative_ack = seqno + size - 1;
@@ -759,6 +808,7 @@ TcpSink::send_ack(simtime_picosec ts,bool marked) {
     else
 	ack->set_flags(0);
 
+	  cout << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
     ack->sendOn();
 }
 
@@ -791,9 +841,26 @@ TcpRtxTimerScanner::registerTcp(TcpSrc &tcpsrc) {
 
 void TcpRtxTimerScanner::doNextEvent() {
     simtime_picosec now = eventlist().now();
-    tcps_t::iterator i;
-    for (i = _tcps.begin(); i!=_tcps.end(); i++) {
-	(*i)->rtx_timer_hook(now,_scanPeriod);
-    }
+    tcps_t::iterator i = _tcps.begin();
+		while (i != _tcps.end()) {
+			if ((*i)->_finished) {
+				eventlist().cancelPendingSource(**i);
+				delete *i;
+				i = _tcps.erase(i);
+			} else {
+				(*i)->rtx_timer_hook(now,_scanPeriod);
+				i++;
+			}
+		}
+    // for (i = _tcps.begin(); i!=_tcps.end(); i++) {
+		// 	// just take care of the trash omg...
+		// 	if ((*i)->_finished) {
+		// 		eventlist().cancelPendingSource(**i);
+		// 		_tcps.erase(i);
+		// 		delete *i;
+		// 	} else {
+		// 		(*i)->rtx_timer_hook(now,_scanPeriod);
+		// 	}
+    // }
     eventlist().sourceIsPendingRel(*this, _scanPeriod);
 }

@@ -18,8 +18,6 @@
 
 #define FULLY_COUPLED 2
 //params for fully coupled
-#define A 1
-#define B 2
 
 #define COUPLED_INC 3
 #define COUPLED_TCP 4

@@ -13,12 +13,12 @@
 #include "eventlist.h"
 #include "sent_packets.h"
 
-//#define MODEL_RECEIVE_WINDOW 1
+// #define MODEL_RECEIVE_WINDOW 1
 
 #define timeInf 0
 
-#define PACKET_SCATTER 1
-#define RANDOM_PATH 1
+// #define PACKET_SCATTER 1
+// #define RANDOM_PATH 1
 
 //#define MAX_SENT 10000
 
@@ -30,6 +30,7 @@ class TcpSrc : public PacketSink, public EventSource {
     friend class TcpSink;
  public:
     TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
+    ~TcpSrc();
     uint32_t get_id(){ return id;}
     virtual void connect(const Route& routeout, const Route& routeback, 
 			 TcpSink& sink, simtime_picosec startTime);
@@ -70,6 +71,7 @@ class TcpSrc : public PacketSink, public EventSource {
     uint64_t _last_acked;
     uint32_t _ssthresh;
     uint16_t _dupacks;
+    bool _finished;
 #ifdef PACKET_SCATTER
     uint16_t DUPACK_TH;
     uint16_t _crt_path;
@@ -150,6 +152,7 @@ class TcpSink : public PacketSink, public DataReceiver, public Logged {
     friend class TcpSrc;
  public:
     TcpSink();
+    ~TcpSink();
 
     inline void joinMultipathConnection(MultipathTcpSink* multipathSink){
 	_mSink = multipathSink;

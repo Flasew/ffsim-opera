@@ -4,7 +4,7 @@
 #include <string>
 
 
-#define HOST_NIC 10000 // host nic speed in Mbps
+#define HOST_NIC 70000 // host nic speed in Mbps
 #define CORE_TO_HOST 1 // core links are this much faster than NIC
 
 //basic setup!
@@ -31,8 +31,8 @@
 
 // switch_buffer and random_buffer are for 'random_queue'
 
-#define SWITCH_BUFFER 97 // number of packets
-#define RANDOM_BUFFER 3 // number of packets
+#define SWITCH_BUFFER 100 // number of packets
+#define RANDOM_BUFFER 100 // number of packets
 #define FEEDER_BUFFER 1000 // number of packets
 
 #endif

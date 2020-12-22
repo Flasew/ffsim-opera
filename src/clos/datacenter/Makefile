@@ -1,11 +1,13 @@
-CC=g++-10
+CC=g++
 CXX=g++
 CFLAGS=-Wall -g -O0
+FF_HOME?=/home/weiyangw/FlexFlow
 CRT=`pwd`
-INCLUDE= -I/$(CRT)/.. -I$(CRT) 
+INCLUDE= -I/$(CRT)/.. -I$(CRT) -I$(FF_HOME)/protobuf/src
 #-I$(CRT)/ksp -I$(CRT)/ksp/boost
-LIB=-L.. 
+LIB=-L.. -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
 #-Lksp
+OBJS=../eventlist.o ../tcppacket.o ../pipe.o ../queue.o ../queue_lossless.o ../queue_lossless_input.o ../queue_lossless_output.o ../ecnqueue.o ../tcp.o ../dctcp.o ../mtcp.o ../loggers.o ../logfile.o ../clock.o ../config.o ../network.o ../qcn.o ../exoqueue.o ../randomqueue.o ../cbr.o ../cbrpacket.o ../sent_packets.o ../ndp.o ../ndppacket.o ../eth_pause_packet.o ../compositequeue.o ../prioqueue.o ../cpqueue.o ../compositeprioqueue.o ../switch.o ../fairpullqueue.o ../route.o ../ffapp.o ../taskgraph.pb.o
 
 all:	htsim_ndp_fatTree_3to1_k12 htsim_ndp_fatTree_6to1_hybrid htsim_ndp_fatTree htsim_ndp_fc htsim_tcp_fc
 # htsim_dctcp_fatTree: main_dctcp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology.o
@@ -18,10 +20,10 @@ htsim_ndp_fatTree: main_ndp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fatTree.o fat_tree_topology.o $(LIB) -lhtsim -o htsim_ndp_fatTree
 
 htsim_ndp_fc: main_ndp_fc.o firstfit.o ../libhtsim.a fc_topology.o
-	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o fc_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o ../taskgraph.pb.o fc_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
 
 htsim_tcp_fc: main_tcp_fc.o firstfit.o ../libhtsim.a test_topology.o
-	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o test_topology.o $(LIB) -lhtsim -o htsim_tcp_fc
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o test_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_fc
 
 htsim_ndp_fatTree_3to1_k12: main_ndp_fatTree_3to1_k12.o firstfit.o ../libhtsim.a fat_tree_topology_3to1_k12.o
 	$(CC) $(CFLAGS) firstfit.o main_ndp_fatTree_3to1_k12.o fat_tree_topology_3to1_k12.o $(LIB) -lhtsim -o htsim_ndp_fatTree_3to1_k12
@@ -44,8 +46,8 @@ main_tcp_fatTree.o: main_tcp_fatTree.cpp
 main_ndp_fc.o: main_ndp_fc.cpp
 	$(CC) $(INCLUDE) $(CFLAGS) -c main_ndp_fc.cpp
 
-main_tcp_fc.o: main_tcp_fc.cpp
-	$(CC) $(INCLUDE) $(CFLAGS) -c main_tcp_fc.cpp
+main_tcp_fc.o: main_tcp_fc.cpp 
+	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_fc.cpp
 
 
 main_ndp_fatTree.o: main_ndp_fatTree.cpp

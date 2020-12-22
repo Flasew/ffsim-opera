@@ -8,6 +8,9 @@
 #define ABS(x) ((x)>=0?(x):-(x))
 #define A_SCALE 512
 
+#define A 1
+#define B 2
+
 MultipathTcpSrc::MultipathTcpSrc(char cc_type,EventList& ev,MultipathTcpLogger* logger, int rwnd):
   EventSource(ev,"MTCP"),_alfa(1),_logger(logger), _e(1)
 {

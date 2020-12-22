@@ -49,12 +49,14 @@ public:
 
     FFDevice(std::string type, float bandwidth, int node_id, int gpu_id, 
              int from_node, int to_node, int from_gpu, int to_gpu);
+    FFDevice(TaskGraphProtoBuf::Device_DeviceType devtype, float bandwidth, int node_id, int gpu_id, 
+             int from_node, int to_node, int from_gpu, int to_gpu);
 };
 
 class FFTask : public EventSource {
 public:
     static FFApplication * ffapp;
-    static EventList & evl;
+    // static EventList & evl;
 
     enum FFTaskType {
         TASK_FORWARD,
@@ -63,6 +65,7 @@ public:
         TASK_UPDATE,
         TASK_BARRIER,
         TASK_LATENCY,
+        TASK_RINGALLREDUCE,
     };
 
     enum FFTaskState {
@@ -92,8 +95,35 @@ public:
 	simtime_picosec start_time, finish_time;
 
     FFTask(std::string type, FFDevice * device, uint64_t xfersize, float runtime);
+    FFTask(TaskGraphProtoBuf::Task_SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
+    FFTask(FFTaskType tasktype);
 };
-FFApplication * FFTask::ffapp = nullptr;
+
+class FFRingAllreduce;
+
+struct FFRingAllreduceFlow {
+    FFRingAllreduce * ar;
+    int src_idx;
+    int round;
+};
+
+class FFRingAllreduce : public FFTask {
+
+public:
+    FFRingAllreduce(std::vector<int> ng, uint32_t sz);
+    ~FFRingAllreduce() = default;
+
+    std::vector<int> node_group; // group of nodes in the order of the ring
+    uint32_t operator_size;      // total data size of the operator
+    int finished_partitions;     // number of finished partitions
+
+    virtual void doNextEvent();
+
+    // void start();
+    void start_flow(int src_idx, int round);
+};
+
+void ar_finish(void * arinfo);
 
 class FFApplication {
 public:

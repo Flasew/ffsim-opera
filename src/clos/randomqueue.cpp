@@ -44,7 +44,7 @@ RandomQueue::receivePacket(Packet& pkt)
 	}
 	pkt.free();
 
-	//cout << "Drop "<<drop_prob<< " queue size "<< _queuesize/1000 << " queue id " << _name << endl;
+	cout << "Drop "<<drop_prob<< " queue size "<< _queuesize/1000 << " queue id " << _name << endl;
 
 	return;
     }
