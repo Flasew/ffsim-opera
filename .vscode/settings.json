@@ -71,6 +71,21 @@
         "unordered_map": "cpp",
         "utility": "cpp",
         "valarray": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "hash_map": "cpp",
+        "*.tcc": "cpp",
+        "condition_variable": "cpp",
+        "unordered_set": "cpp",
+        "memory_resource": "cpp",
+        "random": "cpp",
+        "set": "cpp",
+        "thread": "cpp",
+        "cinttypes": "cpp",
+        "*.inc": "cpp",
+        "cassert": "cpp",
+        "cerrno": "cpp",
+        "cfloat": "cpp",
+        "climits": "cpp",
+        "queue": "cpp"
     }
 }

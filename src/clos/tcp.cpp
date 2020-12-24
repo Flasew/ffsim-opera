@@ -257,7 +257,7 @@ TcpSrc::receivePacket(Packet& pkt)
 		_rto = timeFromMs(1);
 
 	// debug:
-	cout << "seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << endl;
+	// cout << "seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << endl;
 
     if (seqno >= _flow_size && !_finished){
 			_finished = true;
@@ -550,7 +550,7 @@ TcpSrc::send_packets() {
 	_packets_sent += _mss;
 
 	p->sendOn();
-	     cout << "Transmit packet on " << _flow.id << " " << _highest_sent+1 << "[" << p->size() << "] " << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
+	    //  cout << "Transmit packet on " << _flow.id << " " << _highest_sent+1 << "[" << p->size() << "] " << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
 
 	if(_RFC2988_RTO_timeout == timeInf) {// RFC2988 5.1
 	    _RFC2988_RTO_timeout = eventlist().now() + _rto;
@@ -747,7 +747,7 @@ TcpSink::receivePacket(Packet& pkt) {
 
     _packets+= p->size();
 
-    cout << "Sink: received seqno " << seqno << " size " << size << endl;
+    // cout << "Sink: received seqno " << seqno << " size " << size << endl;
 
     if (seqno == _cumulative_ack+1) { // it's the next expected seq no
 		_cumulative_ack = seqno + size - 1;
@@ -808,7 +808,7 @@ TcpSink::send_ack(simtime_picosec ts,bool marked) {
     else
 	ack->set_flags(0);
 
-	  cout << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
+	  // cout << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
     ack->sendOn();
 }
 

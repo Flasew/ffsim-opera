@@ -22,7 +22,8 @@
 //#include "connection_matrix.h"
 
 // Choose the topology here:
-#include "test_topology.h"
+// #include "test_topology.h"
+#include "fc_topology.h"
 #include "ffapp.h"
 
 #include <list>
@@ -176,8 +177,8 @@ int main(int argc, char **argv) {
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
 
-    TestTopology* top = new TestTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, ECN);
-    // note that 'queuesize' does not pass through currently for RANDOM...
+    FCTopology* top = new FCTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, ECN);
+    // note that 'queuesize' does not pass throuf_nodesgh currently for RANDOM...
 
 
 

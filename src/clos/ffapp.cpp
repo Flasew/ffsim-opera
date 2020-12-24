@@ -283,7 +283,7 @@ void FFTask::execute_compute() {
             device->busy_up_to = finish_time;
         }
         else {
-            std::cerr << "Task " << (uint64_t)this << " dev busy, reschedule at " << device->busy_up_to << std::endl;
+            // std::cerr << "Task " << (uint64_t)this << " dev busy, reschedule at " << device->busy_up_to << std::endl;
             eventlist().sourceIsPending(*this, device->busy_up_to);
         }
     }

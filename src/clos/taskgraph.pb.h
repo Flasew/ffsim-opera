@@ -48,7 +48,7 @@ struct TableStruct_taskgraph_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[5]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[8]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -65,19 +65,31 @@ extern DeviceDefaultTypeInternal _Device_default_instance_;
 class Operator;
 class OperatorDefaultTypeInternal;
 extern OperatorDefaultTypeInternal _Operator_default_instance_;
+class Path;
+class PathDefaultTypeInternal;
+extern PathDefaultTypeInternal _Path_default_instance_;
+class Route;
+class RouteDefaultTypeInternal;
+extern RouteDefaultTypeInternal _Route_default_instance_;
 class Task;
 class TaskDefaultTypeInternal;
 extern TaskDefaultTypeInternal _Task_default_instance_;
 class TaskGraph;
 class TaskGraphDefaultTypeInternal;
 extern TaskGraphDefaultTypeInternal _TaskGraph_default_instance_;
+class Topology;
+class TopologyDefaultTypeInternal;
+extern TopologyDefaultTypeInternal _Topology_default_instance_;
 }  // namespace TaskGraphProtoBuf
 PROTOBUF_NAMESPACE_OPEN
 template<> ::TaskGraphProtoBuf::Connection* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Connection>(Arena*);
 template<> ::TaskGraphProtoBuf::Device* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Device>(Arena*);
 template<> ::TaskGraphProtoBuf::Operator* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Operator>(Arena*);
+template<> ::TaskGraphProtoBuf::Path* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Path>(Arena*);
+template<> ::TaskGraphProtoBuf::Route* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Route>(Arena*);
 template<> ::TaskGraphProtoBuf::Task* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Task>(Arena*);
 template<> ::TaskGraphProtoBuf::TaskGraph* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::TaskGraph>(Arena*);
+template<> ::TaskGraphProtoBuf::Topology* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Topology>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace TaskGraphProtoBuf {
 
@@ -171,11 +183,12 @@ enum Task_SimTaskType : int {
   Task_SimTaskType_TASK_COMM = 2,
   Task_SimTaskType_TASK_UPDATE = 3,
   Task_SimTaskType_TASK_BARRIER = 4,
-  Task_SimTaskType_TASK_LATENCY = 5
+  Task_SimTaskType_TASK_LATENCY = 5,
+  Task_SimTaskType_TASK_ALLREDUCE = 6
 };
 bool Task_SimTaskType_IsValid(int value);
 constexpr Task_SimTaskType Task_SimTaskType_SimTaskType_MIN = Task_SimTaskType_TASK_FORWARD;
-constexpr Task_SimTaskType Task_SimTaskType_SimTaskType_MAX = Task_SimTaskType_TASK_LATENCY;
+constexpr Task_SimTaskType Task_SimTaskType_SimTaskType_MAX = Task_SimTaskType_TASK_ALLREDUCE;
 constexpr int Task_SimTaskType_SimTaskType_ARRAYSIZE = Task_SimTaskType_SimTaskType_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Task_SimTaskType_descriptor();
@@ -675,6 +688,8 @@ class Task :
     Task_SimTaskType_TASK_BARRIER;
   static constexpr SimTaskType TASK_LATENCY =
     Task_SimTaskType_TASK_LATENCY;
+  static constexpr SimTaskType TASK_ALLREDUCE =
+    Task_SimTaskType_TASK_ALLREDUCE;
   static inline bool SimTaskType_IsValid(int value) {
     return Task_SimTaskType_IsValid(value);
   }
@@ -704,6 +719,7 @@ class Task :
 
   enum : int {
     kNexttasksFieldNumber = 7,
+    kArgroupFieldNumber = 8,
     kTaskidFieldNumber = 2,
     kDeviceidFieldNumber = 3,
     kTypeFieldNumber = 1,
@@ -733,6 +749,28 @@ class Task :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
       mutable_nexttasks();
 
+  // repeated uint64 argroup = 8 [packed = true];
+  int argroup_size() const;
+  private:
+  int _internal_argroup_size() const;
+  public:
+  void clear_argroup();
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_argroup(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+      _internal_argroup() const;
+  void _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+      _internal_mutable_argroup();
+  public:
+  ::PROTOBUF_NAMESPACE_ID::uint64 argroup(int index) const;
+  void set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value);
+  void add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+      argroup() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+      mutable_argroup();
+
   // required uint64 taskid = 2;
   bool has_taskid() const;
   private:
@@ -746,7 +784,7 @@ class Task :
   void _internal_set_taskid(::PROTOBUF_NAMESPACE_ID::uint64 value);
   public:
 
-  // required uint64 deviceid = 3;
+  // optional uint64 deviceid = 3;
   bool has_deviceid() const;
   private:
   bool _internal_has_deviceid() const;
@@ -772,7 +810,7 @@ class Task :
   void _internal_set_type(::TaskGraphProtoBuf::Task_SimTaskType value);
   public:
 
-  // required float runtime = 5;
+  // optional float runtime = 5;
   bool has_runtime() const;
   private:
   bool _internal_has_runtime() const;
@@ -785,7 +823,7 @@ class Task :
   void _internal_set_runtime(float value);
   public:
 
-  // required uint64 opid = 4;
+  // optional uint64 opid = 4;
   bool has_opid() const;
   private:
   bool _internal_has_opid() const;
@@ -823,6 +861,8 @@ class Task :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > nexttasks_;
   mutable std::atomic<int> _nexttasks_cached_byte_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > argroup_;
+  mutable std::atomic<int> _argroup_cached_byte_size_;
   ::PROTOBUF_NAMESPACE_ID::uint64 taskid_;
   ::PROTOBUF_NAMESPACE_ID::uint64 deviceid_;
   int type_;
@@ -1305,6 +1345,334 @@ class Connection :
 };
 // -------------------------------------------------------------------
 
+class Path :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.Path) */ {
+ public:
+  Path();
+  virtual ~Path();
+
+  Path(const Path& from);
+  Path(Path&& from) noexcept
+    : Path() {
+    *this = ::std::move(from);
+  }
+
+  inline Path& operator=(const Path& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Path& operator=(Path&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const Path& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Path* internal_default_instance() {
+    return reinterpret_cast<const Path*>(
+               &_Path_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(Path& a, Path& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Path* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Path* New() const final {
+    return CreateMaybeMessage<Path>(nullptr);
+  }
+
+  Path* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Path>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const Path& from);
+  void MergeFrom(const Path& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Path* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "TaskGraphProtoBuf.Path";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_taskgraph_2eproto);
+    return ::descriptor_table_taskgraph_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kHopnodeFieldNumber = 1,
+  };
+  // repeated uint32 hopnode = 1 [packed = true];
+  int hopnode_size() const;
+  private:
+  int _internal_hopnode_size() const;
+  public:
+  void clear_hopnode();
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_hopnode(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+      _internal_hopnode() const;
+  void _internal_add_hopnode(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+      _internal_mutable_hopnode();
+  public:
+  ::PROTOBUF_NAMESPACE_ID::uint32 hopnode(int index) const;
+  void set_hopnode(int index, ::PROTOBUF_NAMESPACE_ID::uint32 value);
+  void add_hopnode(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+      hopnode() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+      mutable_hopnode();
+
+  // @@protoc_insertion_point(class_scope:TaskGraphProtoBuf.Path)
+ private:
+  class _Internal;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 > hopnode_;
+  mutable std::atomic<int> _hopnode_cached_byte_size_;
+  friend struct ::TableStruct_taskgraph_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Route :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.Route) */ {
+ public:
+  Route();
+  virtual ~Route();
+
+  Route(const Route& from);
+  Route(Route&& from) noexcept
+    : Route() {
+    *this = ::std::move(from);
+  }
+
+  inline Route& operator=(const Route& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Route& operator=(Route&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const Route& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Route* internal_default_instance() {
+    return reinterpret_cast<const Route*>(
+               &_Route_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(Route& a, Route& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Route* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Route* New() const final {
+    return CreateMaybeMessage<Route>(nullptr);
+  }
+
+  Route* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Route>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const Route& from);
+  void MergeFrom(const Route& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Route* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "TaskGraphProtoBuf.Route";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_taskgraph_2eproto);
+    return ::descriptor_table_taskgraph_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kPathsFieldNumber = 3,
+    kFromFieldNumber = 1,
+    kToFieldNumber = 2,
+  };
+  // repeated .TaskGraphProtoBuf.Path paths = 3;
+  int paths_size() const;
+  private:
+  int _internal_paths_size() const;
+  public:
+  void clear_paths();
+  ::TaskGraphProtoBuf::Path* mutable_paths(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Path >*
+      mutable_paths();
+  private:
+  const ::TaskGraphProtoBuf::Path& _internal_paths(int index) const;
+  ::TaskGraphProtoBuf::Path* _internal_add_paths();
+  public:
+  const ::TaskGraphProtoBuf::Path& paths(int index) const;
+  ::TaskGraphProtoBuf::Path* add_paths();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Path >&
+      paths() const;
+
+  // required uint32 from = 1;
+  bool has_from() const;
+  private:
+  bool _internal_has_from() const;
+  public:
+  void clear_from();
+  ::PROTOBUF_NAMESPACE_ID::uint32 from() const;
+  void set_from(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_from() const;
+  void _internal_set_from(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
+  // required uint32 to = 2;
+  bool has_to() const;
+  private:
+  bool _internal_has_to() const;
+  public:
+  void clear_to();
+  ::PROTOBUF_NAMESPACE_ID::uint32 to() const;
+  void set_to(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_to() const;
+  void _internal_set_to(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:TaskGraphProtoBuf.Route)
+ private:
+  class _Internal;
+
+  // helper for ByteSizeLong()
+  size_t RequiredFieldsByteSizeFallback() const;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Path > paths_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 from_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 to_;
+  friend struct ::TableStruct_taskgraph_2eproto;
+};
+// -------------------------------------------------------------------
+
 class TaskGraph :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.TaskGraph) */ {
  public:
@@ -1354,7 +1722,7 @@ class TaskGraph :
                &_TaskGraph_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    6;
 
   friend void swap(TaskGraph& a, TaskGraph& b) {
     a.Swap(&b);
@@ -1422,6 +1790,7 @@ class TaskGraph :
     kOpsFieldNumber = 7,
     kTasksFieldNumber = 8,
     kDevicesFieldNumber = 9,
+    kRoutesFieldNumber = 10,
     kNGPUPerNodeFieldNumber = 1,
     kNNodeFieldNumber = 2,
     kInterGPUBWFieldNumber = 3,
@@ -1499,6 +1868,24 @@ class TaskGraph :
   ::TaskGraphProtoBuf::Device* add_devices();
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Device >&
       devices() const;
+
+  // repeated .TaskGraphProtoBuf.Route routes = 10;
+  int routes_size() const;
+  private:
+  int _internal_routes_size() const;
+  public:
+  void clear_routes();
+  ::TaskGraphProtoBuf::Route* mutable_routes(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >*
+      mutable_routes();
+  private:
+  const ::TaskGraphProtoBuf::Route& _internal_routes(int index) const;
+  ::TaskGraphProtoBuf::Route* _internal_add_routes();
+  public:
+  const ::TaskGraphProtoBuf::Route& routes(int index) const;
+  ::TaskGraphProtoBuf::Route* add_routes();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >&
+      routes() const;
 
   // required uint32 nGPUPerNode = 1;
   bool has_ngpupernode() const;
@@ -1579,10 +1966,191 @@ class TaskGraph :
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Operator > ops_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Task > tasks_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Device > devices_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route > routes_;
   ::PROTOBUF_NAMESPACE_ID::uint32 ngpupernode_;
   ::PROTOBUF_NAMESPACE_ID::uint32 nnode_;
   float intergpubw_;
   float drambw_;
+  float netbw_;
+  friend struct ::TableStruct_taskgraph_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Topology :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.Topology) */ {
+ public:
+  Topology();
+  virtual ~Topology();
+
+  Topology(const Topology& from);
+  Topology(Topology&& from) noexcept
+    : Topology() {
+    *this = ::std::move(from);
+  }
+
+  inline Topology& operator=(const Topology& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Topology& operator=(Topology&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const Topology& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Topology* internal_default_instance() {
+    return reinterpret_cast<const Topology*>(
+               &_Topology_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    7;
+
+  friend void swap(Topology& a, Topology& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Topology* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Topology* New() const final {
+    return CreateMaybeMessage<Topology>(nullptr);
+  }
+
+  Topology* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Topology>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const Topology& from);
+  void MergeFrom(const Topology& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Topology* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "TaskGraphProtoBuf.Topology";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_taskgraph_2eproto);
+    return ::descriptor_table_taskgraph_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kConnFieldNumber = 2,
+    kRoutesFieldNumber = 3,
+    kNetBWFieldNumber = 1,
+  };
+  // repeated .TaskGraphProtoBuf.Connection conn = 2;
+  int conn_size() const;
+  private:
+  int _internal_conn_size() const;
+  public:
+  void clear_conn();
+  ::TaskGraphProtoBuf::Connection* mutable_conn(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Connection >*
+      mutable_conn();
+  private:
+  const ::TaskGraphProtoBuf::Connection& _internal_conn(int index) const;
+  ::TaskGraphProtoBuf::Connection* _internal_add_conn();
+  public:
+  const ::TaskGraphProtoBuf::Connection& conn(int index) const;
+  ::TaskGraphProtoBuf::Connection* add_conn();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Connection >&
+      conn() const;
+
+  // repeated .TaskGraphProtoBuf.Route routes = 3;
+  int routes_size() const;
+  private:
+  int _internal_routes_size() const;
+  public:
+  void clear_routes();
+  ::TaskGraphProtoBuf::Route* mutable_routes(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >*
+      mutable_routes();
+  private:
+  const ::TaskGraphProtoBuf::Route& _internal_routes(int index) const;
+  ::TaskGraphProtoBuf::Route* _internal_add_routes();
+  public:
+  const ::TaskGraphProtoBuf::Route& routes(int index) const;
+  ::TaskGraphProtoBuf::Route* add_routes();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >&
+      routes() const;
+
+  // required float netBW = 1;
+  bool has_netbw() const;
+  private:
+  bool _internal_has_netbw() const;
+  public:
+  void clear_netbw();
+  float netbw() const;
+  void set_netbw(float value);
+  private:
+  float _internal_netbw() const;
+  void _internal_set_netbw(float value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:TaskGraphProtoBuf.Topology)
+ private:
+  class _Internal;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Connection > conn_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route > routes_;
   float netbw_;
   friend struct ::TableStruct_taskgraph_2eproto;
 };
@@ -1786,7 +2354,7 @@ inline void Task::set_taskid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.taskid)
 }
 
-// required uint64 deviceid = 3;
+// optional uint64 deviceid = 3;
 inline bool Task::_internal_has_deviceid() const {
   bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
@@ -1814,7 +2382,7 @@ inline void Task::set_deviceid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.deviceid)
 }
 
-// required uint64 opid = 4;
+// optional uint64 opid = 4;
 inline bool Task::_internal_has_opid() const {
   bool value = (_has_bits_[0] & 0x00000010u) != 0;
   return value;
@@ -1842,7 +2410,7 @@ inline void Task::set_opid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.opid)
 }
 
-// required float runtime = 5;
+// optional float runtime = 5;
 inline bool Task::_internal_has_runtime() const {
   bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
@@ -1943,6 +2511,53 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >
 Task::mutable_nexttasks() {
   // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Task.nexttasks)
   return _internal_mutable_nexttasks();
+}
+
+// repeated uint64 argroup = 8 [packed = true];
+inline int Task::_internal_argroup_size() const {
+  return argroup_.size();
+}
+inline int Task::argroup_size() const {
+  return _internal_argroup_size();
+}
+inline void Task::clear_argroup() {
+  argroup_.Clear();
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_argroup(int index) const {
+  return argroup_.Get(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::argroup(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Task.argroup)
+  return _internal_argroup(index);
+}
+inline void Task::set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  argroup_.Set(index, value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.argroup)
+}
+inline void Task::_internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  argroup_.Add(value);
+}
+inline void Task::add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_add_argroup(value);
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Task.argroup)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+Task::_internal_argroup() const {
+  return argroup_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+Task::argroup() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Task.argroup)
+  return _internal_argroup();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+Task::_internal_mutable_argroup() {
+  return &argroup_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+Task::mutable_argroup() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Task.argroup)
+  return _internal_mutable_argroup();
 }
 
 // -------------------------------------------------------------------
@@ -2292,6 +2907,156 @@ inline void Connection::set_nconn(::PROTOBUF_NAMESPACE_ID::uint32 value) {
 
 // -------------------------------------------------------------------
 
+// Path
+
+// repeated uint32 hopnode = 1 [packed = true];
+inline int Path::_internal_hopnode_size() const {
+  return hopnode_.size();
+}
+inline int Path::hopnode_size() const {
+  return _internal_hopnode_size();
+}
+inline void Path::clear_hopnode() {
+  hopnode_.Clear();
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Path::_internal_hopnode(int index) const {
+  return hopnode_.Get(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Path::hopnode(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Path.hopnode)
+  return _internal_hopnode(index);
+}
+inline void Path::set_hopnode(int index, ::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  hopnode_.Set(index, value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Path.hopnode)
+}
+inline void Path::_internal_add_hopnode(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  hopnode_.Add(value);
+}
+inline void Path::add_hopnode(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_add_hopnode(value);
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Path.hopnode)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+Path::_internal_hopnode() const {
+  return hopnode_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+Path::hopnode() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Path.hopnode)
+  return _internal_hopnode();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+Path::_internal_mutable_hopnode() {
+  return &hopnode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+Path::mutable_hopnode() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Path.hopnode)
+  return _internal_mutable_hopnode();
+}
+
+// -------------------------------------------------------------------
+
+// Route
+
+// required uint32 from = 1;
+inline bool Route::_internal_has_from() const {
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Route::has_from() const {
+  return _internal_has_from();
+}
+inline void Route::clear_from() {
+  from_ = 0u;
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Route::_internal_from() const {
+  return from_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Route::from() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Route.from)
+  return _internal_from();
+}
+inline void Route::_internal_set_from(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _has_bits_[0] |= 0x00000001u;
+  from_ = value;
+}
+inline void Route::set_from(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_from(value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Route.from)
+}
+
+// required uint32 to = 2;
+inline bool Route::_internal_has_to() const {
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool Route::has_to() const {
+  return _internal_has_to();
+}
+inline void Route::clear_to() {
+  to_ = 0u;
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Route::_internal_to() const {
+  return to_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Route::to() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Route.to)
+  return _internal_to();
+}
+inline void Route::_internal_set_to(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _has_bits_[0] |= 0x00000002u;
+  to_ = value;
+}
+inline void Route::set_to(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_to(value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Route.to)
+}
+
+// repeated .TaskGraphProtoBuf.Path paths = 3;
+inline int Route::_internal_paths_size() const {
+  return paths_.size();
+}
+inline int Route::paths_size() const {
+  return _internal_paths_size();
+}
+inline void Route::clear_paths() {
+  paths_.Clear();
+}
+inline ::TaskGraphProtoBuf::Path* Route::mutable_paths(int index) {
+  // @@protoc_insertion_point(field_mutable:TaskGraphProtoBuf.Route.paths)
+  return paths_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Path >*
+Route::mutable_paths() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Route.paths)
+  return &paths_;
+}
+inline const ::TaskGraphProtoBuf::Path& Route::_internal_paths(int index) const {
+  return paths_.Get(index);
+}
+inline const ::TaskGraphProtoBuf::Path& Route::paths(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Route.paths)
+  return _internal_paths(index);
+}
+inline ::TaskGraphProtoBuf::Path* Route::_internal_add_paths() {
+  return paths_.Add();
+}
+inline ::TaskGraphProtoBuf::Path* Route::add_paths() {
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Route.paths)
+  return _internal_add_paths();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Path >&
+Route::paths() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Route.paths)
+  return paths_;
+}
+
+// -------------------------------------------------------------------
+
 // TaskGraph
 
 // required uint32 nGPUPerNode = 1;
@@ -2590,9 +3355,164 @@ TaskGraph::devices() const {
   return devices_;
 }
 
+// repeated .TaskGraphProtoBuf.Route routes = 10;
+inline int TaskGraph::_internal_routes_size() const {
+  return routes_.size();
+}
+inline int TaskGraph::routes_size() const {
+  return _internal_routes_size();
+}
+inline void TaskGraph::clear_routes() {
+  routes_.Clear();
+}
+inline ::TaskGraphProtoBuf::Route* TaskGraph::mutable_routes(int index) {
+  // @@protoc_insertion_point(field_mutable:TaskGraphProtoBuf.TaskGraph.routes)
+  return routes_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >*
+TaskGraph::mutable_routes() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.TaskGraph.routes)
+  return &routes_;
+}
+inline const ::TaskGraphProtoBuf::Route& TaskGraph::_internal_routes(int index) const {
+  return routes_.Get(index);
+}
+inline const ::TaskGraphProtoBuf::Route& TaskGraph::routes(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.TaskGraph.routes)
+  return _internal_routes(index);
+}
+inline ::TaskGraphProtoBuf::Route* TaskGraph::_internal_add_routes() {
+  return routes_.Add();
+}
+inline ::TaskGraphProtoBuf::Route* TaskGraph::add_routes() {
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.TaskGraph.routes)
+  return _internal_add_routes();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >&
+TaskGraph::routes() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.TaskGraph.routes)
+  return routes_;
+}
+
+// -------------------------------------------------------------------
+
+// Topology
+
+// required float netBW = 1;
+inline bool Topology::_internal_has_netbw() const {
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Topology::has_netbw() const {
+  return _internal_has_netbw();
+}
+inline void Topology::clear_netbw() {
+  netbw_ = 0;
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline float Topology::_internal_netbw() const {
+  return netbw_;
+}
+inline float Topology::netbw() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Topology.netBW)
+  return _internal_netbw();
+}
+inline void Topology::_internal_set_netbw(float value) {
+  _has_bits_[0] |= 0x00000001u;
+  netbw_ = value;
+}
+inline void Topology::set_netbw(float value) {
+  _internal_set_netbw(value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Topology.netBW)
+}
+
+// repeated .TaskGraphProtoBuf.Connection conn = 2;
+inline int Topology::_internal_conn_size() const {
+  return conn_.size();
+}
+inline int Topology::conn_size() const {
+  return _internal_conn_size();
+}
+inline void Topology::clear_conn() {
+  conn_.Clear();
+}
+inline ::TaskGraphProtoBuf::Connection* Topology::mutable_conn(int index) {
+  // @@protoc_insertion_point(field_mutable:TaskGraphProtoBuf.Topology.conn)
+  return conn_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Connection >*
+Topology::mutable_conn() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Topology.conn)
+  return &conn_;
+}
+inline const ::TaskGraphProtoBuf::Connection& Topology::_internal_conn(int index) const {
+  return conn_.Get(index);
+}
+inline const ::TaskGraphProtoBuf::Connection& Topology::conn(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Topology.conn)
+  return _internal_conn(index);
+}
+inline ::TaskGraphProtoBuf::Connection* Topology::_internal_add_conn() {
+  return conn_.Add();
+}
+inline ::TaskGraphProtoBuf::Connection* Topology::add_conn() {
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Topology.conn)
+  return _internal_add_conn();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Connection >&
+Topology::conn() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Topology.conn)
+  return conn_;
+}
+
+// repeated .TaskGraphProtoBuf.Route routes = 3;
+inline int Topology::_internal_routes_size() const {
+  return routes_.size();
+}
+inline int Topology::routes_size() const {
+  return _internal_routes_size();
+}
+inline void Topology::clear_routes() {
+  routes_.Clear();
+}
+inline ::TaskGraphProtoBuf::Route* Topology::mutable_routes(int index) {
+  // @@protoc_insertion_point(field_mutable:TaskGraphProtoBuf.Topology.routes)
+  return routes_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >*
+Topology::mutable_routes() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Topology.routes)
+  return &routes_;
+}
+inline const ::TaskGraphProtoBuf::Route& Topology::_internal_routes(int index) const {
+  return routes_.Get(index);
+}
+inline const ::TaskGraphProtoBuf::Route& Topology::routes(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Topology.routes)
+  return _internal_routes(index);
+}
+inline ::TaskGraphProtoBuf::Route* Topology::_internal_add_routes() {
+  return routes_.Add();
+}
+inline ::TaskGraphProtoBuf::Route* Topology::add_routes() {
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Topology.routes)
+  return _internal_add_routes();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >&
+Topology::routes() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Topology.routes)
+  return routes_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

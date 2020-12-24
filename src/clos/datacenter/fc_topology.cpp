@@ -72,7 +72,7 @@ Queue* FCTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b q
 }
 
 void FCTopology::init_network(){
-  QueueLoggerSampling* queueLogger;
+  // QueueLoggerSampling* queueLogger;
   
   for (int j=0; j<_no_of_nodes; j++)
     for (int k=0; k<_no_of_nodes; k++){
@@ -89,12 +89,14 @@ void FCTopology::init_network(){
   for (int j = 0; j < _no_of_nodes; j++) {
     for (int k = 0; k < j; k++) {
 
-    queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-    //queueLogger = NULL;
-    logfile->addLogger(*queueLogger);
+    QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    // queueLogger = NULL;
+    logfile->addLogger(*queueLoggerd);
+    logfile->addLogger(*queueLoggeru);
     
-    queues[j][k] = alloc_queue(queueLogger, _queuesize);
-    queues[k][j] = alloc_queue(queueLogger, _queuesize);
+    queues[j][k] = alloc_queue(queueLoggerd, _queuesize);
+    queues[k][j] = alloc_queue(queueLoggeru, _queuesize);
     queues[j][k]->setName("L" + ntoa(j) + "->DST" +ntoa(k));
     queues[k][j]->setName("L" + ntoa(k) + "->DST" +ntoa(j));
     logfile->writeName(*(queues[j][k]));
@@ -277,9 +279,11 @@ void UtilMonitor::printAggUtil() {
     //     }
     // }
     for (int i = 0; i < _H; i++) {
-      for (int j = 0; j < _H; i++) {
+      for (int j = 0; j < _H; j++) {
         Pipe * pipe = _top->get_pipe(i, j);
-        B_sum = B_sum + pipe->reportBytes();
+        if (pipe != nullptr) {
+          B_sum = B_sum + pipe->reportBytes();
+        }
       }
     }
 

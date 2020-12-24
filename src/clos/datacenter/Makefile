@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall -g -O0
+CFLAGS=-Wall  -O0 -ggdb
 FF_HOME?=/home/weiyangw/FlexFlow
 CRT=`pwd`
 INCLUDE= -I/$(CRT)/.. -I$(CRT) -I$(FF_HOME)/protobuf/src
@@ -22,8 +22,8 @@ htsim_ndp_fatTree: main_ndp_fatTree.o firstfit.o ../libhtsim.a fat_tree_topology
 htsim_ndp_fc: main_ndp_fc.o firstfit.o ../libhtsim.a fc_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_ndp_fc.o ../taskgraph.pb.o fc_topology.o $(LIB) -lhtsim -o htsim_ndp_fc
 
-htsim_tcp_fc: main_tcp_fc.o firstfit.o ../libhtsim.a test_topology.o
-	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o test_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_fc
+htsim_tcp_fc: main_tcp_fc.o firstfit.o ../libhtsim.a test_topology.o fc_topology.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o fc_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_fc
 
 htsim_ndp_fatTree_3to1_k12: main_ndp_fatTree_3to1_k12.o firstfit.o ../libhtsim.a fat_tree_topology_3to1_k12.o
 	$(CC) $(CFLAGS) firstfit.o main_ndp_fatTree_3to1_k12.o fat_tree_topology_3to1_k12.o $(LIB) -lhtsim -o htsim_ndp_fatTree_3to1_k12

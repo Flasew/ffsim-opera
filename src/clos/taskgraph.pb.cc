@@ -17,6 +17,8 @@
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Connection_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Device_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Operator_taskgraph_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Path_taskgraph_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Route_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Task_taskgraph_2eproto;
 namespace TaskGraphProtoBuf {
 class OperatorDefaultTypeInternal {
@@ -35,10 +37,22 @@ class ConnectionDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Connection> _instance;
 } _Connection_default_instance_;
+class PathDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Path> _instance;
+} _Path_default_instance_;
+class RouteDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Route> _instance;
+} _Route_default_instance_;
 class TaskGraphDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<TaskGraph> _instance;
 } _TaskGraph_default_instance_;
+class TopologyDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Topology> _instance;
+} _Topology_default_instance_;
 }  // namespace TaskGraphProtoBuf
 static void InitDefaultsscc_info_Connection_taskgraph_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -82,6 +96,35 @@ static void InitDefaultsscc_info_Operator_taskgraph_2eproto() {
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Operator_taskgraph_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Operator_taskgraph_2eproto}, {}};
 
+static void InitDefaultsscc_info_Path_taskgraph_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::TaskGraphProtoBuf::_Path_default_instance_;
+    new (ptr) ::TaskGraphProtoBuf::Path();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::TaskGraphProtoBuf::Path::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Path_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Path_taskgraph_2eproto}, {}};
+
+static void InitDefaultsscc_info_Route_taskgraph_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::TaskGraphProtoBuf::_Route_default_instance_;
+    new (ptr) ::TaskGraphProtoBuf::Route();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::TaskGraphProtoBuf::Route::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Route_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_Route_taskgraph_2eproto}, {
+      &scc_info_Path_taskgraph_2eproto.base,}};
+
 static void InitDefaultsscc_info_Task_taskgraph_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -107,14 +150,31 @@ static void InitDefaultsscc_info_TaskGraph_taskgraph_2eproto() {
   ::TaskGraphProtoBuf::TaskGraph::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<4> scc_info_TaskGraph_taskgraph_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 4, 0, InitDefaultsscc_info_TaskGraph_taskgraph_2eproto}, {
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<5> scc_info_TaskGraph_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 5, 0, InitDefaultsscc_info_TaskGraph_taskgraph_2eproto}, {
       &scc_info_Connection_taskgraph_2eproto.base,
       &scc_info_Operator_taskgraph_2eproto.base,
       &scc_info_Task_taskgraph_2eproto.base,
-      &scc_info_Device_taskgraph_2eproto.base,}};
+      &scc_info_Device_taskgraph_2eproto.base,
+      &scc_info_Route_taskgraph_2eproto.base,}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_taskgraph_2eproto[5];
+static void InitDefaultsscc_info_Topology_taskgraph_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::TaskGraphProtoBuf::_Topology_default_instance_;
+    new (ptr) ::TaskGraphProtoBuf::Topology();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::TaskGraphProtoBuf::Topology::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<2> scc_info_Topology_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 2, 0, InitDefaultsscc_info_Topology_taskgraph_2eproto}, {
+      &scc_info_Connection_taskgraph_2eproto.base,
+      &scc_info_Route_taskgraph_2eproto.base,}};
+
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_taskgraph_2eproto[8];
 static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_taskgraph_2eproto[3];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_taskgraph_2eproto = nullptr;
 
@@ -142,12 +202,14 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, runtime_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, xfersize_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, nexttasks_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, argroup_),
   2,
   0,
   1,
   4,
   3,
   5,
+  ~0u,
   ~0u,
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Device, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Device, _internal_metadata_),
@@ -183,6 +245,24 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   0,
   1,
   2,
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Path, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Path, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Path, hopnode_),
+  ~0u,
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Route, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Route, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Route, from_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Route, to_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Route, paths_),
+  0,
+  1,
+  ~0u,
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -197,6 +277,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, ops_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, tasks_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, devices_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::TaskGraph, routes_),
   0,
   1,
   2,
@@ -206,13 +287,28 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   ~0u,
   ~0u,
   ~0u,
+  ~0u,
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Topology, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Topology, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Topology, netbw_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Topology, conn_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Topology, routes_),
+  0,
+  ~0u,
+  ~0u,
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, sizeof(::TaskGraphProtoBuf::Operator)},
-  { 11, 23, sizeof(::TaskGraphProtoBuf::Task)},
-  { 30, 44, sizeof(::TaskGraphProtoBuf::Device)},
-  { 53, 61, sizeof(::TaskGraphProtoBuf::Connection)},
-  { 64, 78, sizeof(::TaskGraphProtoBuf::TaskGraph)},
+  { 11, 24, sizeof(::TaskGraphProtoBuf::Task)},
+  { 32, 46, sizeof(::TaskGraphProtoBuf::Device)},
+  { 55, 63, sizeof(::TaskGraphProtoBuf::Connection)},
+  { 66, 72, sizeof(::TaskGraphProtoBuf::Path)},
+  { 73, 81, sizeof(::TaskGraphProtoBuf::Route)},
+  { 84, 99, sizeof(::TaskGraphProtoBuf::TaskGraph)},
+  { 109, 117, sizeof(::TaskGraphProtoBuf::Topology)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -220,7 +316,10 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Task_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Device_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Connection_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Path_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Route_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_TaskGraph_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Topology_default_instance_),
 };
 
 const char descriptor_table_protodef_taskgraph_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
@@ -253,47 +352,58 @@ const char descriptor_table_protodef_taskgraph_2eproto[] PROTOBUF_SECTION_VARIAB
   "7\022\014\n\010OP_ROUND\0208\022\n\n\006OP_LOG\0209\022\022\n\016OP_LOGICA"
   "L_NOT\020:\022\013\n\007OP_SQRT\020;\022\020\n\014OP_LEAKYRELU\020<\022\014"
   "\n\010OP_SLICE\020=\022\r\n\tOP_RESIZE\020>\022\014\n\010OP_PRELU\020"
-  "\?\"\236\002\n\004Task\0221\n\004type\030\001 \002(\0162#.TaskGraphProt"
+  "\?\"\310\002\n\004Task\0221\n\004type\030\001 \002(\0162#.TaskGraphProt"
   "oBuf.Task.SimTaskType\022\016\n\006taskid\030\002 \002(\004\022\020\n"
-  "\010deviceid\030\003 \002(\004\022\014\n\004opid\030\004 \002(\004\022\017\n\007runtime"
-  "\030\005 \002(\002\022\023\n\010xfersize\030\006 \001(\004:\0010\022\025\n\tnexttasks"
-  "\030\007 \003(\004B\002\020\001\"v\n\013SimTaskType\022\020\n\014TASK_FORWAR"
-  "D\020\000\022\021\n\rTASK_BACKWARD\020\001\022\r\n\tTASK_COMM\020\002\022\017\n"
-  "\013TASK_UPDATE\020\003\022\020\n\014TASK_BARRIER\020\004\022\020\n\014TASK"
-  "_LATENCY\020\005\"\304\002\n\006Device\0222\n\004type\030\001 \002(\0162$.Ta"
-  "skGraphProtoBuf.Device.DeviceType\022\020\n\010dev"
-  "iceid\030\002 \002(\004\022\021\n\006nodeid\030\003 \001(\r:\0010\022\020\n\005gpuid\030"
-  "\004 \001(\r:\0010\022\024\n\tbandwidth\030\005 \001(\004:\0010\022\022\n\007fromgp"
-  "u\030\006 \001(\r:\0010\022\020\n\005togpu\030\007 \001(\r:\0010\022\023\n\010fromnode"
-  "\030\010 \001(\r:\0010\022\021\n\006tonode\030\t \001(\r:\0010\"k\n\nDeviceTy"
-  "pe\022\016\n\nDEVICE_GPU\020\000\022\016\n\nDEVICE_CPU\020\001\022\023\n\017DE"
-  "VICE_GPU_COMM\020\002\022\024\n\020DEVICE_DRAM_COMM\020\003\022\022\n"
-  "\016DEVICE_NW_COMM\020\004\"5\n\nConnection\022\014\n\004from\030"
-  "\001 \002(\r\022\n\n\002to\030\002 \002(\r\022\r\n\005nconn\030\003 \002(\r\"\215\002\n\tTas"
-  "kGraph\022\023\n\013nGPUPerNode\030\001 \002(\r\022\r\n\005nNode\030\002 \002"
-  "(\r\022\022\n\ninterGPUBW\030\003 \002(\002\022\016\n\006dramBW\030\004 \002(\002\022\r"
-  "\n\005netBW\030\005 \002(\002\022+\n\004conn\030\006 \003(\0132\035.TaskGraphP"
-  "rotoBuf.Connection\022(\n\003ops\030\007 \003(\0132\033.TaskGr"
-  "aphProtoBuf.Operator\022&\n\005tasks\030\010 \003(\0132\027.Ta"
-  "skGraphProtoBuf.Task\022*\n\007devices\030\t \003(\0132\031."
-  "TaskGraphProtoBuf.Device"
+  "\010deviceid\030\003 \001(\004\022\014\n\004opid\030\004 \001(\004\022\017\n\007runtime"
+  "\030\005 \001(\002\022\023\n\010xfersize\030\006 \001(\004:\0010\022\025\n\tnexttasks"
+  "\030\007 \003(\004B\002\020\001\022\023\n\007argroup\030\010 \003(\004B\002\020\001\"\212\001\n\013SimT"
+  "askType\022\020\n\014TASK_FORWARD\020\000\022\021\n\rTASK_BACKWA"
+  "RD\020\001\022\r\n\tTASK_COMM\020\002\022\017\n\013TASK_UPDATE\020\003\022\020\n\014"
+  "TASK_BARRIER\020\004\022\020\n\014TASK_LATENCY\020\005\022\022\n\016TASK"
+  "_ALLREDUCE\020\006\"\304\002\n\006Device\0222\n\004type\030\001 \002(\0162$."
+  "TaskGraphProtoBuf.Device.DeviceType\022\020\n\010d"
+  "eviceid\030\002 \002(\004\022\021\n\006nodeid\030\003 \001(\r:\0010\022\020\n\005gpui"
+  "d\030\004 \001(\r:\0010\022\024\n\tbandwidth\030\005 \001(\004:\0010\022\022\n\007from"
+  "gpu\030\006 \001(\r:\0010\022\020\n\005togpu\030\007 \001(\r:\0010\022\023\n\010fromno"
+  "de\030\010 \001(\r:\0010\022\021\n\006tonode\030\t \001(\r:\0010\"k\n\nDevice"
+  "Type\022\016\n\nDEVICE_GPU\020\000\022\016\n\nDEVICE_CPU\020\001\022\023\n\017"
+  "DEVICE_GPU_COMM\020\002\022\024\n\020DEVICE_DRAM_COMM\020\003\022"
+  "\022\n\016DEVICE_NW_COMM\020\004\"5\n\nConnection\022\014\n\004fro"
+  "m\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022\r\n\005nconn\030\003 \002(\r\"\033\n\004Pa"
+  "th\022\023\n\007hopnode\030\001 \003(\rB\002\020\001\"I\n\005Route\022\014\n\004from"
+  "\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022&\n\005paths\030\003 \003(\0132\027.Task"
+  "GraphProtoBuf.Path\"\267\002\n\tTaskGraph\022\023\n\013nGPU"
+  "PerNode\030\001 \002(\r\022\r\n\005nNode\030\002 \002(\r\022\022\n\ninterGPU"
+  "BW\030\003 \002(\002\022\016\n\006dramBW\030\004 \002(\002\022\r\n\005netBW\030\005 \002(\002\022"
+  "+\n\004conn\030\006 \003(\0132\035.TaskGraphProtoBuf.Connec"
+  "tion\022(\n\003ops\030\007 \003(\0132\033.TaskGraphProtoBuf.Op"
+  "erator\022&\n\005tasks\030\010 \003(\0132\027.TaskGraphProtoBu"
+  "f.Task\022*\n\007devices\030\t \003(\0132\031.TaskGraphProto"
+  "Buf.Device\022(\n\006routes\030\n \003(\0132\030.TaskGraphPr"
+  "otoBuf.Route\"p\n\010Topology\022\r\n\005netBW\030\001 \002(\002\022"
+  "+\n\004conn\030\002 \003(\0132\035.TaskGraphProtoBuf.Connec"
+  "tion\022(\n\006routes\030\003 \003(\0132\030.TaskGraphProtoBuf"
+  ".Route"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_taskgraph_2eproto_deps[1] = {
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_taskgraph_2eproto_sccs[5] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_taskgraph_2eproto_sccs[8] = {
   &scc_info_Connection_taskgraph_2eproto.base,
   &scc_info_Device_taskgraph_2eproto.base,
   &scc_info_Operator_taskgraph_2eproto.base,
+  &scc_info_Path_taskgraph_2eproto.base,
+  &scc_info_Route_taskgraph_2eproto.base,
   &scc_info_Task_taskgraph_2eproto.base,
   &scc_info_TaskGraph_taskgraph_2eproto.base,
+  &scc_info_Topology_taskgraph_2eproto.base,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_taskgraph_2eproto_once;
 static bool descriptor_table_taskgraph_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_taskgraph_2eproto = {
-  &descriptor_table_taskgraph_2eproto_initialized, descriptor_table_protodef_taskgraph_2eproto, "taskgraph.proto", 2104,
-  &descriptor_table_taskgraph_2eproto_once, descriptor_table_taskgraph_2eproto_sccs, descriptor_table_taskgraph_2eproto_deps, 5, 0,
+  &descriptor_table_taskgraph_2eproto_initialized, descriptor_table_protodef_taskgraph_2eproto, "taskgraph.proto", 2406,
+  &descriptor_table_taskgraph_2eproto_once, descriptor_table_taskgraph_2eproto_sccs, descriptor_table_taskgraph_2eproto_deps, 8, 0,
   schemas, file_default_instances, TableStruct_taskgraph_2eproto::offsets,
-  file_level_metadata_taskgraph_2eproto, 5, file_level_enum_descriptors_taskgraph_2eproto, file_level_service_descriptors_taskgraph_2eproto,
+  file_level_metadata_taskgraph_2eproto, 8, file_level_enum_descriptors_taskgraph_2eproto, file_level_service_descriptors_taskgraph_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -454,6 +564,7 @@ bool Task_SimTaskType_IsValid(int value) {
     case 3:
     case 4:
     case 5:
+    case 6:
       return true;
     default:
       return false;
@@ -467,6 +578,7 @@ constexpr Task_SimTaskType Task::TASK_COMM;
 constexpr Task_SimTaskType Task::TASK_UPDATE;
 constexpr Task_SimTaskType Task::TASK_BARRIER;
 constexpr Task_SimTaskType Task::TASK_LATENCY;
+constexpr Task_SimTaskType Task::TASK_ALLREDUCE;
 constexpr Task_SimTaskType Task::SimTaskType_MIN;
 constexpr Task_SimTaskType Task::SimTaskType_MAX;
 constexpr int Task::SimTaskType_ARRAYSIZE;
@@ -845,7 +957,8 @@ Task::Task(const Task& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       _has_bits_(from._has_bits_),
-      nexttasks_(from.nexttasks_) {
+      nexttasks_(from.nexttasks_),
+      argroup_(from.argroup_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&taskid_, &from.taskid_,
     static_cast<size_t>(reinterpret_cast<char*>(&xfersize_) -
@@ -883,6 +996,7 @@ void Task::Clear() {
   (void) cached_has_bits;
 
   nexttasks_.Clear();
+  argroup_.Clear();
   cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x0000003fu) {
     ::memset(&taskid_, 0, static_cast<size_t>(
@@ -921,7 +1035,7 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // required uint64 deviceid = 3;
+      // optional uint64 deviceid = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
           _Internal::set_has_deviceid(&has_bits);
@@ -929,7 +1043,7 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // required uint64 opid = 4;
+      // optional uint64 opid = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
           _Internal::set_has_opid(&has_bits);
@@ -937,7 +1051,7 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // required float runtime = 5;
+      // optional float runtime = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 45)) {
           _Internal::set_has_runtime(&has_bits);
@@ -960,6 +1074,16 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 56) {
           _internal_add_nexttasks(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // repeated uint64 argroup = 8 [packed = true];
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_argroup(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 64) {
+          _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -1004,19 +1128,19 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_taskid(), target);
   }
 
-  // required uint64 deviceid = 3;
+  // optional uint64 deviceid = 3;
   if (cached_has_bits & 0x00000002u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(3, this->_internal_deviceid(), target);
   }
 
-  // required uint64 opid = 4;
+  // optional uint64 opid = 4;
   if (cached_has_bits & 0x00000010u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(4, this->_internal_opid(), target);
   }
 
-  // required float runtime = 5;
+  // optional float runtime = 5;
   if (cached_has_bits & 0x00000008u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(5, this->_internal_runtime(), target);
@@ -1034,6 +1158,15 @@ failure:
     if (byte_size > 0) {
       target = stream->WriteUInt64Packed(
           7, _internal_nexttasks(), byte_size, target);
+    }
+  }
+
+  // repeated uint64 argroup = 8 [packed = true];
+  {
+    int byte_size = _argroup_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteUInt64Packed(
+          8, _internal_argroup(), byte_size, target);
     }
   }
 
@@ -1056,29 +1189,10 @@ size_t Task::RequiredFieldsByteSizeFallback() const {
         this->_internal_taskid());
   }
 
-  if (has_deviceid()) {
-    // required uint64 deviceid = 3;
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
-        this->_internal_deviceid());
-  }
-
   if (has_type()) {
     // required .TaskGraphProtoBuf.Task.SimTaskType type = 1;
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_type());
-  }
-
-  if (has_runtime()) {
-    // required float runtime = 5;
-    total_size += 1 + 4;
-  }
-
-  if (has_opid()) {
-    // required uint64 opid = 4;
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
-        this->_internal_opid());
   }
 
   return total_size;
@@ -1087,28 +1201,15 @@ size_t Task::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Task)
   size_t total_size = 0;
 
-  if (((_has_bits_[0] & 0x0000001f) ^ 0x0000001f) == 0) {  // All required fields are present.
+  if (((_has_bits_[0] & 0x00000005) ^ 0x00000005) == 0) {  // All required fields are present.
     // required uint64 taskid = 2;
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
         this->_internal_taskid());
 
-    // required uint64 deviceid = 3;
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
-        this->_internal_deviceid());
-
     // required .TaskGraphProtoBuf.Task.SimTaskType type = 1;
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_type());
-
-    // required float runtime = 5;
-    total_size += 1 + 4;
-
-    // required uint64 opid = 4;
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
-        this->_internal_opid());
 
   } else {
     total_size += RequiredFieldsByteSizeFallback();
@@ -1132,14 +1233,50 @@ size_t Task::ByteSizeLong() const {
     total_size += data_size;
   }
 
-  // optional uint64 xfersize = 6 [default = 0];
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000020u) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
-        this->_internal_xfersize());
+  // repeated uint64 argroup = 8 [packed = true];
+  {
+    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      UInt64Size(this->argroup_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
+    }
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _argroup_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
   }
 
+  // optional uint64 deviceid = 3;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000002u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
+        this->_internal_deviceid());
+  }
+
+  if (cached_has_bits & 0x00000038u) {
+    // optional float runtime = 5;
+    if (cached_has_bits & 0x00000008u) {
+      total_size += 1 + 4;
+    }
+
+    // optional uint64 opid = 4;
+    if (cached_has_bits & 0x00000010u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
+          this->_internal_opid());
+    }
+
+    // optional uint64 xfersize = 6 [default = 0];
+    if (cached_has_bits & 0x00000020u) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
+          this->_internal_xfersize());
+    }
+
+  }
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
         _internal_metadata_, total_size, &_cached_size_);
@@ -1172,6 +1309,7 @@ void Task::MergeFrom(const Task& from) {
   (void) cached_has_bits;
 
   nexttasks_.MergeFrom(from.nexttasks_);
+  argroup_.MergeFrom(from.argroup_);
   cached_has_bits = from._has_bits_[0];
   if (cached_has_bits & 0x0000003fu) {
     if (cached_has_bits & 0x00000001u) {
@@ -1211,7 +1349,7 @@ void Task::CopyFrom(const Task& from) {
 }
 
 bool Task::IsInitialized() const {
-  if ((_has_bits_[0] & 0x0000001f) != 0x0000001f) return false;
+  if ((_has_bits_[0] & 0x00000005) != 0x00000005) return false;
   return true;
 }
 
@@ -1220,6 +1358,7 @@ void Task::InternalSwap(Task* other) {
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_has_bits_[0], other->_has_bits_[0]);
   nexttasks_.InternalSwap(&other->nexttasks_);
+  argroup_.InternalSwap(&other->argroup_);
   swap(taskid_, other->taskid_);
   swap(deviceid_, other->deviceid_);
   swap(type_, other->type_);
@@ -1989,6 +2128,498 @@ void Connection::InternalSwap(Connection* other) {
 
 // ===================================================================
 
+void Path::InitAsDefaultInstance() {
+}
+class Path::_Internal {
+ public:
+  using HasBits = decltype(std::declval<Path>()._has_bits_);
+};
+
+Path::Path()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:TaskGraphProtoBuf.Path)
+}
+Path::Path(const Path& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr),
+      _has_bits_(from._has_bits_),
+      hopnode_(from.hopnode_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:TaskGraphProtoBuf.Path)
+}
+
+void Path::SharedCtor() {
+}
+
+Path::~Path() {
+  // @@protoc_insertion_point(destructor:TaskGraphProtoBuf.Path)
+  SharedDtor();
+}
+
+void Path::SharedDtor() {
+}
+
+void Path::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const Path& Path::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Path_taskgraph_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void Path::Clear() {
+// @@protoc_insertion_point(message_clear_start:TaskGraphProtoBuf.Path)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  hopnode_.Clear();
+  _has_bits_.Clear();
+  _internal_metadata_.Clear();
+}
+
+const char* Path::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // repeated uint32 hopnode = 1 [packed = true];
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt32Parser(_internal_mutable_hopnode(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
+          _internal_add_hopnode(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* Path::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:TaskGraphProtoBuf.Path)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated uint32 hopnode = 1 [packed = true];
+  {
+    int byte_size = _hopnode_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteUInt32Packed(
+          1, _internal_hopnode(), byte_size, target);
+    }
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:TaskGraphProtoBuf.Path)
+  return target;
+}
+
+size_t Path::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Path)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated uint32 hopnode = 1 [packed = true];
+  {
+    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      UInt32Size(this->hopnode_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
+    }
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _hopnode_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Path::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:TaskGraphProtoBuf.Path)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Path* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Path>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:TaskGraphProtoBuf.Path)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:TaskGraphProtoBuf.Path)
+    MergeFrom(*source);
+  }
+}
+
+void Path::MergeFrom(const Path& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:TaskGraphProtoBuf.Path)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  hopnode_.MergeFrom(from.hopnode_);
+}
+
+void Path::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:TaskGraphProtoBuf.Path)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Path::CopyFrom(const Path& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:TaskGraphProtoBuf.Path)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Path::IsInitialized() const {
+  return true;
+}
+
+void Path::InternalSwap(Path* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  hopnode_.InternalSwap(&other->hopnode_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Path::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+void Route::InitAsDefaultInstance() {
+}
+class Route::_Internal {
+ public:
+  using HasBits = decltype(std::declval<Route>()._has_bits_);
+  static void set_has_from(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
+  static void set_has_to(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
+};
+
+Route::Route()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:TaskGraphProtoBuf.Route)
+}
+Route::Route(const Route& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr),
+      _has_bits_(from._has_bits_),
+      paths_(from.paths_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::memcpy(&from_, &from.from_,
+    static_cast<size_t>(reinterpret_cast<char*>(&to_) -
+    reinterpret_cast<char*>(&from_)) + sizeof(to_));
+  // @@protoc_insertion_point(copy_constructor:TaskGraphProtoBuf.Route)
+}
+
+void Route::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Route_taskgraph_2eproto.base);
+  ::memset(&from_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&to_) -
+      reinterpret_cast<char*>(&from_)) + sizeof(to_));
+}
+
+Route::~Route() {
+  // @@protoc_insertion_point(destructor:TaskGraphProtoBuf.Route)
+  SharedDtor();
+}
+
+void Route::SharedDtor() {
+}
+
+void Route::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const Route& Route::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Route_taskgraph_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void Route::Clear() {
+// @@protoc_insertion_point(message_clear_start:TaskGraphProtoBuf.Route)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  paths_.Clear();
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    ::memset(&from_, 0, static_cast<size_t>(
+        reinterpret_cast<char*>(&to_) -
+        reinterpret_cast<char*>(&from_)) + sizeof(to_));
+  }
+  _has_bits_.Clear();
+  _internal_metadata_.Clear();
+}
+
+const char* Route::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // required uint32 from = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
+          _Internal::set_has_from(&has_bits);
+          from_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // required uint32 to = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          _Internal::set_has_to(&has_bits);
+          to_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // repeated .TaskGraphProtoBuf.Path paths = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_paths(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  _has_bits_.Or(has_bits);
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* Route::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:TaskGraphProtoBuf.Route)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = _has_bits_[0];
+  // required uint32 from = 1;
+  if (cached_has_bits & 0x00000001u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(1, this->_internal_from(), target);
+  }
+
+  // required uint32 to = 2;
+  if (cached_has_bits & 0x00000002u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(2, this->_internal_to(), target);
+  }
+
+  // repeated .TaskGraphProtoBuf.Path paths = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->_internal_paths_size()); i < n; i++) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(3, this->_internal_paths(i), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:TaskGraphProtoBuf.Route)
+  return target;
+}
+
+size_t Route::RequiredFieldsByteSizeFallback() const {
+// @@protoc_insertion_point(required_fields_byte_size_fallback_start:TaskGraphProtoBuf.Route)
+  size_t total_size = 0;
+
+  if (has_from()) {
+    // required uint32 from = 1;
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_from());
+  }
+
+  if (has_to()) {
+    // required uint32 to = 2;
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_to());
+  }
+
+  return total_size;
+}
+size_t Route::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Route)
+  size_t total_size = 0;
+
+  if (((_has_bits_[0] & 0x00000003) ^ 0x00000003) == 0) {  // All required fields are present.
+    // required uint32 from = 1;
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_from());
+
+    // required uint32 to = 2;
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_to());
+
+  } else {
+    total_size += RequiredFieldsByteSizeFallback();
+  }
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .TaskGraphProtoBuf.Path paths = 3;
+  total_size += 1UL * this->_internal_paths_size();
+  for (const auto& msg : this->paths_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Route::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:TaskGraphProtoBuf.Route)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Route* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Route>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:TaskGraphProtoBuf.Route)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:TaskGraphProtoBuf.Route)
+    MergeFrom(*source);
+  }
+}
+
+void Route::MergeFrom(const Route& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:TaskGraphProtoBuf.Route)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  paths_.MergeFrom(from.paths_);
+  cached_has_bits = from._has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      from_ = from.from_;
+    }
+    if (cached_has_bits & 0x00000002u) {
+      to_ = from.to_;
+    }
+    _has_bits_[0] |= cached_has_bits;
+  }
+}
+
+void Route::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:TaskGraphProtoBuf.Route)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Route::CopyFrom(const Route& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:TaskGraphProtoBuf.Route)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Route::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
+  return true;
+}
+
+void Route::InternalSwap(Route* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  paths_.InternalSwap(&other->paths_);
+  swap(from_, other->from_);
+  swap(to_, other->to_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Route::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
 void TaskGraph::InitAsDefaultInstance() {
 }
 class TaskGraph::_Internal {
@@ -2023,7 +2654,8 @@ TaskGraph::TaskGraph(const TaskGraph& from)
       conn_(from.conn_),
       ops_(from.ops_),
       tasks_(from.tasks_),
-      devices_(from.devices_) {
+      devices_(from.devices_),
+      routes_(from.routes_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::memcpy(&ngpupernode_, &from.ngpupernode_,
     static_cast<size_t>(reinterpret_cast<char*>(&netbw_) -
@@ -2065,6 +2697,7 @@ void TaskGraph::Clear() {
   ops_.Clear();
   tasks_.Clear();
   devices_.Clear();
+  routes_.Clear();
   cached_has_bits = _has_bits_[0];
   if (cached_has_bits & 0x0000001fu) {
     ::memset(&ngpupernode_, 0, static_cast<size_t>(
@@ -2171,6 +2804,18 @@ const char* TaskGraph::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<74>(ptr));
         } else goto handle_unusual;
         continue;
+      // repeated .TaskGraphProtoBuf.Route routes = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 82)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_routes(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<82>(ptr));
+        } else goto handle_unusual;
+        continue;
       default: {
       handle_unusual:
         if ((tag & 7) == 4 || tag == 0) {
@@ -2259,6 +2904,14 @@ failure:
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessageToArray(9, this->_internal_devices(i), target, stream);
+  }
+
+  // repeated .TaskGraphProtoBuf.Route routes = 10;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->_internal_routes_size()); i < n; i++) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(10, this->_internal_routes(i), target, stream);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -2363,6 +3016,13 @@ size_t TaskGraph::ByteSizeLong() const {
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
+  // repeated .TaskGraphProtoBuf.Route routes = 10;
+  total_size += 1UL * this->_internal_routes_size();
+  for (const auto& msg : this->routes_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
         _internal_metadata_, total_size, &_cached_size_);
@@ -2398,6 +3058,7 @@ void TaskGraph::MergeFrom(const TaskGraph& from) {
   ops_.MergeFrom(from.ops_);
   tasks_.MergeFrom(from.tasks_);
   devices_.MergeFrom(from.devices_);
+  routes_.MergeFrom(from.routes_);
   cached_has_bits = from._has_bits_[0];
   if (cached_has_bits & 0x0000001fu) {
     if (cached_has_bits & 0x00000001u) {
@@ -2439,6 +3100,7 @@ bool TaskGraph::IsInitialized() const {
   if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->ops())) return false;
   if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->tasks())) return false;
   if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->devices())) return false;
+  if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->routes())) return false;
   return true;
 }
 
@@ -2450,6 +3112,7 @@ void TaskGraph::InternalSwap(TaskGraph* other) {
   ops_.InternalSwap(&other->ops_);
   tasks_.InternalSwap(&other->tasks_);
   devices_.InternalSwap(&other->devices_);
+  routes_.InternalSwap(&other->routes_);
   swap(ngpupernode_, other->ngpupernode_);
   swap(nnode_, other->nnode_);
   swap(intergpubw_, other->intergpubw_);
@@ -2458,6 +3121,266 @@ void TaskGraph::InternalSwap(TaskGraph* other) {
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata TaskGraph::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+void Topology::InitAsDefaultInstance() {
+}
+class Topology::_Internal {
+ public:
+  using HasBits = decltype(std::declval<Topology>()._has_bits_);
+  static void set_has_netbw(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
+};
+
+Topology::Topology()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:TaskGraphProtoBuf.Topology)
+}
+Topology::Topology(const Topology& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr),
+      _has_bits_(from._has_bits_),
+      conn_(from.conn_),
+      routes_(from.routes_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  netbw_ = from.netbw_;
+  // @@protoc_insertion_point(copy_constructor:TaskGraphProtoBuf.Topology)
+}
+
+void Topology::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Topology_taskgraph_2eproto.base);
+  netbw_ = 0;
+}
+
+Topology::~Topology() {
+  // @@protoc_insertion_point(destructor:TaskGraphProtoBuf.Topology)
+  SharedDtor();
+}
+
+void Topology::SharedDtor() {
+}
+
+void Topology::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const Topology& Topology::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Topology_taskgraph_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void Topology::Clear() {
+// @@protoc_insertion_point(message_clear_start:TaskGraphProtoBuf.Topology)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  conn_.Clear();
+  routes_.Clear();
+  netbw_ = 0;
+  _has_bits_.Clear();
+  _internal_metadata_.Clear();
+}
+
+const char* Topology::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // required float netBW = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
+          _Internal::set_has_netbw(&has_bits);
+          netbw_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
+          ptr += sizeof(float);
+        } else goto handle_unusual;
+        continue;
+      // repeated .TaskGraphProtoBuf.Connection conn = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_conn(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else goto handle_unusual;
+        continue;
+      // repeated .TaskGraphProtoBuf.Route routes = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_routes(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  _has_bits_.Or(has_bits);
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* Topology::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:TaskGraphProtoBuf.Topology)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = _has_bits_[0];
+  // required float netBW = 1;
+  if (cached_has_bits & 0x00000001u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_netbw(), target);
+  }
+
+  // repeated .TaskGraphProtoBuf.Connection conn = 2;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->_internal_conn_size()); i < n; i++) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(2, this->_internal_conn(i), target, stream);
+  }
+
+  // repeated .TaskGraphProtoBuf.Route routes = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->_internal_routes_size()); i < n; i++) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(3, this->_internal_routes(i), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:TaskGraphProtoBuf.Topology)
+  return target;
+}
+
+size_t Topology::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Topology)
+  size_t total_size = 0;
+
+  // required float netBW = 1;
+  if (has_netbw()) {
+    total_size += 1 + 4;
+  }
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated .TaskGraphProtoBuf.Connection conn = 2;
+  total_size += 1UL * this->_internal_conn_size();
+  for (const auto& msg : this->conn_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // repeated .TaskGraphProtoBuf.Route routes = 3;
+  total_size += 1UL * this->_internal_routes_size();
+  for (const auto& msg : this->routes_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Topology::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:TaskGraphProtoBuf.Topology)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Topology* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Topology>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:TaskGraphProtoBuf.Topology)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:TaskGraphProtoBuf.Topology)
+    MergeFrom(*source);
+  }
+}
+
+void Topology::MergeFrom(const Topology& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:TaskGraphProtoBuf.Topology)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  conn_.MergeFrom(from.conn_);
+  routes_.MergeFrom(from.routes_);
+  if (from._internal_has_netbw()) {
+    _internal_set_netbw(from._internal_netbw());
+  }
+}
+
+void Topology::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:TaskGraphProtoBuf.Topology)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Topology::CopyFrom(const Topology& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:TaskGraphProtoBuf.Topology)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Topology::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
+  if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->conn())) return false;
+  if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->routes())) return false;
+  return true;
+}
+
+void Topology::InternalSwap(Topology* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  conn_.InternalSwap(&other->conn_);
+  routes_.InternalSwap(&other->routes_);
+  swap(netbw_, other->netbw_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Topology::GetMetadata() const {
   return GetMetadataStatic();
 }
 
@@ -2477,8 +3400,17 @@ template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Device* Arena::CreateMaybeMess
 template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Connection* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Connection >(Arena* arena) {
   return Arena::CreateInternal< ::TaskGraphProtoBuf::Connection >(arena);
 }
+template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Path* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Path >(Arena* arena) {
+  return Arena::CreateInternal< ::TaskGraphProtoBuf::Path >(arena);
+}
+template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Route* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Route >(Arena* arena) {
+  return Arena::CreateInternal< ::TaskGraphProtoBuf::Route >(arena);
+}
 template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::TaskGraph* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::TaskGraph >(Arena* arena) {
   return Arena::CreateInternal< ::TaskGraphProtoBuf::TaskGraph >(arena);
+}
+template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Topology* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Topology >(Arena* arena) {
+  return Arena::CreateInternal< ::TaskGraphProtoBuf::Topology >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 
