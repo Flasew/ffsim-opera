@@ -118,21 +118,35 @@ void FFApplication::load_taskgraph_protobuf(std::string & taskgraph) {
 
     for (int i = 0; i < tg.tasks_size(); i++) {
         TaskGraphProtoBuf::Task this_task = tg.tasks(i);
-        tasks[this_task.taskid()] = new FFTask(
-            this_task.type(), 
-            devices[this_task.deviceid()], 
-            this_task.xfersize(), 
-            this_task.runtime()
-        );
-              
-        for (int j = 0; j < this_task.nexttasks_size(); j++) {
-            uint64_t next_id = this_task.nexttasks(j);
-            tasks[this_task.taskid()]->next_tasks.push_back(next_id);
-            if (counters.find(next_id) == counters.end()) {
-                counters[next_id] = 1;
+
+        if (this_task.type() == TaskGraphProtoBuf::Task_SimTaskType_TASK_ALLREDUCE) {
+            std::vector<int> node_group;
+            for (int j = this_task.argroup_size() - 1; j >= 0 ; j--) {
+                node_group.push_back(this_task.argroup(j));
             }
-            else {
-                counters[next_id]++;
+            tasks[this_task.taskid()] = new FFRingAllreduce(
+                node_group, 
+                this_task.xfersize()
+            );
+        }
+
+        else {
+            tasks[this_task.taskid()] = new FFTask(
+                this_task.type(), 
+                devices[this_task.deviceid()], 
+                this_task.xfersize(), 
+                this_task.runtime()
+            );
+                
+            for (int j = 0; j < this_task.nexttasks_size(); j++) {
+                uint64_t next_id = this_task.nexttasks(j);
+                tasks[this_task.taskid()]->next_tasks.push_back(next_id);
+                if (counters.find(next_id) == counters.end()) {
+                    counters[next_id] = 1;
+                }
+                else {
+                    counters[next_id]++;
+                }
             }
         }
     }
@@ -461,7 +475,7 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 }
 
 // FFRingAllReduce
-FFRingAllreduce::FFRingAllreduce(std::vector<int> ng, uint32_t sz) :
+FFRingAllreduce::FFRingAllreduce(std::vector<int> ng, uint64_t sz) :
     FFTask(FFTask::TASK_RINGALLREDUCE), node_group(ng), 
     operator_size(sz), finished_partitions(0) { }
 

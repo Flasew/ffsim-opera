@@ -1,9 +1,9 @@
 
 % topology parameters:
 
-k=12; % packet switch radix
-u=7; % number of uplinks
-N=130; % number of racks
+k=9; % packet switch radix
+u=8; % number of uplinks
+N=1024; % number of racks
 H=N*(k-u); % number of hosts
 
 % -------
