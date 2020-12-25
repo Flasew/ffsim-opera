@@ -164,6 +164,8 @@ void FFApplication::start_init_tasks() {
         //std::cerr << "guid:" << task.second->guid << "size: " << task.second->preTasks.size() << std::endl;
         FFTask * t = task.second;
         if (t->counter == 0) {
+            if (t->type == FFTask::TASK_COMM) 
+                std::cerr << "STARTING COMM TASK!" << std::endl;
             t->state = FFTask::TASK_READY;
             t->eventlist().sourceIsPending(*t, delta++);
             count++;
