@@ -255,6 +255,8 @@ int main(int argc, char **argv) {
     // GO!
     while (eventlist.doNextEvent()) {
     }
+
+    std::cerr << "Final finsih time: " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {

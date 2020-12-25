@@ -210,7 +210,7 @@ TcpSrc::receivePacket(Packet& pkt)
 
 		// cout << "O seqno" << seqno << " last acked "<< _last_acked;
     if (seqno < _last_acked) {
-		cout << "O seqno" << seqno << " last acked "<< _last_acked;
+		// cout << "O seqno" << seqno << " last acked "<< _last_acked;
 		return;
     }
 
@@ -224,7 +224,7 @@ TcpSrc::receivePacket(Packet& pkt)
 		_established = true;
     }
     else if (seqno>1 && !_established) {
-		cout << "XXX Should be _established " << seqno << endl;
+		// cout << "XXX Should be _established " << seqno << endl;
     }
 
     //assert(seqno >= _last_acked);  // no dups or reordering allowed in this simple simulator
@@ -566,7 +566,7 @@ TcpSrc::retransmit_packet() {
 	Packet* p  = TcpPacket::new_syn_pkt(_flow, *_route, 1, 1);
 	p->sendOn();
 
-	cout << "Resending SYN, waiting for SYN/ACK" << endl;
+	cerr << "Resending SYN, waiting for SYN/ACK" << endl;
 	return;	
     }
 
@@ -602,7 +602,7 @@ TcpSrc::retransmit_packet() {
     p->flow().logTraffic(*p,*this,TrafficLogger::PKT_CREATESEND);
     p->set_ts(eventlist().now());
     p->sendOn();
-     cout << "Retransmit packet on " << _flow.id << " " << _last_acked+1 << " " << data_seq << endl;
+     cerr << "Retransmit packet on " << _flow.id << " " << _last_acked+1 << " " << data_seq << endl;
 
     _packets_sent += _mss;
 

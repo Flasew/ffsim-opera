@@ -103,8 +103,9 @@ class FFRingAllreduce;
 
 struct FFRingAllreduceFlow {
     FFRingAllreduce * ar;
-    int src_idx;
-    int round;
+    int id;
+    // int src_idx;
+    // int round;
 };
 
 class FFRingAllreduce : public FFTask {
@@ -115,12 +116,17 @@ public:
 
     std::vector<int> node_group; // group of nodes in the order of the ring
     uint32_t operator_size;      // total data size of the operator
-    int finished_partitions;     // number of finished partitions
+    // int finished_partitions;     // number of finished partitions
+
+    int finished_curr_round;
+    int curr_round;
+    std::vector<int> finished_rounds;
 
     virtual void doNextEvent();
 
     // void start();
-    void start_flow(int src_idx, int round);
+    // void start_flow(int src_idx, int round);
+    void start_flow(int src_idx, int id);
 };
 
 void ar_finish(void * arinfo);
@@ -152,6 +158,9 @@ public:
     TcpSinkLoggerSampling & sinkLogger;
     TcpTrafficLogger & tcpTrafficLogger;
     TcpRtxTimerScanner & tcpRtxScanner;
+
+    simtime_picosec final_finish_time;
+    size_t n_finished_tasks;
 };
 
 

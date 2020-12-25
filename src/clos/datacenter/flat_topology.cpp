@@ -169,8 +169,8 @@ vector<const Route*>* FlatTopology::get_paths(int src, int dest){
   // forward path
   routeout = new Route();
   //routeout->push_back(pqueue);
-  assert(_routes.find(src * no_of_nodes + dest) != _routes.end());
-  vector<size_t>& route = *(_routes[src * no_of_nodes + dest]);
+  assert(_routes.find(src * _no_of_nodes + dest) != _routes.end());
+  vector<size_t>& route = *(_routes[src * _no_of_nodes + dest]);
 
   for (size_t i = 0; i < route.size() - 1; i++) {
     assert(queues[route[i]][route[i+1]] != nullptr);
@@ -185,8 +185,8 @@ vector<const Route*>* FlatTopology::get_paths(int src, int dest){
 
   routeback = new Route();
   // reverse path for RTS packets
-  assert(_routes.find(dest * no_of_nodes + src) != _routes.end());
-  route = *(_routes[dest * no_of_nodes + src]);
+  assert(_routes.find(dest * _no_of_nodes + src) != _routes.end());
+  route = *(_routes[dest * _no_of_nodes + src]);
 
   for (size_t i = 0; i < route.size() - 1; i++) {
     assert(queues[route[i]][route[i+1]] != nullptr);
