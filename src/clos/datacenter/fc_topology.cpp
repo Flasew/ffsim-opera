@@ -16,6 +16,7 @@
 #include "ecnqueue.h"
 
 extern uint32_t RTT;
+extern uint32_t SPEED;
 
 string ntoa(double n);
 string itoa(uint64_t n);
@@ -46,11 +47,11 @@ void FCTopology::set_params(int no_of_nodes) {
 }
 
 Queue* FCTopology::alloc_src_queue(QueueLogger* queueLogger){
-    return  new PriorityQueue(speedFromMbps((uint64_t)HOST_NIC), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
+    return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 }
 
 Queue* FCTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
-    return alloc_queue(queueLogger, HOST_NIC, queuesize);
+    return alloc_queue(queueLogger, SPEED, queuesize);
 }
 
 Queue* FCTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){

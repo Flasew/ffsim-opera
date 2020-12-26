@@ -35,8 +35,11 @@
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT = 1; // us
+uint32_t RTT = 20; // us
 int DEFAULT_NODES = 16;
+
+uint32_t SPEED;
+std::ofstream fct_util_out;
 
 FirstFit* ff = NULL;
 //unsigned int subflow_count = 8; // probably not necessary ???
@@ -97,6 +100,14 @@ int main(int argc, char **argv) {
   } else if (!strcmp(argv[i],"-nodes")){
       no_of_nodes = atoi(argv[i+1]);
       cout << "no_of_nodes "<<no_of_nodes << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-speed")){
+      SPEED = atoi(argv[i+1]);
+      cout << "speed "<<SPEED << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-ofile")){
+      fct_util_out = std::ofstream(argv[i+1]);
+      cout << "ofile "<<argv[i + 1] << endl;
       i++;
   } else if (!strcmp(argv[i],"-ssthresh")){
       ssthresh = atoi(argv[i+1]);
@@ -172,67 +183,12 @@ int main(int argc, char **argv) {
     TcpSinkLoggerSampling sinkLogger = TcpSinkLoggerSampling(timeFromUs(50.), eventlist);
     logfile.addLogger(sinkLogger);
     TcpTrafficLogger traffic_logger = TcpTrafficLogger();
+    traffic_logger.fct_util_out = &fct_util_out;
     logfile.addLogger(traffic_logger);
 
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
-
     FCTopology* top = new FCTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, ECN);
-    // note that 'queuesize' does not pass throuf_nodesgh currently for RANDOM...
-
-
-
-//   ifstream input(flowfile);
-//     if (input.is_open()){
-//         string line;
-//         int64_t temp;
-//         // get flows. Format: (src) (dst) (bytes) (starttime microseconds)
-//         while(!input.eof()){
-//             vector<int64_t> vtemp;
-//             getline(input, line);
-//             stringstream stream(line);
-//             while (stream >> temp)
-//                 vtemp.push_back(temp);
-//             //cout << "src = " << vtemp[0] << " dest = " << vtemp[1] << " bytes " << vtemp[2] << " time " << vtemp[3] << endl;
-
-
-//             // source and destination hosts for this flow
-//             int flow_src = vtemp[0];
-//             int flow_dst = vtemp[1];
-
-//             TcpSrc* flowSrc = new TcpSrc(NULL, &traffic_logger, eventlist, flow_src, flow_dst);
-//             TcpSink* flowSnk = new TcpSink();
-//             flowSrc->set_flowsize(vtemp[2]); // bytes
-//             flowSrc->set_ssthresh(ssthresh*Packet::data_packet_size());
-//             flowSrc->_rto = timeFromMs(1);
-            
-//             tcpRtxScanner.registerTcp(*flowSrc);
-
-//             Route* routeout, *routein;
-
-//             int choice = 0;
-//             vector<const Route*>* srcpaths = top->get_paths(flow_src, flow_dst);
-//             choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
-//             routeout = new Route(*(srcpaths->at(choice)));
-//             routeout->push_back(flowSnk);
-
-//             choice = 0;
-//             vector<const Route*>* dstpaths = top->get_paths(flow_dst, flow_src);
-//             choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
-//             routein = new Route(*(dstpaths->at(choice)));
-//             routein->push_back(flowSrc);
-
-//             flowSrc->connect(*routeout, *routein, *flowSnk, timeFromNs(vtemp[3]/1.));
-
-// #ifdef PACKET_SCATTER
-//             flowSrc->set_paths(srcpaths);
-//             flowSnk->set_paths(dstpaths);
-// #endif
-            
-//             sinkLogger.monitorSink(flowSnk);
-
-//         }
-//     }
 
     FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
     app.load_taskgraph_protobuf(flowfile);
@@ -246,8 +202,8 @@ int main(int argc, char **argv) {
     int pktsize = Packet::data_packet_size();
     logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
     //logfile.write("# subflows=" + ntoa(subflow_count));
-    logfile.write("# hostnicrate = " + ntoa(HOST_NIC) + " pkt/sec");
-    logfile.write("# corelinkrate = " + ntoa(HOST_NIC*CORE_TO_HOST) + " pkt/sec");
+    logfile.write("# hostnicrate = " + ntoa(SPEED) + " pkt/sec");
+    logfile.write("# corelinkrate = " + ntoa(SPEED*CORE_TO_HOST) + " pkt/sec");
     //logfile.write("# buffer = " + ntoa((double) (queues_na_ni[0][1]->_maxsize) / ((double) pktsize)) + " pkt");
     //double rtt = timeAsSec(timeFromUs(RTT));
     //logfile.write("# rtt =" + ntoa(rtt));
@@ -256,7 +212,7 @@ int main(int argc, char **argv) {
     while (eventlist.doNextEvent()) {
     }
 
-    std::cerr << "Final finsih time: " << app.final_finish_time << std::endl;
+    fct_util_out << "Final finsih time: " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {

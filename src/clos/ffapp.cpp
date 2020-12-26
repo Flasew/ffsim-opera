@@ -385,7 +385,7 @@ void FFTask::start_flow() {
 
     choice = 0;
     vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
-    // choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+    choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
     routein = new Route(*(dstpaths->at(choice)));
     routein->push_back(flowSrc);
 
@@ -594,7 +594,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
 
     choice = 0;
     vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
-    // choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+    choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
     routein = new Route(*(dstpaths->at(choice)));
     routein->push_back(flowSrc);
 

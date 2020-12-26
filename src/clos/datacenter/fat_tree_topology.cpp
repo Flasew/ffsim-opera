@@ -5,6 +5,7 @@
 #include <sstream>
 #include <strstream>
 #include <iostream>
+#include <fstream>
 #include "main.h"
 #include "queue.h"
 #include "switch.h"
@@ -17,6 +18,8 @@
 
 extern uint32_t RTT_rack;
 extern uint32_t RTT_net;
+extern uint32_t SPEED;
+extern std::ofstream fct_util_out;
 
 string ntoa(double n);
 string itoa(uint64_t n);
@@ -96,11 +99,11 @@ void FatTreeTopology::set_params(int no_of_nodes) {
 }
 
 Queue* FatTreeTopology::alloc_src_queue(QueueLogger* queueLogger){
-    return  new PriorityQueue(speedFromMbps((uint64_t)HOST_NIC), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
+    return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 }
 
 Queue* FatTreeTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
-    return alloc_queue(queueLogger, HOST_NIC, queuesize);
+    return alloc_queue(queueLogger, SPEED, queuesize);
 }
 
 Queue* FatTreeTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
@@ -286,7 +289,7 @@ void FatTreeTopology::init_network(){
 	logfile->addLogger(*queueLogger);
 	
 	if ((l+j*K/2)<failed_links){
-	    queues_nc_nup[k][j] = alloc_queue(queueLogger,HOST_NIC/10, _queuesize);
+	    queues_nc_nup[k][j] = alloc_queue(queueLogger,SPEED/10, _queuesize);
 	  cout << "Adding link failure for j" << ntoa(j) << " l " << ntoa(l) << endl;
 	}
  	else
@@ -361,7 +364,7 @@ vector<const Route*>* FatTreeTopology::get_paths(int src, int dest){
   //QueueLoggerSimple *simplequeuelogger = new QueueLoggerSimple();
   //QueueLoggerSimple *simplequeuelogger = 0;
   //logfile->addLogger(*simplequeuelogger);
-  //Queue* pqueue = new Queue(speedFromMbps((uint64_t)HOST_NIC), memFromPkt(FEEDER_BUFFER), *eventlist, simplequeuelogger);
+  //Queue* pqueue = new Queue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, simplequeuelogger);
   //pqueue->setName("PQueue_" + ntoa(src) + "_" + ntoa(dest));
   //logfile->writeName(*pqueue);
   if (HOST_POD_SWITCH(src)==HOST_POD_SWITCH(dest)){
@@ -708,7 +711,7 @@ void UtilMonitor::printAggUtil() {
 
     double util = (double)B_sum / (double)_max_B_in_period;
 
-    cout << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+    fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
 
     //if (eventlist().now() + _period < eventlist().getEndtime())
     eventlist().sourceIsPendingRel(*this, _period);

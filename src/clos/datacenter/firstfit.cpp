@@ -1,12 +1,14 @@
 #include "firstfit.h"
 #include <iostream>
 
+extern uint32_t SPEED;
+
 FirstFit::FirstFit(simtime_picosec scanPeriod, EventList& eventlist, vector<const Route*>*** n) : EventSource(eventlist,"FirstFit"), _scanPeriod(scanPeriod) /*, _init(0)*/
 {
   eventlist.sourceIsPendingRel(*this, _scanPeriod);
   net_paths = n;
 
-  threshold = (int)(timeAsSec(_scanPeriod) * HOST_NIC * 100);
+  threshold = (int)(timeAsSec(_scanPeriod) * SPEED * 100);
 
   printf("Threshold is %d\n",threshold);
 }
@@ -58,7 +60,7 @@ void FirstFit::run(){
     }
   }
 
-  //increase detection speed!
+  //increase detection SPEED!
   if (delta<0){
     f->byte_counter = 0;
     delta = crt_counter;

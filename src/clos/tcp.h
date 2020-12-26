@@ -76,6 +76,7 @@ class TcpSrc : public PacketSink, public EventSource {
     uint16_t DUPACK_TH;
     uint16_t _crt_path;
 #endif
+    ofstream * fstream_out;
 
     int32_t _app_limited;
 

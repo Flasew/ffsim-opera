@@ -29,6 +29,7 @@ class Logged {
 class Logger {
     friend class Logfile;
  public:
+    ofstream * fct_util_out = nullptr;
     enum EventType { QUEUE_EVENT=0, TCP_EVENT=1, TCP_STATE=2, TRAFFIC_EVENT=3, 
 		     QUEUE_RECORD=4, QUEUE_APPROX=5, TCP_RECORD=6, 
 		     QCN_EVENT=7, QCNQUEUE_EVENT=8, 
@@ -77,16 +78,16 @@ class EnergyLogger  : public Logger {
 
 class TcpLogger  : public Logger {
  public:
-    enum TcpEvent { TCP_RCV=0, TCP_RCV_FR_END=1, TCP_RCV_FR=2, TCP_RCV_DUP_FR=3, 
-		    TCP_RCV_DUP=4, TCP_RCV_3DUPNOFR=5, 
-		    TCP_RCV_DUP_FASTXMIT=6, TCP_TIMEOUT=7 };
-    enum TcpState { TCPSTATE_CNTRL=0, TCPSTATE_SEQ=1 };
-    enum TcpRecord { AVE_CWND=0 };
-    enum TcpSinkRecord { RATE = 0 };
-    enum TcpMemoryRecord  {MEMORY = 0};
+      enum TcpEvent { TCP_RCV=0, TCP_RCV_FR_END=1, TCP_RCV_FR=2, TCP_RCV_DUP_FR=3, 
+            TCP_RCV_DUP=4, TCP_RCV_3DUPNOFR=5, 
+            TCP_RCV_DUP_FASTXMIT=6, TCP_TIMEOUT=7 };
+      enum TcpState { TCPSTATE_CNTRL=0, TCPSTATE_SEQ=1 };
+      enum TcpRecord { AVE_CWND=0 };
+      enum TcpSinkRecord { RATE = 0 };
+      enum TcpMemoryRecord  {MEMORY = 0};
 
-    virtual void logTcp(TcpSrc &src, TcpEvent ev) =0;
-    virtual ~TcpLogger(){};
+      virtual void logTcp(TcpSrc &src, TcpEvent ev) =0;
+      virtual ~TcpLogger(){};
 };
 
 class NdpLogger  : public Logger {

@@ -3,6 +3,7 @@
 #include "mtcp.h"
 #include "ecn.h"
 #include <iostream>
+#include <fstream>
 
 #define KILL_THRESHOLD 5
 ////////////////////////////////////////////////////////////////
@@ -29,6 +30,7 @@ TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger,
     _effcwnd = 0;
 		_finished = false;
 
+		fstream_out = pktlogger->fct_util_out;
     //_ssthresh = 30000;
     _ssthresh = 0xffffffff;
 
@@ -265,7 +267,7 @@ TcpSrc::receivePacket(Packet& pkt)
 		//cout << "Flow " << nodename() << " finished at " << timeAsMs(eventlist().now()) << endl;
 
 		// FCT output for processing: (src dst bytes fct_ms timestarted_ms)
-        cout << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<
+        *(fstream_out) << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<
             " " << timeAsMs(eventlist().now() - get_start_time()) << " " << timeAsMs(get_start_time()) << endl;
         if (application_callback != nullptr) {
             application_callback(application_callback_data);

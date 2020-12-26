@@ -4,7 +4,7 @@
 #include <string>
 
 
-#define HOST_NIC 10000 // host nic speed in Mbps
+// #define HOST_NIC 10000 // host nic speed in Mbps
 #define CORE_TO_HOST 1 // core links are this much faster than NIC
 
 //basic setup!
