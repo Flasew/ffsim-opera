@@ -22,27 +22,28 @@
 //#include "connection_matrix.h"
 
 // Choose the topology here:
+// #include "test_topology.h"
 #include "fat_tree_topology.h"
+#include "ffapp.h"
 
 #include <list>
 
 // Simulation params
 
-#define PRINT_PATHS 0
+#define PRINT_PATHS 1
 
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT_rack = 0; // ns
-uint32_t RTT_net = 500; // ns
-int DEFAULT_NODES = 16;
+uint32_t RTT = 1; // us
+int DEFAULT_NODES = 128;
 
 FirstFit* ff = NULL;
 //unsigned int subflow_count = 8; // probably not necessary ???
 
 #define DEFAULT_PACKET_SIZE 1500 // full packet (including header), Bytes
 #define DEFAULT_HEADER_SIZE 64 // header size, Bytes
-#define DEFAULT_QUEUE_SIZE 100
+#define DEFAULT_QUEUE_SIZE 200
 
 
 string ntoa(double n);
@@ -59,11 +60,11 @@ void exit_error(char* progr, char *param) {
 
 void print_path(std::ofstream &paths, const Route* rt){
     for (unsigned int i=1;i<rt->size()-1;i+=2){
-	RandomQueue* q = (RandomQueue*)rt->at(i);
-	if (q!=NULL)
-	    paths << q->str() << " ";
-	else 
-	    paths << "NULL ";
+  RandomQueue* q = (RandomQueue*)rt->at(i);
+  if (q!=NULL)
+      paths << q->str() << " ";
+  else 
+      paths << "NULL ";
     }
 
     paths<<endl;
@@ -89,51 +90,51 @@ int main(int argc, char **argv) {
     filename << "logout.dat";
 
     while (i<argc) {
-	if (!strcmp(argv[i],"-o")){
-	    filename.str(std::string());
-	    filename << argv[i+1];
-	    i++;
-	} else if (!strcmp(argv[i],"-nodes")){
-	    no_of_nodes = atoi(argv[i+1]);
-	    cout << "no_of_nodes "<<no_of_nodes << endl;
-	    i++;
-	} else if (!strcmp(argv[i],"-ssthresh")){
-	    ssthresh = atoi(argv[i+1]);
-	    cout << "ssthresh "<< ssthresh << endl;
-	    i++;
-	} else if (!strcmp(argv[i],"-q")){
-	    queuesize = memFromPkt(atoi(argv[i+1]));
-	    cout << "queuesize "<<queuesize << endl;
-	    i++;
-	} else if (!strcmp(argv[i], "UNCOUPLED"))
-	    algo = UNCOUPLED;
-	else if (!strcmp(argv[i], "COUPLED_INC"))
-	    algo = COUPLED_INC;
-	else if (!strcmp(argv[i], "FULLY_COUPLED"))
-	    algo = FULLY_COUPLED;
-	else if (!strcmp(argv[i], "COUPLED_TCP"))
-	    algo = COUPLED_TCP;
-	else if (!strcmp(argv[i], "COUPLED_SCALABLE_TCP"))
-	    algo = COUPLED_SCALABLE_TCP;
-	else if (!strcmp(argv[i], "COUPLED_EPSILON")) {
-	    algo = COUPLED_EPSILON;
-	    if (argc > i+1){
-		epsilon = atof(argv[i+1]);
-		i++;
-	    }
-	    printf("Using epsilon %f\n", epsilon);
-	} else if (!strcmp(argv[i],"-flowfile")) {
-		flowfile = argv[i+1];
-		i++;
+  if (!strcmp(argv[i],"-o")){
+      filename.str(std::string());
+      filename << argv[i+1];
+      i++;
+  } else if (!strcmp(argv[i],"-nodes")){
+      no_of_nodes = atoi(argv[i+1]);
+      cout << "no_of_nodes "<<no_of_nodes << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-ssthresh")){
+      ssthresh = atoi(argv[i+1]);
+      cout << "ssthresh "<< ssthresh << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-q")){
+      queuesize = memFromPkt(atoi(argv[i+1]));
+      cout << "queuesize "<<queuesize << endl;
+      i++;
+  } else if (!strcmp(argv[i], "UNCOUPLED"))
+      algo = UNCOUPLED;
+  else if (!strcmp(argv[i], "COUPLED_INC"))
+      algo = COUPLED_INC;
+  else if (!strcmp(argv[i], "FULLY_COUPLED"))
+      algo = FULLY_COUPLED;
+  else if (!strcmp(argv[i], "COUPLED_TCP"))
+      algo = COUPLED_TCP;
+  else if (!strcmp(argv[i], "COUPLED_SCALABLE_TCP"))
+      algo = COUPLED_SCALABLE_TCP;
+  else if (!strcmp(argv[i], "COUPLED_EPSILON")) {
+      algo = COUPLED_EPSILON;
+      if (argc > i+1){
+    epsilon = atof(argv[i+1]);
+    i++;
+      }
+      printf("Using epsilon %f\n", epsilon);
+  } else if (!strcmp(argv[i],"-flowfile")) {
+    flowfile = argv[i+1];
+    i++;
     } else if (!strcmp(argv[i],"-simtime")) {
         simtime = atof(argv[i+1]);
         i++;
-	} else if (!strcmp(argv[i],"-utiltime")) {
+  } else if (!strcmp(argv[i],"-utiltime")) {
         utiltime = atof(argv[i+1]);
         i++;
-	} else
-	    exit_error(argv[0], argv[i]);
-		i++;
+  } else
+      exit_error(argv[0], argv[i]);
+    i++;
     }
     srand(13);
 
@@ -150,8 +151,8 @@ int main(int argc, char **argv) {
     cout << "Logging path choices to " << filename.str() << endl;
     std::ofstream paths(filename.str().c_str());
     if (!paths){
-	cout << "Can't open for writing paths file!"<<endl;
-	exit(1);
+  cout << "Can't open for writing paths file!"<<endl;
+  exit(1);
     }
 #endif
 
@@ -175,64 +176,67 @@ int main(int argc, char **argv) {
 
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
-#ifdef FAT_TREE
-    FatTreeTopology* top = new FatTreeTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, RANDOM);
-    // note that 'queuesize' does not pass through currently for RANDOM...
-#endif
+
+    FatTreeTopology* top = new FatTreeTopology(no_of_nodes, queuesize, &logfile, &eventlist, ff, ECN);
+    // note that 'queuesize' does not pass throuf_nodesgh currently for RANDOM...
 
 
-	ifstream input(flowfile);
-    if (input.is_open()){
-        string line;
-        int64_t temp;
-        // get flows. Format: (src) (dst) (bytes) (starttime microseconds)
-        while(!input.eof()){
-            vector<int64_t> vtemp;
-            getline(input, line);
-            stringstream stream(line);
-            while (stream >> temp)
-                vtemp.push_back(temp);
-            //cout << "src = " << vtemp[0] << " dest = " << vtemp[1] << " bytes " << vtemp[2] << " time " << vtemp[3] << endl;
+
+//   ifstream input(flowfile);
+//     if (input.is_open()){
+//         string line;
+//         int64_t temp;
+//         // get flows. Format: (src) (dst) (bytes) (starttime microseconds)
+//         while(!input.eof()){
+//             vector<int64_t> vtemp;
+//             getline(input, line);
+//             stringstream stream(line);
+//             while (stream >> temp)
+//                 vtemp.push_back(temp);
+//             //cout << "src = " << vtemp[0] << " dest = " << vtemp[1] << " bytes " << vtemp[2] << " time " << vtemp[3] << endl;
 
 
-            // source and destination hosts for this flow
-            int flow_src = vtemp[0];
-            int flow_dst = vtemp[1];
+//             // source and destination hosts for this flow
+//             int flow_src = vtemp[0];
+//             int flow_dst = vtemp[1];
 
-            TcpSrc* flowSrc = new TcpSrc(NULL, &traffic_logger, eventlist, flow_src, flow_dst);
-            TcpSink* flowSnk = new TcpSink();
-            flowSrc->set_flowsize(vtemp[2]); // bytes
-            flowSrc->set_ssthresh(ssthresh*Packet::data_packet_size());
-            flowSrc->_rto = timeFromMs(1);
+//             TcpSrc* flowSrc = new TcpSrc(NULL, &traffic_logger, eventlist, flow_src, flow_dst);
+//             TcpSink* flowSnk = new TcpSink();
+//             flowSrc->set_flowsize(vtemp[2]); // bytes
+//             flowSrc->set_ssthresh(ssthresh*Packet::data_packet_size());
+//             flowSrc->_rto = timeFromMs(1);
             
-            tcpRtxScanner.registerTcp(*flowSrc);
+//             tcpRtxScanner.registerTcp(*flowSrc);
 
-            Route* routeout, *routein;
+//             Route* routeout, *routein;
 
-            int choice = 0;
-            vector<const Route*>* srcpaths = top->get_paths(flow_src, flow_dst);
-            choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
-            routeout = new Route(*(srcpaths->at(choice)));
-            routeout->push_back(flowSnk);
+//             int choice = 0;
+//             vector<const Route*>* srcpaths = top->get_paths(flow_src, flow_dst);
+//             choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
+//             routeout = new Route(*(srcpaths->at(choice)));
+//             routeout->push_back(flowSnk);
 
-            choice = 0;
-            vector<const Route*>* dstpaths = top->get_paths(flow_dst, flow_src);
-            choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
-            routein = new Route(*(dstpaths->at(choice)));
-            routein->push_back(flowSrc);
+//             choice = 0;
+//             vector<const Route*>* dstpaths = top->get_paths(flow_dst, flow_src);
+//             choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+//             routein = new Route(*(dstpaths->at(choice)));
+//             routein->push_back(flowSrc);
 
-            flowSrc->connect(*routeout, *routein, *flowSnk, timeFromNs(vtemp[3]/1.));
+//             flowSrc->connect(*routeout, *routein, *flowSnk, timeFromNs(vtemp[3]/1.));
 
-#ifdef PACKET_SCATTER
-            flowSrc->set_paths(srcpaths);
-            flowSnk->set_paths(dstpaths);
-#endif
+// #ifdef PACKET_SCATTER
+//             flowSrc->set_paths(srcpaths);
+//             flowSnk->set_paths(dstpaths);
+// #endif
             
-            sinkLogger.monitorSink(flowSnk);
+//             sinkLogger.monitorSink(flowSnk);
 
-        }
-    }
+//         }
+//     }
 
+    FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
+    app.load_taskgraph_protobuf(flowfile);
+    app.start_init_tasks();
 
     UtilMonitor* UM = new UtilMonitor(top, eventlist);
     UM->start(timeFromSec(utiltime));
@@ -251,6 +255,8 @@ int main(int argc, char **argv) {
     // GO!
     while (eventlist.doNextEvent()) {
     }
+
+    std::cerr << "Final finsih time: " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {
