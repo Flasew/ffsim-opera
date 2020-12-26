@@ -1,4 +1,7 @@
 #include "qcn.h"
+#ifndef max
+#define max(a,b) ((a)>(b)?(a):(b))
+#endif
 
 const int QcnPacket::PKTSIZE=1500;
 const int QcnAck::ACK_SIZE=40;

@@ -7,9 +7,9 @@
 #include "network.h"
 #include "queue.h"
 
-#ifndef max
-#define max(a,b) ((a)>(b)?(a):(b))
-#endif
+// #ifndef max
+// #define max(a,b) ((a)>(b)?(a):(b))
+// #endif
 
 class QcnPacket;
 class QcnAck;

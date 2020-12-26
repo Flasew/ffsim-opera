@@ -1,5 +1,7 @@
-#ifndef FC_TOP
-#define FC_TOP
+#ifndef FLAT_TOPO
+#define FLAT_TOPO
+#include <ostream>
+#include <unordered_map>
 #include "main.h"
 #include "randomqueue.h"
 #include "pipe.h"
@@ -11,8 +13,6 @@
 #include "logfile.h"
 #include "eventlist.h"
 #include "switch.h"
-#include <ostream>
-#include <unordered_map>
 
 #ifndef QT
 #define QT
@@ -35,11 +35,11 @@ public:
   int _no_of_nodes;
   queue_type qt;
 
-  FlatTopology(int no_of_nodes, mem_b queuesize, Logfile* log, EventList* ev, 
+  FlatTopology(int no_of_nodes, const string& tgfile, mem_b queuesize, Logfile* log, EventList* ev, 
                FirstFit* f, queue_type q);
 
   void init_network();
-  void load_topology_protobuf(std::string & taskgraph);
+  void load_topology_protobuf(const std::string & taskgraph);
   virtual vector<const Route*>* get_paths(int src, int dest);
 
   Pipe * get_pipe(int src, int dst) { return pipes[src][dst]; };
@@ -55,7 +55,7 @@ public:
 
   uint32_t _link_speed;
   unordered_map<uint64_t, size_t> _conn_list;
-  unordered_map<uint64_t, vector<size_t>*> _routes;
+  unordered_map<uint64_t, vector<vector<size_t>*> > _routes;
 private:
   map<Queue*,int> _link_usage;
 

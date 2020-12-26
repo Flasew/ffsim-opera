@@ -2129,7 +2129,7 @@ class Topology :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::TaskGraphProtoBuf::Route >&
       routes() const;
 
-  // required float netBW = 1;
+  // optional float netBW = 1;
   bool has_netbw() const;
   private:
   bool _internal_has_netbw() const;
@@ -3398,7 +3398,7 @@ TaskGraph::routes() const {
 
 // Topology
 
-// required float netBW = 1;
+// optional float netBW = 1;
 inline bool Topology::_internal_has_netbw() const {
   bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;

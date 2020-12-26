@@ -3,8 +3,10 @@
 #include <vector>
 #include "string.h"
 #include <sstream>
+#include <fstream>
 #include <strstream>
 #include <iostream>
+#include "taskgraph.pb.h"
 #include "main.h"
 #include "queue.h"
 #include "switch.h"
@@ -18,21 +20,24 @@
 #define EDGE(a, b, n) ((a) > (b) ? ((a) * (n) + (b)) : ((b) * (n) + (a)))
 
 extern uint32_t RTT;
+extern uint32_t SPEED;
+extern ofstream fct_util_out;
 
 string ntoa(double n);
 string itoa(uint64_t n);
 
 //extern int N;
 
-FlatTopology::FlatTopology(int no_of_nodes, mem_b queuesize, Logfile* lg, EventList* ev,FirstFit * fit,queue_type q){
+FlatTopology::FlatTopology(int no_of_nodes, const string& tgfile, mem_b queuesize, Logfile* lg, EventList* ev,FirstFit * fit,queue_type q){
     _queuesize = queuesize;
     logfile = lg;
     eventlist = ev;
     ff = fit;
     qt = q;
     failed_links = 0;
- 
+
     set_params(no_of_nodes);
+    load_topology_protobuf(tgfile);
 
     init_network();
 }
@@ -47,12 +52,48 @@ void FlatTopology::set_params(int no_of_nodes) {
     queues.resize(_no_of_nodes, vector<Queue*>(_no_of_nodes));
 }
 
+void FlatTopology::load_topology_protobuf(const std::string & taskgraph) {
+    TaskGraphProtoBuf::TaskGraph tg;
+    std::fstream input(taskgraph, std::ios::in | std::ios::binary);
+    if (!tg.ParseFromIstream(&input)) {
+        std::cerr << "Failed to parse taskgraph." << std::endl;
+        assert(false);
+    } 
+
+    for (int i = 0; i < tg.conn_size(); i++) {
+        const TaskGraphProtoBuf::Connection& conn = tg.conn(i);
+        _conn_list[EDGE(conn.from(), conn.to(), _no_of_nodes)] = conn.nconn();
+    }
+
+    for (int i = 0; i < tg.routes_size(); i++) {
+
+        const TaskGraphProtoBuf::Route& route = tg.routes(i);
+        uint64_t route_id = route.from() * _no_of_nodes + route.to();
+        // cerr << "adding " << route.from() << "->" <<  route.to() << "id" << route_id << endl;
+        
+        for (int j = 0; j < route.paths_size(); j++) {
+            const TaskGraphProtoBuf::Path& path = route.paths(j);
+            vector<size_t>* path_vector = new vector<size_t>();
+            for (int k = 0; k < path.hopnode_size(); k++) {
+                path_vector->push_back(path.hopnode(k));
+                // cerr << path.hopnode(k) << ", ";
+            }
+            if (_routes.find(route_id) == _routes.end()) {
+                _routes[route_id] = vector<vector<size_t>* >();
+            }
+            _routes[route_id].push_back(path_vector);
+            // cerr << endl;
+
+        }
+    }
+}
+
 Queue* FlatTopology::alloc_src_queue(QueueLogger* queueLogger){
-    return  new PriorityQueue(speedFromMbps((uint64_t)HOST_NIC), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
+    return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 }
 
 Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
-    return alloc_queue(queueLogger, HOST_NIC, queuesize);
+    return alloc_queue(queueLogger, SPEED, queuesize);
 }
 
 Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
@@ -90,7 +131,7 @@ void FlatTopology::init_network(){
       
   for (int j = 0; j < _no_of_nodes; j++) {
     for (int k = 0; k < j; k++) {
-      if (_conn_list.find(EDGE(j, k, _no_of_nodes)) != _conn_list.end) {
+      if (_conn_list.find(EDGE(j, k, _no_of_nodes)) != _conn_list.end()) {
         QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
         QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
         // queueLogger = NULL;
@@ -165,48 +206,52 @@ vector<const Route*>* FlatTopology::get_paths(int src, int dest){
   route_t *routeout, *routeback;
   
   // NOTE: HARD CODED `0` BECAUSE THERE'S ONLY ONE SWITCH
-
-  // forward path
-  routeout = new Route();
-  //routeout->push_back(pqueue);
+  // cerr << "id: " << src * _no_of_nodes + dest << endl;
   assert(_routes.find(src * _no_of_nodes + dest) != _routes.end());
-  vector<size_t>& route = *(_routes[src * _no_of_nodes + dest]);
 
-  for (size_t i = 0; i < route.size() - 1; i++) {
-    assert(queues[route[i]][route[i+1]] != nullptr);
-    routeout->push_back(queues[route[i]][route[i+1]]);
-    routeout->push_back(pipes[route[i]][route[i+1]]);
+  for (const vector<size_t>* r: _routes[src * _no_of_nodes + dest]) {
+    // forward path
+    routeout = new Route();
+    //routeout->push_back(pqueue);
+    
+    const vector<size_t>& route = *r;
+
+    for (size_t i = 0; i < route.size() - 1; i++) {
+      assert(queues[route[i]][route[i+1]] != nullptr);
+      routeout->push_back(queues[route[i]][route[i+1]]);
+      routeout->push_back(pipes[route[i]][route[i+1]]);
+    }
+    // routeout->push_back(queues[src][dest]);
+    // routeout->push_back(pipes[src][dest]);
+
+    if (qt==LOSSLESS_INPUT || qt==LOSSLESS_INPUT_ECN) 
+      routeout->push_back(queues[src][dest]->getRemoteEndpoint());
+
+    routeback = new Route();
+    // reverse path for RTS packets
+    // assert(_routes.find(dest * _no_of_nodes + src) != _routes.end());
+    // route = *(_routes[dest * _no_of_nodes + src]);
+
+    for (size_t i = route.size() - 1; i > 1 ; i--) {
+      assert(queues[route[i]][route[i-1]] != nullptr);
+      routeback->push_back(queues[route[i]][route[i-1]]);
+      routeback->push_back(pipes[route[i]][route[i-1]]);
+    }
+
+    // routeback->push_back(queues[dest][src]);
+    // routeback->push_back(pipes[dest][src]);
+
+    if (qt==LOSSLESS_INPUT || qt==LOSSLESS_INPUT_ECN)
+      routeback->push_back(queues[dest][src]->getRemoteEndpoint());
+
+    routeout->set_reverse(routeback);
+    routeback->set_reverse(routeout);
+
+    //print_route(*routeout);
+    paths->push_back(routeout);
+
+    check_non_null(routeout);
   }
-  // routeout->push_back(queues[src][dest]);
-  // routeout->push_back(pipes[src][dest]);
-
-  if (qt==LOSSLESS_INPUT || qt==LOSSLESS_INPUT_ECN) 
-    routeout->push_back(queues[src][dest]->getRemoteEndpoint());
-
-  routeback = new Route();
-  // reverse path for RTS packets
-  assert(_routes.find(dest * _no_of_nodes + src) != _routes.end());
-  route = *(_routes[dest * _no_of_nodes + src]);
-
-  for (size_t i = 0; i < route.size() - 1; i++) {
-    assert(queues[route[i]][route[i+1]] != nullptr);
-    routeback->push_back(queues[route[i]][route[i+1]]);
-    routeback->push_back(pipes[route[i]][route[i+1]]);
-  }
-
-  // routeback->push_back(queues[dest][src]);
-  // routeback->push_back(pipes[dest][src]);
-
-  if (qt==LOSSLESS_INPUT || qt==LOSSLESS_INPUT_ECN)
-    routeback->push_back(queues[dest][src]->getRemoteEndpoint());
-
-  routeout->set_reverse(routeback);
-  routeback->set_reverse(routeout);
-
-  //print_route(*routeout);
-  paths->push_back(routeout);
-
-  check_non_null(routeout);
   return paths;
 }
 
@@ -312,7 +357,7 @@ void UtilMonitor::printAggUtil() {
 
     double util = (double)B_sum / (double)_max_B_in_period;
 
-    cout << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+    fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
 
     //if (eventlist().now() + _period < eventlist().getEndtime())
     eventlist().sourceIsPendingRel(*this, _period);

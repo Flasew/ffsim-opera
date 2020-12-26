@@ -380,7 +380,7 @@ const char descriptor_table_protodef_taskgraph_2eproto[] PROTOBUF_SECTION_VARIAB
   "erator\022&\n\005tasks\030\010 \003(\0132\027.TaskGraphProtoBu"
   "f.Task\022*\n\007devices\030\t \003(\0132\031.TaskGraphProto"
   "Buf.Device\022(\n\006routes\030\n \003(\0132\030.TaskGraphPr"
-  "otoBuf.Route\"p\n\010Topology\022\r\n\005netBW\030\001 \002(\002\022"
+  "otoBuf.Route\"p\n\010Topology\022\r\n\005netBW\030\001 \001(\002\022"
   "+\n\004conn\030\002 \003(\0132\035.TaskGraphProtoBuf.Connec"
   "tion\022(\n\006routes\030\003 \003(\0132\030.TaskGraphProtoBuf"
   ".Route"
@@ -3196,7 +3196,7 @@ const char* Topology::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::i
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // required float netBW = 1;
+      // optional float netBW = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
           _Internal::set_has_netbw(&has_bits);
@@ -3256,7 +3256,7 @@ failure:
   (void) cached_has_bits;
 
   cached_has_bits = _has_bits_[0];
-  // required float netBW = 1;
+  // optional float netBW = 1;
   if (cached_has_bits & 0x00000001u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_netbw(), target);
@@ -3290,10 +3290,6 @@ size_t Topology::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Topology)
   size_t total_size = 0;
 
-  // required float netBW = 1;
-  if (has_netbw()) {
-    total_size += 1 + 4;
-  }
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -3310,6 +3306,12 @@ size_t Topology::ByteSizeLong() const {
   for (const auto& msg : this->routes_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
+
+  // optional float netBW = 1;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 + 4;
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -3365,7 +3367,6 @@ void Topology::CopyFrom(const Topology& from) {
 }
 
 bool Topology::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
   if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->conn())) return false;
   if (!::PROTOBUF_NAMESPACE_ID::internal::AllAreInitialized(this->routes())) return false;
   return true;

@@ -2,7 +2,7 @@
 #define FF_APP_H
 
 #include "loggers.h"
-#undef max 
+// #undef max 
 
 #include <vector>
 #include <string>
