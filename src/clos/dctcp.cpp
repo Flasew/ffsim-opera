@@ -11,8 +11,8 @@ string ntoa(double n);
 //  DCTCP SOURCE
 ////////////////////////////////////////////////////////////////
 
-DCTCPSrc::DCTCPSrc(TcpLogger* logger, TrafficLogger* pktlogger, 
-		   EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd) : TcpSrc(logger,pktlogger,eventlist,flow_src,flow_dst,acf,acd)
+DCTCPSrc::DCTCPSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out,
+		   EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd) : TcpSrc(logger,pktlogger,_fstream_out,eventlist,flow_src,flow_dst,acf,acd)
 {
     _pkts_seen = 0;
     _pkts_marked = 0;

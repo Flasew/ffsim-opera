@@ -105,7 +105,7 @@ Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t spe
 }
 
 void OverSubscribedFatTree::init_network(){
-  QueueLoggerSampling* queueLogger;
+  QueueLoggerSampling* queueLogger = nullptr;
 
   // core to upper pod:
   for (int j=0;j<Nc;j++)
@@ -148,26 +148,26 @@ void OverSubscribedFatTree::init_network(){
     for (int l = 0; l < Nhpr; l++) {
   	  int k = j * Nhpr + l;
   	  // Downlink
-  	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+  	  // queueLogger = nullptr; //new QueueLoggerSampling(timeFromMs(1000), *eventlist);
   	  //queueLogger = NULL;
-  	  logfile->addLogger(*queueLogger);
+  	  // logfile->addLogger(*queueLogger);
   	  
   	  queues_nlp_ns[j][k] = alloc_queue(queueLogger, _queuesize);
   	  queues_nlp_ns[j][k]->setName("LS" + ntoa(j) + "->DST" +ntoa(k));
-  	  logfile->writeName(*(queues_nlp_ns[j][k]));
+  	  // logfile->writeName(*(queues_nlp_ns[j][k]));
 
   	  pipes_nlp_ns[j][k] = new Pipe(timeFromNs(RTT_rack), *eventlist);
   	  pipes_nlp_ns[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
-  	  logfile->writeName(*(pipes_nlp_ns[j][k]));
+  	  // logfile->writeName(*(pipes_nlp_ns[j][k]));
 
       pipes_nlp_ns[j][k]->set_pipe_downlink(); // modification - set this for the UtilMonitor
 
   	  // Uplink
   	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-  	  logfile->addLogger(*queueLogger);
+  	  // logfile->addLogger(*queueLogger);
   	  queues_ns_nlp[k][j] = alloc_src_queue(queueLogger);
   	  queues_ns_nlp[k][j]->setName("SRC" + ntoa(k) + "->LS" +ntoa(j));
-  	  logfile->writeName(*(queues_ns_nlp[k][j]));
+  	  // logfile->writeName(*(queues_ns_nlp[k][j]));
 
       if (qt==LOSSLESS){
         switches_lp[j]->addPort(queues_nlp_ns[j][k]);
@@ -179,7 +179,7 @@ void OverSubscribedFatTree::init_network(){
   
   	  pipes_ns_nlp[k][j] = new Pipe(timeFromNs(RTT_rack), *eventlist);
   	  pipes_ns_nlp[k][j]->setName("Pipe-SRC" + ntoa(k) + "->LS" + ntoa(j));
-  	  logfile->writeName(*(pipes_ns_nlp[k][j]));
+  	  // logfile->writeName(*(pipes_ns_nlp[k][j]));
   
   	  if (ff){
   	    ff->add_queue(queues_nlp_ns[j][k]);
@@ -203,26 +203,26 @@ void OverSubscribedFatTree::init_network(){
       int j = pod * K/2 + l;    // !!! there are K/2 ToRs per pod
 
       // Downlink
-      queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-      logfile->addLogger(*queueLogger);
+      // queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+      // logfile->addLogger(*queueLogger);
       queues_nup_nlp[k][j] = alloc_queue(queueLogger, SPEED, _queuesize);
       queues_nup_nlp[k][j]->setName("US" + ntoa(k) + "->LS" + ntoa(j));
-      logfile->writeName(*(queues_nup_nlp[k][j]));
+      // logfile->writeName(*(queues_nup_nlp[k][j]));
       
       pipes_nup_nlp[k][j] = new Pipe(timeFromNs(RTT_net), *eventlist);
       pipes_nup_nlp[k][j]->setName("Pipe-US" + ntoa(k) + "->LS" + ntoa(j));
-      logfile->writeName(*(pipes_nup_nlp[k][j]));
+      // logfile->writeName(*(pipes_nup_nlp[k][j]));
       
       // Uplink
-      queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-      logfile->addLogger(*queueLogger);
+      // queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+      // logfile->addLogger(*queueLogger);
       queues_nlp_nup[j][k] = alloc_queue(queueLogger, SPEED, _queuesize);
       queues_nlp_nup[j][k]->setName("LS" + ntoa(j) + "->US" + ntoa(k));
-      logfile->writeName(*(queues_nlp_nup[j][k]));
+      // logfile->writeName(*(queues_nlp_nup[j][k]));
 
       pipes_nlp_nup[j][k] = new Pipe(timeFromNs(RTT_net), *eventlist);
       pipes_nlp_nup[j][k]->setName("Pipe-LS" + ntoa(j) + "->US" + ntoa(k));
-      logfile->writeName(*(pipes_nlp_nup[j][k]));
+      // logfile->writeName(*(pipes_nlp_nup[j][k]));
 
       // if (qt==LOSSLESS){
   //     switches_lp[j]->addPort(queues_nlp_nup[j][k]);
@@ -260,20 +260,20 @@ void OverSubscribedFatTree::init_network(){
       int k = switch_pos * K/2 + l; // get the core switch ID
 
   	  // Downlink
-    	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-    	logfile->addLogger(*queueLogger);
+    	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    	// logfile->addLogger(*queueLogger);
 
     	queues_nup_nc[j][k] = alloc_queue(queueLogger, SPEED, _queuesize);
     	queues_nup_nc[j][k]->setName("US" + ntoa(j) + "->CS" + ntoa(k));
-    	logfile->writeName(*(queues_nup_nc[j][k]));
+    	// logfile->writeName(*(queues_nup_nc[j][k]));
     	
     	pipes_nup_nc[j][k] = new Pipe(timeFromNs(RTT_net), *eventlist);
     	pipes_nup_nc[j][k]->setName("Pipe-US" + ntoa(j) + "->CS" + ntoa(k));
-    	logfile->writeName(*(pipes_nup_nc[j][k]));
+    	// logfile->writeName(*(pipes_nup_nc[j][k]));
 	
     	// Uplink
-    	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-    	logfile->addLogger(*queueLogger);
+    	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    	// logfile->addLogger(*queueLogger);
     	
     	// if ((l+j*K/2)<failed_links){
     	//     queues_nc_nup[k][j] = alloc_queue(queueLogger,SPEED/10, _queuesize);
@@ -282,11 +282,11 @@ void OverSubscribedFatTree::init_network(){
      // 	else
       queues_nc_nup[k][j] = alloc_queue(queueLogger, SPEED, _queuesize);
     	queues_nc_nup[k][j]->setName("CS" + ntoa(k) + "->US" + ntoa(j));
-      logfile->writeName(*(queues_nc_nup[k][j]));
+      // logfile->writeName(*(queues_nc_nup[k][j]));
       
       pipes_nc_nup[k][j] = new Pipe(timeFromNs(RTT_net), *eventlist);
       pipes_nc_nup[k][j]->setName("Pipe-CS" + ntoa(k) + "->US" + ntoa(j));
-      logfile->writeName(*(pipes_nc_nup[k][j]));
+      // logfile->writeName(*(pipes_nc_nup[k][j]));
 
 	// if (qt==LOSSLESS){
 	//     switches_up[j]->addPort(queues_nup_nc[j][k]);
@@ -347,12 +347,12 @@ vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
   vector<const Route*>* paths = new vector<const Route*>();
 
   route_t *routeout, *routeback;
-  //QueueLoggerSimple *simplequeuelogger = new QueueLoggerSimple();
+  QueueLoggerSimple *simplequeuelogger = new QueueLoggerSimple();
   //QueueLoggerSimple *simplequeuelogger = 0;
-  //logfile->addLogger(*simplequeuelogger);
+  // logfile->addLogger(*simplequeuelogger);
   //Queue* pqueue = new Queue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, simplequeuelogger);
   //pqueue->setName("PQueue_" + ntoa(src) + "_" + ntoa(dest));
-  //logfile->writeName(*pqueue);
+  // logfile->writeName(*pqueue);
 
   if (src / Nhpr == dest / Nhpr) { // within the same rack
   
