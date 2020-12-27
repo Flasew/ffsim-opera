@@ -9,7 +9,7 @@ CC=g++
 CRT=`pwd`
 INC= -I/$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/protobuf/src
 
-CFLAGS= -Wall -O0 -ggdb $(INC) -std=c++14 -L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
+CFLAGS= -Wall -O3 $(INC) -std=c++14 -L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
 
 # all:	htsim lib parse_output
 all:	lib 
