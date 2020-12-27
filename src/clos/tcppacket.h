@@ -63,6 +63,7 @@ public:
 	    p->_seqno = seqno;
 	    p->_ackno = ackno;
 	    p->_data_ackno = dackno;
+			p->_size = 1;
 
 	    return p;
 	}

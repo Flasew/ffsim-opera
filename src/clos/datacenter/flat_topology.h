@@ -43,8 +43,8 @@ public:
   virtual vector<const Route*>* get_paths(int src, int dest);
 
   Pipe * get_pipe(int src, int dst) { return pipes[src][dst]; };
-  Queue* alloc_src_queue(QueueLogger* q);
-  Queue* alloc_queue(QueueLogger* q, mem_b queuesize);
+  // Queue* alloc_src_queue(QueueLogger* q);
+  // Queue* alloc_queue(QueueLogger* q, mem_b queuesize);
   Queue* alloc_queue(QueueLogger* q, uint64_t speed, mem_b queuesize);
 
   void count_queue(Queue*);

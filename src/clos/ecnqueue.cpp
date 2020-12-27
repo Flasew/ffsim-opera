@@ -92,7 +92,7 @@ ECNQueue::completeService()
 	  pkt->set_flags(pkt->flags() | ECN_CE);
 
     _queuesize -= pkt->size();
-    pkt->flow().logTraffic(*pkt, *this, TrafficLogger::PKT_DEPART);
+    // pkt->flow().logTraffic(*pkt, *this, TrafficLogger::PKT_DEPART);
     if (_logger) _logger->logQueue(*this, QueueLogger::PKT_SERVICE, *pkt);
 
     /* tell the packet to move on to the next pipe */

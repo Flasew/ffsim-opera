@@ -130,6 +130,7 @@ void FFApplication::load_taskgraph_protobuf(std::string & taskgraph) {
                 node_group, 
                 this_task.xfersize()
             );
+            cout << "size: " << this_task.xfersize() << ", " << node_group.size() << endl;
         }
 
         else {
@@ -366,7 +367,11 @@ void FFTask::start_flow() {
     // flowSrc->set_paths(srcpaths);
     // flowSnk->set_paths(dstpaths);
     // ffapp->sinkLogger.monitorSink(flowSnk);
-    
+    // if (!(src_node == 12 && dst_node == 76 || src_node == 76 && dst_node == 12)) {
+    //     taskfinish(this);
+    //     return;
+    // }
+
     DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, eventlist(), src_node, dst_node, taskfinish, this);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(xfersize); // bytes
@@ -485,7 +490,8 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 // FFRingAllReduce
 FFRingAllreduce::FFRingAllreduce(std::vector<int> ng, uint64_t sz) :
     FFTask(FFTask::TASK_RINGALLREDUCE), node_group(ng), 
-    operator_size(sz), finished_curr_round(0), curr_round(0) {
+    finished_curr_round(0), curr_round(0) {
+    operator_size = sz / ng.size() > 0 ? sz : ng.size();
     finished_rounds = std::vector<int>(ng.size(), 0);
 }
 
@@ -505,6 +511,7 @@ void FFRingAllreduce::doNextEvent() {
             start_time = ready_time;
             state = FFTask::TASK_RUNNING;
             start_flow(i, i);
+            // start_flow(i, 0);
         }
     }
 
@@ -567,6 +574,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
     int src_node = node_group[src_idx];
     int dst_node = node_group[(src_idx + 1) % node_group.size()];
 
+
     // std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << "\n";
 
     FFRingAllreduceFlow * f = new FFRingAllreduceFlow();
@@ -574,6 +582,11 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
     f->id = id;
     // f->src_idx = src_idx;
     // f->round = round;
+
+    // if (!(src_node == 12 && dst_node == 76 || src_node == 76 && dst_node == 12)) {
+    //     ar_finish(f);
+    //     return;
+    // }
 
     DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
         eventlist(), src_node, dst_node, ar_finish, f);

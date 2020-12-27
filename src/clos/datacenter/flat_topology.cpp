@@ -88,13 +88,13 @@ void FlatTopology::load_topology_protobuf(const std::string & taskgraph) {
     }
 }
 
-Queue* FlatTopology::alloc_src_queue(QueueLogger* queueLogger){
-    return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
-}
+// Queue* FlatTopology::alloc_src_queue(QueueLogger* queueLogger){
+//     return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
+// }
 
-Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
-    return alloc_queue(queueLogger, SPEED, queuesize);
-}
+// Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
+//     return alloc_queue(queueLogger, SPEED, queuesize);
+// }
 
 Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
     if (qt==RANDOM)
@@ -104,7 +104,7 @@ Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b
     else if (qt==CTRL_PRIO)
   return new CtrlPrioQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger);
     else if (qt==ECN)
-  return new ECNQueue(speedFromMbps(speed), memFromPkt(2*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(15));
+  return new ECNQueue(speedFromMbps(speed), memFromPkt(50*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(10000));
     else if (qt==LOSSLESS)
   return new LosslessQueue(speedFromMbps(speed), memFromPkt(50), *eventlist, queueLogger, NULL);
     else if (qt==LOSSLESS_INPUT)
@@ -138,8 +138,9 @@ void FlatTopology::init_network(){
         logfile->addLogger(*queueLoggerd);
         logfile->addLogger(*queueLoggeru);
         
-        queues[j][k] = alloc_queue(queueLoggerd, _link_speed * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
-        queues[k][j] = alloc_queue(queueLoggeru, _link_speed * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
+        queues[j][k] = alloc_queue(queueLoggerd, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
+        cerr << "(" << j << ", " << k << ")" << SPEED * _conn_list[EDGE(j, k, _no_of_nodes)] << endl;
+        queues[k][j] = alloc_queue(queueLoggeru, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
         queues[j][k]->setName("L" + ntoa(j) + "->DST" +ntoa(k));
         queues[k][j]->setName("L" + ntoa(k) + "->DST" +ntoa(j));
         logfile->writeName(*(queues[j][k]));

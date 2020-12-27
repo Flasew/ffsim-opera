@@ -106,6 +106,8 @@ void TcpSrc::set_paths(vector<const Route*>* rt) {
 void TcpSrc::set_flowsize(uint64_t flow_size_in_bytes) {
 
     _flow_size = flow_size_in_bytes; // + _mss; // not sure "+ _mss" is necessary...
+		// if (_flow_size == 0) 
+		// 	_flow_size = 1;
 
 
 
@@ -134,10 +136,10 @@ void TcpSrc::set_flowsize(uint64_t flow_size_in_bytes) {
 
     // !!! Note: need to implement this for short flows:
 
-    //if (_flow_size < _mss)
-    //    _pkt_size = _flow_size;
-    //else
-    //    _pkt_size = _mss;
+    // if (_flow_size < _mss)
+    //    _mss = _flow_size;
+    // else
+      //  _pkt_size = _mss;
 }
 
 void TcpSrc::set_app_limit(int pktps) {
@@ -151,7 +153,8 @@ void TcpSrc::set_app_limit(int pktps) {
 
 void 
 TcpSrc::startflow() {
-    _cwnd = 10*_mss;
+    _cwnd = 100 *_mss;
+    // _cwnd = 1 << 23;
     _unacked = _cwnd;
     _established = false;
 
@@ -259,7 +262,7 @@ TcpSrc::receivePacket(Packet& pkt)
 		_rto = timeFromMs(1);
 
 	// debug:
-	// cout << "seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << endl;
+	// cout << (uint64_t)this << " seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
 
     if (seqno >= _flow_size && !_finished){
 			_finished = true;
@@ -268,7 +271,7 @@ TcpSrc::receivePacket(Packet& pkt)
 
 		// FCT output for processing: (src dst bytes fct_ms timestarted_ms)
         *(fstream_out) << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() <<
-            " " << timeAsMs(eventlist().now() - get_start_time()) << " " << timeAsMs(get_start_time()) << endl;
+            " " << timeAsMs(eventlist().now() - get_start_time()) << " " << timeAsMs(get_start_time()) << " " << (double)get_flowsize()/timeAsSec(eventlist().now() - get_start_time())*8/1000000000UL << endl;
         if (application_callback != nullptr) {
             application_callback(application_callback_data);
         }
@@ -552,7 +555,7 @@ TcpSrc::send_packets() {
 	_packets_sent += _mss;
 
 	p->sendOn();
-	    //  cout << "Transmit packet on " << _flow.id << " " << _highest_sent+1 << "[" << p->size() << "] " << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
+	// cout << "Transmit packet on " << _flow.id << " " << _highest_sent+1 << "[" << p->size() << "] " << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
 
 	if(_RFC2988_RTO_timeout == timeInf) {// RFC2988 5.1
 	    _RFC2988_RTO_timeout = eventlist().now() + _rto;
@@ -749,7 +752,7 @@ TcpSink::receivePacket(Packet& pkt) {
 
     _packets+= p->size();
 
-    // cout << "Sink: received seqno " << seqno << " size " << size << endl;
+    // cout << (uint64_t)this << " Sink: received seqno " << seqno << " size " << size << " time " << _src->eventlist().now() << endl;
 
     if (seqno == _cumulative_ack+1) { // it's the next expected seq no
 		_cumulative_ack = seqno + size - 1;
@@ -809,9 +812,9 @@ TcpSink::send_ack(simtime_picosec ts,bool marked) {
 	ack->set_flags(ECN_ECHO);
     else
 	ack->set_flags(0);
-
+		_src->receivePacket(*ack);
 	  // cout << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
-    ack->sendOn();
+    // ack->sendOn();
 }
 
 #ifdef PACKET_SCATTER
@@ -847,7 +850,7 @@ void TcpRtxTimerScanner::doNextEvent() {
 		while (i != _tcps.end()) {
 			if ((*i)->_finished) {
 				eventlist().cancelPendingSource(**i);
-				delete *i;
+				// delete *i;
 				i = _tcps.erase(i);
 			} else {
 				(*i)->rtx_timer_hook(now,_scanPeriod);
