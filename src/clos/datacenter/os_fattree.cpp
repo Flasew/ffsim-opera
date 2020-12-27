@@ -94,7 +94,7 @@ Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t spe
     else if (qt==CTRL_PRIO)
 	return new CtrlPrioQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger);
     else if (qt==ECN)
-	return new ECNQueue(speedFromMbps(speed), memFromPkt(2*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(15));
+	return new ECNQueue(speedFromMbps(speed), memFromPkt(50*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(10000));
     else if (qt==LOSSLESS)
 	return new LosslessQueue(speedFromMbps(speed), memFromPkt(50), *eventlist, queueLogger, NULL);
     else if (qt==LOSSLESS_INPUT)

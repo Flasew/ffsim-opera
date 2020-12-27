@@ -34,8 +34,8 @@
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT_rack = 20; // us
-uint32_t RTT_net = 20; // us
+uint32_t RTT_rack = 500; // ns
+uint32_t RTT_net = 500; // ns
 uint32_t SPEED;
 std::ofstream fct_util_out;
 
