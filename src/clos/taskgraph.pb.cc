@@ -14,17 +14,22 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
+extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_AllReduceTask_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Connection_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Device_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Operator_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Path_taskgraph_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Route_taskgraph_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Task_taskgraph_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_taskgraph_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Task_taskgraph_2eproto;
 namespace TaskGraphProtoBuf {
 class OperatorDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Operator> _instance;
 } _Operator_default_instance_;
+class AllReduceTaskDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<AllReduceTask> _instance;
+} _AllReduceTask_default_instance_;
 class TaskDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Task> _instance;
@@ -54,6 +59,20 @@ class TopologyDefaultTypeInternal {
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Topology> _instance;
 } _Topology_default_instance_;
 }  // namespace TaskGraphProtoBuf
+static void InitDefaultsscc_info_AllReduceTask_taskgraph_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::TaskGraphProtoBuf::_AllReduceTask_default_instance_;
+    new (ptr) ::TaskGraphProtoBuf::AllReduceTask();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::TaskGraphProtoBuf::AllReduceTask::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_AllReduceTask_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_AllReduceTask_taskgraph_2eproto}, {}};
+
 static void InitDefaultsscc_info_Connection_taskgraph_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -136,8 +155,9 @@ static void InitDefaultsscc_info_Task_taskgraph_2eproto() {
   ::TaskGraphProtoBuf::Task::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Task_taskgraph_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Task_taskgraph_2eproto}, {}};
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Task_taskgraph_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_Task_taskgraph_2eproto}, {
+      &scc_info_AllReduceTask_taskgraph_2eproto.base,}};
 
 static void InitDefaultsscc_info_TaskGraph_taskgraph_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -174,8 +194,8 @@ static void InitDefaultsscc_info_Topology_taskgraph_2eproto() {
       &scc_info_Connection_taskgraph_2eproto.base,
       &scc_info_Route_taskgraph_2eproto.base,}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_taskgraph_2eproto[8];
-static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_taskgraph_2eproto[3];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_taskgraph_2eproto[9];
+static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_taskgraph_2eproto[4];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_taskgraph_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -190,6 +210,17 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   1,
   2,
   0,
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::AllReduceTask, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::AllReduceTask, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::AllReduceTask, algo_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::AllReduceTask, pserver_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::AllReduceTask, argroup_),
+  1,
+  0,
+  ~0u,
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -201,15 +232,15 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, opid_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, runtime_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, xfersize_),
+  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, artask_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, nexttasks_),
-  PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Task, argroup_),
-  2,
-  0,
-  1,
-  4,
   3,
+  1,
+  2,
   5,
-  ~0u,
+  4,
+  6,
+  0,
   ~0u,
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Device, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::TaskGraphProtoBuf::Device, _internal_metadata_),
@@ -302,17 +333,19 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_taskgraph_2eproto::offsets[] P
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, sizeof(::TaskGraphProtoBuf::Operator)},
-  { 11, 24, sizeof(::TaskGraphProtoBuf::Task)},
-  { 32, 46, sizeof(::TaskGraphProtoBuf::Device)},
-  { 55, 63, sizeof(::TaskGraphProtoBuf::Connection)},
-  { 66, 72, sizeof(::TaskGraphProtoBuf::Path)},
-  { 73, 81, sizeof(::TaskGraphProtoBuf::Route)},
-  { 84, 99, sizeof(::TaskGraphProtoBuf::TaskGraph)},
-  { 109, 117, sizeof(::TaskGraphProtoBuf::Topology)},
+  { 11, 19, sizeof(::TaskGraphProtoBuf::AllReduceTask)},
+  { 22, 35, sizeof(::TaskGraphProtoBuf::Task)},
+  { 43, 57, sizeof(::TaskGraphProtoBuf::Device)},
+  { 66, 74, sizeof(::TaskGraphProtoBuf::Connection)},
+  { 77, 83, sizeof(::TaskGraphProtoBuf::Path)},
+  { 84, 92, sizeof(::TaskGraphProtoBuf::Route)},
+  { 95, 110, sizeof(::TaskGraphProtoBuf::TaskGraph)},
+  { 120, 128, sizeof(::TaskGraphProtoBuf::Topology)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Operator_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_AllReduceTask_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Task_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Device_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::TaskGraphProtoBuf::_Connection_default_instance_),
@@ -352,42 +385,49 @@ const char descriptor_table_protodef_taskgraph_2eproto[] PROTOBUF_SECTION_VARIAB
   "7\022\014\n\010OP_ROUND\0208\022\n\n\006OP_LOG\0209\022\022\n\016OP_LOGICA"
   "L_NOT\020:\022\013\n\007OP_SQRT\020;\022\020\n\014OP_LEAKYRELU\020<\022\014"
   "\n\010OP_SLICE\020=\022\r\n\tOP_RESIZE\020>\022\014\n\010OP_PRELU\020"
-  "\?\"\310\002\n\004Task\0221\n\004type\030\001 \002(\0162#.TaskGraphProt"
-  "oBuf.Task.SimTaskType\022\016\n\006taskid\030\002 \002(\004\022\020\n"
-  "\010deviceid\030\003 \001(\004\022\014\n\004opid\030\004 \001(\004\022\017\n\007runtime"
-  "\030\005 \001(\002\022\023\n\010xfersize\030\006 \001(\004:\0010\022\025\n\tnexttasks"
-  "\030\007 \003(\004B\002\020\001\022\023\n\007argroup\030\010 \003(\004B\002\020\001\"\212\001\n\013SimT"
-  "askType\022\020\n\014TASK_FORWARD\020\000\022\021\n\rTASK_BACKWA"
-  "RD\020\001\022\r\n\tTASK_COMM\020\002\022\017\n\013TASK_UPDATE\020\003\022\020\n\014"
-  "TASK_BARRIER\020\004\022\020\n\014TASK_LATENCY\020\005\022\022\n\016TASK"
-  "_ALLREDUCE\020\006\"\304\002\n\006Device\0222\n\004type\030\001 \002(\0162$."
-  "TaskGraphProtoBuf.Device.DeviceType\022\020\n\010d"
-  "eviceid\030\002 \002(\004\022\021\n\006nodeid\030\003 \001(\r:\0010\022\020\n\005gpui"
-  "d\030\004 \001(\r:\0010\022\024\n\tbandwidth\030\005 \001(\004:\0010\022\022\n\007from"
-  "gpu\030\006 \001(\r:\0010\022\020\n\005togpu\030\007 \001(\r:\0010\022\023\n\010fromno"
-  "de\030\010 \001(\r:\0010\022\021\n\006tonode\030\t \001(\r:\0010\"k\n\nDevice"
-  "Type\022\016\n\nDEVICE_GPU\020\000\022\016\n\nDEVICE_CPU\020\001\022\023\n\017"
-  "DEVICE_GPU_COMM\020\002\022\024\n\020DEVICE_DRAM_COMM\020\003\022"
-  "\022\n\016DEVICE_NW_COMM\020\004\"5\n\nConnection\022\014\n\004fro"
-  "m\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022\r\n\005nconn\030\003 \002(\r\"\033\n\004Pa"
-  "th\022\023\n\007hopnode\030\001 \003(\rB\002\020\001\"I\n\005Route\022\014\n\004from"
-  "\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022&\n\005paths\030\003 \003(\0132\027.Task"
-  "GraphProtoBuf.Path\"\267\002\n\tTaskGraph\022\023\n\013nGPU"
-  "PerNode\030\001 \002(\r\022\r\n\005nNode\030\002 \002(\r\022\022\n\ninterGPU"
-  "BW\030\003 \002(\002\022\016\n\006dramBW\030\004 \002(\002\022\r\n\005netBW\030\005 \002(\002\022"
-  "+\n\004conn\030\006 \003(\0132\035.TaskGraphProtoBuf.Connec"
-  "tion\022(\n\003ops\030\007 \003(\0132\033.TaskGraphProtoBuf.Op"
-  "erator\022&\n\005tasks\030\010 \003(\0132\027.TaskGraphProtoBu"
-  "f.Task\022*\n\007devices\030\t \003(\0132\031.TaskGraphProto"
-  "Buf.Device\022(\n\006routes\030\n \003(\0132\030.TaskGraphPr"
-  "otoBuf.Route\"p\n\010Topology\022\r\n\005netBW\030\001 \001(\002\022"
-  "+\n\004conn\030\002 \003(\0132\035.TaskGraphProtoBuf.Connec"
-  "tion\022(\n\006routes\030\003 \003(\0132\030.TaskGraphProtoBuf"
-  ".Route"
+  "\?\"\324\001\n\rAllReduceTask\022;\n\004algo\030\001 \002(\0162-.Task"
+  "GraphProtoBuf.AllReduceTask.AllReduceAlg"
+  "\022\017\n\007pserver\030\002 \001(\004\022\023\n\007argroup\030\003 \003(\004B\002\020\001\"`"
+  "\n\014AllReduceAlg\022\025\n\021ALLREDUCE_PSERVER\020\000\022\022\n"
+  "\016ALLREDUCE_RING\020\001\022\022\n\016ALLREDUCE_TREE\020\002\022\021\n"
+  "\rALLREDUCE_DPS\020\003\"\353\002\n\004Task\0221\n\004type\030\001 \002(\0162"
+  "#.TaskGraphProtoBuf.Task.SimTaskType\022\016\n\006"
+  "taskid\030\002 \002(\004\022\020\n\010deviceid\030\003 \001(\004\022\017\n\004opid\030\004"
+  " \001(\004:\0010\022\022\n\007runtime\030\005 \001(\002:\0010\022\023\n\010xfersize\030"
+  "\006 \001(\004:\0010\0220\n\006artask\030\007 \001(\0132 .TaskGraphProt"
+  "oBuf.AllReduceTask\022\025\n\tnexttasks\030\010 \003(\004B\002\020"
+  "\001\"\212\001\n\013SimTaskType\022\020\n\014TASK_FORWARD\020\000\022\021\n\rT"
+  "ASK_BACKWARD\020\001\022\r\n\tTASK_COMM\020\002\022\017\n\013TASK_UP"
+  "DATE\020\003\022\020\n\014TASK_BARRIER\020\004\022\020\n\014TASK_LATENCY"
+  "\020\005\022\022\n\016TASK_ALLREDUCE\020\006\"\304\002\n\006Device\0222\n\004typ"
+  "e\030\001 \002(\0162$.TaskGraphProtoBuf.Device.Devic"
+  "eType\022\020\n\010deviceid\030\002 \002(\004\022\021\n\006nodeid\030\003 \001(\r:"
+  "\0010\022\020\n\005gpuid\030\004 \001(\r:\0010\022\024\n\tbandwidth\030\005 \001(\004:"
+  "\0010\022\022\n\007fromgpu\030\006 \001(\r:\0010\022\020\n\005togpu\030\007 \001(\r:\0010"
+  "\022\023\n\010fromnode\030\010 \001(\r:\0010\022\021\n\006tonode\030\t \001(\r:\0010"
+  "\"k\n\nDeviceType\022\016\n\nDEVICE_GPU\020\000\022\016\n\nDEVICE"
+  "_CPU\020\001\022\023\n\017DEVICE_GPU_COMM\020\002\022\024\n\020DEVICE_DR"
+  "AM_COMM\020\003\022\022\n\016DEVICE_NW_COMM\020\004\"5\n\nConnect"
+  "ion\022\014\n\004from\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022\r\n\005nconn\030\003"
+  " \002(\r\"\033\n\004Path\022\023\n\007hopnode\030\001 \003(\rB\002\020\001\"I\n\005Rou"
+  "te\022\014\n\004from\030\001 \002(\r\022\n\n\002to\030\002 \002(\r\022&\n\005paths\030\003 "
+  "\003(\0132\027.TaskGraphProtoBuf.Path\"\267\002\n\tTaskGra"
+  "ph\022\023\n\013nGPUPerNode\030\001 \002(\r\022\r\n\005nNode\030\002 \002(\r\022\022"
+  "\n\ninterGPUBW\030\003 \002(\002\022\016\n\006dramBW\030\004 \002(\002\022\r\n\005ne"
+  "tBW\030\005 \002(\002\022+\n\004conn\030\006 \003(\0132\035.TaskGraphProto"
+  "Buf.Connection\022(\n\003ops\030\007 \003(\0132\033.TaskGraphP"
+  "rotoBuf.Operator\022&\n\005tasks\030\010 \003(\0132\027.TaskGr"
+  "aphProtoBuf.Task\022*\n\007devices\030\t \003(\0132\031.Task"
+  "GraphProtoBuf.Device\022(\n\006routes\030\n \003(\0132\030.T"
+  "askGraphProtoBuf.Route\"p\n\010Topology\022\r\n\005ne"
+  "tBW\030\001 \001(\002\022+\n\004conn\030\002 \003(\0132\035.TaskGraphProto"
+  "Buf.Connection\022(\n\006routes\030\003 \003(\0132\030.TaskGra"
+  "phProtoBuf.Route"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_taskgraph_2eproto_deps[1] = {
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_taskgraph_2eproto_sccs[8] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_taskgraph_2eproto_sccs[9] = {
+  &scc_info_AllReduceTask_taskgraph_2eproto.base,
   &scc_info_Connection_taskgraph_2eproto.base,
   &scc_info_Device_taskgraph_2eproto.base,
   &scc_info_Operator_taskgraph_2eproto.base,
@@ -400,10 +440,10 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_tas
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_taskgraph_2eproto_once;
 static bool descriptor_table_taskgraph_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_taskgraph_2eproto = {
-  &descriptor_table_taskgraph_2eproto_initialized, descriptor_table_protodef_taskgraph_2eproto, "taskgraph.proto", 2406,
-  &descriptor_table_taskgraph_2eproto_once, descriptor_table_taskgraph_2eproto_sccs, descriptor_table_taskgraph_2eproto_deps, 8, 0,
+  &descriptor_table_taskgraph_2eproto_initialized, descriptor_table_protodef_taskgraph_2eproto, "taskgraph.proto", 2656,
+  &descriptor_table_taskgraph_2eproto_once, descriptor_table_taskgraph_2eproto_sccs, descriptor_table_taskgraph_2eproto_deps, 9, 0,
   schemas, file_default_instances, TableStruct_taskgraph_2eproto::offsets,
-  file_level_metadata_taskgraph_2eproto, 8, file_level_enum_descriptors_taskgraph_2eproto, file_level_service_descriptors_taskgraph_2eproto,
+  file_level_metadata_taskgraph_2eproto, 9, file_level_enum_descriptors_taskgraph_2eproto, file_level_service_descriptors_taskgraph_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -552,9 +592,34 @@ constexpr Operator_OperatorType Operator::OperatorType_MIN;
 constexpr Operator_OperatorType Operator::OperatorType_MAX;
 constexpr int Operator::OperatorType_ARRAYSIZE;
 #endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Task_SimTaskType_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AllReduceTask_AllReduceAlg_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_taskgraph_2eproto);
   return file_level_enum_descriptors_taskgraph_2eproto[1];
+}
+bool AllReduceTask_AllReduceAlg_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#if (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::ALLREDUCE_PSERVER;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::ALLREDUCE_RING;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::ALLREDUCE_TREE;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::ALLREDUCE_DPS;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::AllReduceAlg_MIN;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask::AllReduceAlg_MAX;
+constexpr int AllReduceTask::AllReduceAlg_ARRAYSIZE;
+#endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Task_SimTaskType_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_taskgraph_2eproto);
+  return file_level_enum_descriptors_taskgraph_2eproto[2];
 }
 bool Task_SimTaskType_IsValid(int value) {
   switch (value) {
@@ -585,7 +650,7 @@ constexpr int Task::SimTaskType_ARRAYSIZE;
 #endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Device_DeviceType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_taskgraph_2eproto);
-  return file_level_enum_descriptors_taskgraph_2eproto[2];
+  return file_level_enum_descriptors_taskgraph_2eproto[3];
 }
 bool Device_DeviceType_IsValid(int value) {
   switch (value) {
@@ -923,31 +988,322 @@ void Operator::InternalSwap(Operator* other) {
 
 // ===================================================================
 
+void AllReduceTask::InitAsDefaultInstance() {
+}
+class AllReduceTask::_Internal {
+ public:
+  using HasBits = decltype(std::declval<AllReduceTask>()._has_bits_);
+  static void set_has_algo(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
+  static void set_has_pserver(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
+};
+
+AllReduceTask::AllReduceTask()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:TaskGraphProtoBuf.AllReduceTask)
+}
+AllReduceTask::AllReduceTask(const AllReduceTask& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr),
+      _has_bits_(from._has_bits_),
+      argroup_(from.argroup_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::memcpy(&pserver_, &from.pserver_,
+    static_cast<size_t>(reinterpret_cast<char*>(&algo_) -
+    reinterpret_cast<char*>(&pserver_)) + sizeof(algo_));
+  // @@protoc_insertion_point(copy_constructor:TaskGraphProtoBuf.AllReduceTask)
+}
+
+void AllReduceTask::SharedCtor() {
+  ::memset(&pserver_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&algo_) -
+      reinterpret_cast<char*>(&pserver_)) + sizeof(algo_));
+}
+
+AllReduceTask::~AllReduceTask() {
+  // @@protoc_insertion_point(destructor:TaskGraphProtoBuf.AllReduceTask)
+  SharedDtor();
+}
+
+void AllReduceTask::SharedDtor() {
+}
+
+void AllReduceTask::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const AllReduceTask& AllReduceTask::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_AllReduceTask_taskgraph_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void AllReduceTask::Clear() {
+// @@protoc_insertion_point(message_clear_start:TaskGraphProtoBuf.AllReduceTask)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  argroup_.Clear();
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    ::memset(&pserver_, 0, static_cast<size_t>(
+        reinterpret_cast<char*>(&algo_) -
+        reinterpret_cast<char*>(&pserver_)) + sizeof(algo_));
+  }
+  _has_bits_.Clear();
+  _internal_metadata_.Clear();
+}
+
+const char* AllReduceTask::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // required .TaskGraphProtoBuf.AllReduceTask.AllReduceAlg algo = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+          if (PROTOBUF_PREDICT_TRUE(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_IsValid(val))) {
+            _internal_set_algo(static_cast<::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg>(val));
+          } else {
+            ::PROTOBUF_NAMESPACE_ID::internal::WriteVarint(1, val, mutable_unknown_fields());
+          }
+        } else goto handle_unusual;
+        continue;
+      // optional uint64 pserver = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          _Internal::set_has_pserver(&has_bits);
+          pserver_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // repeated uint64 argroup = 3 [packed = true];
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_argroup(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24) {
+          _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  _has_bits_.Or(has_bits);
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* AllReduceTask::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:TaskGraphProtoBuf.AllReduceTask)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  cached_has_bits = _has_bits_[0];
+  // required .TaskGraphProtoBuf.AllReduceTask.AllReduceAlg algo = 1;
+  if (cached_has_bits & 0x00000002u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
+      1, this->_internal_algo(), target);
+  }
+
+  // optional uint64 pserver = 2;
+  if (cached_has_bits & 0x00000001u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_pserver(), target);
+  }
+
+  // repeated uint64 argroup = 3 [packed = true];
+  {
+    int byte_size = _argroup_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteUInt64Packed(
+          3, _internal_argroup(), byte_size, target);
+    }
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:TaskGraphProtoBuf.AllReduceTask)
+  return target;
+}
+
+size_t AllReduceTask::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.AllReduceTask)
+  size_t total_size = 0;
+
+  // required .TaskGraphProtoBuf.AllReduceTask.AllReduceAlg algo = 1;
+  if (has_algo()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_algo());
+  }
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated uint64 argroup = 3 [packed = true];
+  {
+    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      UInt64Size(this->argroup_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
+    }
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _argroup_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // optional uint64 pserver = 2;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
+        this->_internal_pserver());
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void AllReduceTask::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:TaskGraphProtoBuf.AllReduceTask)
+  GOOGLE_DCHECK_NE(&from, this);
+  const AllReduceTask* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<AllReduceTask>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:TaskGraphProtoBuf.AllReduceTask)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:TaskGraphProtoBuf.AllReduceTask)
+    MergeFrom(*source);
+  }
+}
+
+void AllReduceTask::MergeFrom(const AllReduceTask& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:TaskGraphProtoBuf.AllReduceTask)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  argroup_.MergeFrom(from.argroup_);
+  cached_has_bits = from._has_bits_[0];
+  if (cached_has_bits & 0x00000003u) {
+    if (cached_has_bits & 0x00000001u) {
+      pserver_ = from.pserver_;
+    }
+    if (cached_has_bits & 0x00000002u) {
+      algo_ = from.algo_;
+    }
+    _has_bits_[0] |= cached_has_bits;
+  }
+}
+
+void AllReduceTask::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:TaskGraphProtoBuf.AllReduceTask)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void AllReduceTask::CopyFrom(const AllReduceTask& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:TaskGraphProtoBuf.AllReduceTask)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool AllReduceTask::IsInitialized() const {
+  if ((_has_bits_[0] & 0x00000002) != 0x00000002) return false;
+  return true;
+}
+
+void AllReduceTask::InternalSwap(AllReduceTask* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  argroup_.InternalSwap(&other->argroup_);
+  swap(pserver_, other->pserver_);
+  swap(algo_, other->algo_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata AllReduceTask::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
 void Task::InitAsDefaultInstance() {
+  ::TaskGraphProtoBuf::_Task_default_instance_._instance.get_mutable()->artask_ = const_cast< ::TaskGraphProtoBuf::AllReduceTask*>(
+      ::TaskGraphProtoBuf::AllReduceTask::internal_default_instance());
 }
 class Task::_Internal {
  public:
   using HasBits = decltype(std::declval<Task>()._has_bits_);
   static void set_has_type(HasBits* has_bits) {
-    (*has_bits)[0] |= 4u;
-  }
-  static void set_has_taskid(HasBits* has_bits) {
-    (*has_bits)[0] |= 1u;
-  }
-  static void set_has_deviceid(HasBits* has_bits) {
-    (*has_bits)[0] |= 2u;
-  }
-  static void set_has_opid(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
-  }
-  static void set_has_runtime(HasBits* has_bits) {
     (*has_bits)[0] |= 8u;
   }
-  static void set_has_xfersize(HasBits* has_bits) {
+  static void set_has_taskid(HasBits* has_bits) {
+    (*has_bits)[0] |= 2u;
+  }
+  static void set_has_deviceid(HasBits* has_bits) {
+    (*has_bits)[0] |= 4u;
+  }
+  static void set_has_opid(HasBits* has_bits) {
     (*has_bits)[0] |= 32u;
+  }
+  static void set_has_runtime(HasBits* has_bits) {
+    (*has_bits)[0] |= 16u;
+  }
+  static void set_has_xfersize(HasBits* has_bits) {
+    (*has_bits)[0] |= 64u;
+  }
+  static const ::TaskGraphProtoBuf::AllReduceTask& artask(const Task* msg);
+  static void set_has_artask(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
   }
 };
 
+const ::TaskGraphProtoBuf::AllReduceTask&
+Task::_Internal::artask(const Task* msg) {
+  return *msg->artask_;
+}
 Task::Task()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -957,9 +1313,13 @@ Task::Task(const Task& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       _has_bits_(from._has_bits_),
-      nexttasks_(from.nexttasks_),
-      argroup_(from.argroup_) {
+      nexttasks_(from.nexttasks_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  if (from._internal_has_artask()) {
+    artask_ = new ::TaskGraphProtoBuf::AllReduceTask(*from.artask_);
+  } else {
+    artask_ = nullptr;
+  }
   ::memcpy(&taskid_, &from.taskid_,
     static_cast<size_t>(reinterpret_cast<char*>(&xfersize_) -
     reinterpret_cast<char*>(&taskid_)) + sizeof(xfersize_));
@@ -967,9 +1327,10 @@ Task::Task(const Task& from)
 }
 
 void Task::SharedCtor() {
-  ::memset(&taskid_, 0, static_cast<size_t>(
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Task_taskgraph_2eproto.base);
+  ::memset(&artask_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&xfersize_) -
-      reinterpret_cast<char*>(&taskid_)) + sizeof(xfersize_));
+      reinterpret_cast<char*>(&artask_)) + sizeof(xfersize_));
 }
 
 Task::~Task() {
@@ -978,6 +1339,7 @@ Task::~Task() {
 }
 
 void Task::SharedDtor() {
+  if (this != internal_default_instance()) delete artask_;
 }
 
 void Task::SetCachedSize(int size) const {
@@ -996,9 +1358,12 @@ void Task::Clear() {
   (void) cached_has_bits;
 
   nexttasks_.Clear();
-  argroup_.Clear();
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000003fu) {
+  if (cached_has_bits & 0x00000001u) {
+    GOOGLE_DCHECK(artask_ != nullptr);
+    artask_->Clear();
+  }
+  if (cached_has_bits & 0x0000007eu) {
     ::memset(&taskid_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&xfersize_) -
         reinterpret_cast<char*>(&taskid_)) + sizeof(xfersize_));
@@ -1043,7 +1408,7 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // optional uint64 opid = 4;
+      // optional uint64 opid = 4 [default = 0];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
           _Internal::set_has_opid(&has_bits);
@@ -1051,7 +1416,7 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // optional float runtime = 5;
+      // optional float runtime = 5 [default = 0];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 45)) {
           _Internal::set_has_runtime(&has_bits);
@@ -1067,23 +1432,20 @@ const char* Task::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inter
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // repeated uint64 nexttasks = 7 [packed = true];
+      // optional .TaskGraphProtoBuf.AllReduceTask artask = 7;
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 58)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_nexttasks(), ptr, ctx);
-          CHK_(ptr);
-        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 56) {
-          _internal_add_nexttasks(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          ptr = ctx->ParseMessage(_internal_mutable_artask(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // repeated uint64 argroup = 8 [packed = true];
+      // repeated uint64 nexttasks = 8 [packed = true];
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_argroup(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_nexttasks(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 64) {
-          _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          _internal_add_nexttasks(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -1116,57 +1478,56 @@ failure:
 
   cached_has_bits = _has_bits_[0];
   // required .TaskGraphProtoBuf.Task.SimTaskType type = 1;
-  if (cached_has_bits & 0x00000004u) {
+  if (cached_has_bits & 0x00000008u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
       1, this->_internal_type(), target);
   }
 
   // required uint64 taskid = 2;
-  if (cached_has_bits & 0x00000001u) {
+  if (cached_has_bits & 0x00000002u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_taskid(), target);
   }
 
   // optional uint64 deviceid = 3;
-  if (cached_has_bits & 0x00000002u) {
+  if (cached_has_bits & 0x00000004u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(3, this->_internal_deviceid(), target);
   }
 
-  // optional uint64 opid = 4;
-  if (cached_has_bits & 0x00000010u) {
+  // optional uint64 opid = 4 [default = 0];
+  if (cached_has_bits & 0x00000020u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(4, this->_internal_opid(), target);
   }
 
-  // optional float runtime = 5;
-  if (cached_has_bits & 0x00000008u) {
+  // optional float runtime = 5 [default = 0];
+  if (cached_has_bits & 0x00000010u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(5, this->_internal_runtime(), target);
   }
 
   // optional uint64 xfersize = 6 [default = 0];
-  if (cached_has_bits & 0x00000020u) {
+  if (cached_has_bits & 0x00000040u) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(6, this->_internal_xfersize(), target);
   }
 
-  // repeated uint64 nexttasks = 7 [packed = true];
+  // optional .TaskGraphProtoBuf.AllReduceTask artask = 7;
+  if (cached_has_bits & 0x00000001u) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        7, _Internal::artask(this), target, stream);
+  }
+
+  // repeated uint64 nexttasks = 8 [packed = true];
   {
     int byte_size = _nexttasks_cached_byte_size_.load(std::memory_order_relaxed);
     if (byte_size > 0) {
       target = stream->WriteUInt64Packed(
-          7, _internal_nexttasks(), byte_size, target);
-    }
-  }
-
-  // repeated uint64 argroup = 8 [packed = true];
-  {
-    int byte_size = _argroup_cached_byte_size_.load(std::memory_order_relaxed);
-    if (byte_size > 0) {
-      target = stream->WriteUInt64Packed(
-          8, _internal_argroup(), byte_size, target);
+          8, _internal_nexttasks(), byte_size, target);
     }
   }
 
@@ -1201,7 +1562,7 @@ size_t Task::ByteSizeLong() const {
 // @@protoc_insertion_point(message_byte_size_start:TaskGraphProtoBuf.Task)
   size_t total_size = 0;
 
-  if (((_has_bits_[0] & 0x00000005) ^ 0x00000005) == 0) {  // All required fields are present.
+  if (((_has_bits_[0] & 0x0000000a) ^ 0x0000000a) == 0) {  // All required fields are present.
     // required uint64 taskid = 2;
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
@@ -1218,7 +1579,7 @@ size_t Task::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated uint64 nexttasks = 7 [packed = true];
+  // repeated uint64 nexttasks = 8 [packed = true];
   {
     size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       UInt64Size(this->nexttasks_);
@@ -1233,44 +1594,36 @@ size_t Task::ByteSizeLong() const {
     total_size += data_size;
   }
 
-  // repeated uint64 argroup = 8 [packed = true];
-  {
-    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      UInt64Size(this->argroup_);
-    if (data_size > 0) {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
-    }
-    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
-    _argroup_cached_byte_size_.store(cached_size,
-                                    std::memory_order_relaxed);
-    total_size += data_size;
+  // optional .TaskGraphProtoBuf.AllReduceTask artask = 7;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *artask_);
   }
 
   // optional uint64 deviceid = 3;
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000002u) {
+  if (cached_has_bits & 0x00000004u) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
         this->_internal_deviceid());
   }
 
-  if (cached_has_bits & 0x00000038u) {
-    // optional float runtime = 5;
-    if (cached_has_bits & 0x00000008u) {
+  if (cached_has_bits & 0x00000070u) {
+    // optional float runtime = 5 [default = 0];
+    if (cached_has_bits & 0x00000010u) {
       total_size += 1 + 4;
     }
 
-    // optional uint64 opid = 4;
-    if (cached_has_bits & 0x00000010u) {
+    // optional uint64 opid = 4 [default = 0];
+    if (cached_has_bits & 0x00000020u) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
           this->_internal_opid());
     }
 
     // optional uint64 xfersize = 6 [default = 0];
-    if (cached_has_bits & 0x00000020u) {
+    if (cached_has_bits & 0x00000040u) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64Size(
           this->_internal_xfersize());
@@ -1309,25 +1662,27 @@ void Task::MergeFrom(const Task& from) {
   (void) cached_has_bits;
 
   nexttasks_.MergeFrom(from.nexttasks_);
-  argroup_.MergeFrom(from.argroup_);
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000003fu) {
+  if (cached_has_bits & 0x0000007fu) {
     if (cached_has_bits & 0x00000001u) {
-      taskid_ = from.taskid_;
+      _internal_mutable_artask()->::TaskGraphProtoBuf::AllReduceTask::MergeFrom(from._internal_artask());
     }
     if (cached_has_bits & 0x00000002u) {
-      deviceid_ = from.deviceid_;
+      taskid_ = from.taskid_;
     }
     if (cached_has_bits & 0x00000004u) {
-      type_ = from.type_;
+      deviceid_ = from.deviceid_;
     }
     if (cached_has_bits & 0x00000008u) {
-      runtime_ = from.runtime_;
+      type_ = from.type_;
     }
     if (cached_has_bits & 0x00000010u) {
-      opid_ = from.opid_;
+      runtime_ = from.runtime_;
     }
     if (cached_has_bits & 0x00000020u) {
+      opid_ = from.opid_;
+    }
+    if (cached_has_bits & 0x00000040u) {
       xfersize_ = from.xfersize_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -1349,7 +1704,10 @@ void Task::CopyFrom(const Task& from) {
 }
 
 bool Task::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000005) != 0x00000005) return false;
+  if ((_has_bits_[0] & 0x0000000a) != 0x0000000a) return false;
+  if (has_artask()) {
+    if (!this->artask_->IsInitialized()) return false;
+  }
   return true;
 }
 
@@ -1358,7 +1716,7 @@ void Task::InternalSwap(Task* other) {
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_has_bits_[0], other->_has_bits_[0]);
   nexttasks_.InternalSwap(&other->nexttasks_);
-  argroup_.InternalSwap(&other->argroup_);
+  swap(artask_, other->artask_);
   swap(taskid_, other->taskid_);
   swap(deviceid_, other->deviceid_);
   swap(type_, other->type_);
@@ -3391,6 +3749,9 @@ void Topology::InternalSwap(Topology* other) {
 PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Operator* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Operator >(Arena* arena) {
   return Arena::CreateInternal< ::TaskGraphProtoBuf::Operator >(arena);
+}
+template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::AllReduceTask* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::AllReduceTask >(Arena* arena) {
+  return Arena::CreateInternal< ::TaskGraphProtoBuf::AllReduceTask >(arena);
 }
 template<> PROTOBUF_NOINLINE ::TaskGraphProtoBuf::Task* Arena::CreateMaybeMessage< ::TaskGraphProtoBuf::Task >(Arena* arena) {
   return Arena::CreateInternal< ::TaskGraphProtoBuf::Task >(arena);

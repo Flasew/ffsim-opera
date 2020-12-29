@@ -44,7 +44,7 @@ int DEFAULT_NODES = 128;
 FirstFit* ff = NULL;
 //unsigned int subflow_count = 8; // probably not necessary ???
 
-#define DEFAULT_PACKET_SIZE 1500 // full packet (including header), Bytes
+#define DEFAULT_PACKET_SIZE 9000 // full packet (including header), Bytes
 #define DEFAULT_HEADER_SIZE 64 // header size, Bytes
 #define DEFAULT_QUEUE_SIZE 200
 

@@ -65,7 +65,7 @@ public:
         TASK_UPDATE,
         TASK_BARRIER,
         TASK_LATENCY,
-        TASK_RINGALLREDUCE,
+        TASK_ALLREDUCE,
     };
 
     enum FFTaskState {
@@ -129,7 +129,69 @@ public:
     void start_flow(int src_idx, int id);
 };
 
-void ar_finish(void * arinfo);
+void ar_finish_ring(void * arinfo);
+
+
+class FFPSAllreduce;
+
+struct FFPSAllreduceFlow {
+    FFPSAllreduce * ar;
+    int node_idx;
+    int direction;
+};
+
+class FFPSAllreduce : public FFTask {
+
+public:
+    FFPSAllreduce(std::vector<int> ng, uint64_t sz, int pserver);
+    ~FFPSAllreduce() = default;
+
+    std::vector<int> node_group; // group of nodes
+    uint32_t operator_size;      // total data size of the operator
+    int pserver;
+
+    int curr_round;              // will be 2 (scatter, gather)
+    std::vector<int> finished_rounds;
+    int finished_curr_round;
+
+    virtual void doNextEvent();
+
+    void start_flow(int node_idx, int direction);
+};
+
+void ar_finish_ps(void * arinfo);
+
+
+class FFDPSAllreduce;
+
+// struct FFDPSAllreduceFlow {
+//     FFDPSAllreduce * ar;
+//     int id;
+//     int src_idx;
+//     int round;
+// };
+
+class FFDPSAllreduce : public FFTask {
+
+public:
+    FFDPSAllreduce(std::vector<int> ng, uint64_t sz);
+    ~FFDPSAllreduce() = default;
+
+    std::vector<int> node_group; // group of nodes in the order of the ring
+    uint32_t operator_size;      // total data size of the operator
+    int finished_partitions;     // number of finished partitions
+
+    int finished_curr_round;
+    int curr_round;
+
+    virtual void doNextEvent();
+
+    // void start();
+    // void start_flow(int src_idx, int round);
+    void start_flow(int src_node, int dst_node);
+};
+
+void ar_finish_dps(void * ar_ptr);
 
 class FFApplication {
 public:

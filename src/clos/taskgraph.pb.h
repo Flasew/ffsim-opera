@@ -48,7 +48,7 @@ struct TableStruct_taskgraph_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[8]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[9]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -56,6 +56,9 @@ struct TableStruct_taskgraph_2eproto {
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_taskgraph_2eproto;
 namespace TaskGraphProtoBuf {
+class AllReduceTask;
+class AllReduceTaskDefaultTypeInternal;
+extern AllReduceTaskDefaultTypeInternal _AllReduceTask_default_instance_;
 class Connection;
 class ConnectionDefaultTypeInternal;
 extern ConnectionDefaultTypeInternal _Connection_default_instance_;
@@ -82,6 +85,7 @@ class TopologyDefaultTypeInternal;
 extern TopologyDefaultTypeInternal _Topology_default_instance_;
 }  // namespace TaskGraphProtoBuf
 PROTOBUF_NAMESPACE_OPEN
+template<> ::TaskGraphProtoBuf::AllReduceTask* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::AllReduceTask>(Arena*);
 template<> ::TaskGraphProtoBuf::Connection* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Connection>(Arena*);
 template<> ::TaskGraphProtoBuf::Device* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Device>(Arena*);
 template<> ::TaskGraphProtoBuf::Operator* Arena::CreateMaybeMessage<::TaskGraphProtoBuf::Operator>(Arena*);
@@ -176,6 +180,31 @@ inline bool Operator_OperatorType_Parse(
     const std::string& name, Operator_OperatorType* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Operator_OperatorType>(
     Operator_OperatorType_descriptor(), name, value);
+}
+enum AllReduceTask_AllReduceAlg : int {
+  AllReduceTask_AllReduceAlg_ALLREDUCE_PSERVER = 0,
+  AllReduceTask_AllReduceAlg_ALLREDUCE_RING = 1,
+  AllReduceTask_AllReduceAlg_ALLREDUCE_TREE = 2,
+  AllReduceTask_AllReduceAlg_ALLREDUCE_DPS = 3
+};
+bool AllReduceTask_AllReduceAlg_IsValid(int value);
+constexpr AllReduceTask_AllReduceAlg AllReduceTask_AllReduceAlg_AllReduceAlg_MIN = AllReduceTask_AllReduceAlg_ALLREDUCE_PSERVER;
+constexpr AllReduceTask_AllReduceAlg AllReduceTask_AllReduceAlg_AllReduceAlg_MAX = AllReduceTask_AllReduceAlg_ALLREDUCE_DPS;
+constexpr int AllReduceTask_AllReduceAlg_AllReduceAlg_ARRAYSIZE = AllReduceTask_AllReduceAlg_AllReduceAlg_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AllReduceTask_AllReduceAlg_descriptor();
+template<typename T>
+inline const std::string& AllReduceTask_AllReduceAlg_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AllReduceTask_AllReduceAlg>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AllReduceTask_AllReduceAlg_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AllReduceTask_AllReduceAlg_descriptor(), enum_t_value);
+}
+inline bool AllReduceTask_AllReduceAlg_Parse(
+    const std::string& name, AllReduceTask_AllReduceAlg* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AllReduceTask_AllReduceAlg>(
+    AllReduceTask_AllReduceAlg_descriptor(), name, value);
 }
 enum Task_SimTaskType : int {
   Task_SimTaskType_TASK_FORWARD = 0,
@@ -565,6 +594,220 @@ class Operator :
 };
 // -------------------------------------------------------------------
 
+class AllReduceTask :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.AllReduceTask) */ {
+ public:
+  AllReduceTask();
+  virtual ~AllReduceTask();
+
+  AllReduceTask(const AllReduceTask& from);
+  AllReduceTask(AllReduceTask&& from) noexcept
+    : AllReduceTask() {
+    *this = ::std::move(from);
+  }
+
+  inline AllReduceTask& operator=(const AllReduceTask& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline AllReduceTask& operator=(AllReduceTask&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet& unknown_fields() const {
+    return _internal_metadata_.unknown_fields();
+  }
+  inline ::PROTOBUF_NAMESPACE_ID::UnknownFieldSet* mutable_unknown_fields() {
+    return _internal_metadata_.mutable_unknown_fields();
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const AllReduceTask& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const AllReduceTask* internal_default_instance() {
+    return reinterpret_cast<const AllReduceTask*>(
+               &_AllReduceTask_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(AllReduceTask& a, AllReduceTask& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(AllReduceTask* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline AllReduceTask* New() const final {
+    return CreateMaybeMessage<AllReduceTask>(nullptr);
+  }
+
+  AllReduceTask* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<AllReduceTask>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const AllReduceTask& from);
+  void MergeFrom(const AllReduceTask& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(AllReduceTask* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "TaskGraphProtoBuf.AllReduceTask";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_taskgraph_2eproto);
+    return ::descriptor_table_taskgraph_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  typedef AllReduceTask_AllReduceAlg AllReduceAlg;
+  static constexpr AllReduceAlg ALLREDUCE_PSERVER =
+    AllReduceTask_AllReduceAlg_ALLREDUCE_PSERVER;
+  static constexpr AllReduceAlg ALLREDUCE_RING =
+    AllReduceTask_AllReduceAlg_ALLREDUCE_RING;
+  static constexpr AllReduceAlg ALLREDUCE_TREE =
+    AllReduceTask_AllReduceAlg_ALLREDUCE_TREE;
+  static constexpr AllReduceAlg ALLREDUCE_DPS =
+    AllReduceTask_AllReduceAlg_ALLREDUCE_DPS;
+  static inline bool AllReduceAlg_IsValid(int value) {
+    return AllReduceTask_AllReduceAlg_IsValid(value);
+  }
+  static constexpr AllReduceAlg AllReduceAlg_MIN =
+    AllReduceTask_AllReduceAlg_AllReduceAlg_MIN;
+  static constexpr AllReduceAlg AllReduceAlg_MAX =
+    AllReduceTask_AllReduceAlg_AllReduceAlg_MAX;
+  static constexpr int AllReduceAlg_ARRAYSIZE =
+    AllReduceTask_AllReduceAlg_AllReduceAlg_ARRAYSIZE;
+  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
+  AllReduceAlg_descriptor() {
+    return AllReduceTask_AllReduceAlg_descriptor();
+  }
+  template<typename T>
+  static inline const std::string& AllReduceAlg_Name(T enum_t_value) {
+    static_assert(::std::is_same<T, AllReduceAlg>::value ||
+      ::std::is_integral<T>::value,
+      "Incorrect type passed to function AllReduceAlg_Name.");
+    return AllReduceTask_AllReduceAlg_Name(enum_t_value);
+  }
+  static inline bool AllReduceAlg_Parse(const std::string& name,
+      AllReduceAlg* value) {
+    return AllReduceTask_AllReduceAlg_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kArgroupFieldNumber = 3,
+    kPserverFieldNumber = 2,
+    kAlgoFieldNumber = 1,
+  };
+  // repeated uint64 argroup = 3 [packed = true];
+  int argroup_size() const;
+  private:
+  int _internal_argroup_size() const;
+  public:
+  void clear_argroup();
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_argroup(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+      _internal_argroup() const;
+  void _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+      _internal_mutable_argroup();
+  public:
+  ::PROTOBUF_NAMESPACE_ID::uint64 argroup(int index) const;
+  void set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value);
+  void add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+      argroup() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+      mutable_argroup();
+
+  // optional uint64 pserver = 2;
+  bool has_pserver() const;
+  private:
+  bool _internal_has_pserver() const;
+  public:
+  void clear_pserver();
+  ::PROTOBUF_NAMESPACE_ID::uint64 pserver() const;
+  void set_pserver(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_pserver() const;
+  void _internal_set_pserver(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // required .TaskGraphProtoBuf.AllReduceTask.AllReduceAlg algo = 1;
+  bool has_algo() const;
+  private:
+  bool _internal_has_algo() const;
+  public:
+  void clear_algo();
+  ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg algo() const;
+  void set_algo(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg value);
+  private:
+  ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg _internal_algo() const;
+  void _internal_set_algo(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:TaskGraphProtoBuf.AllReduceTask)
+ private:
+  class _Internal;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > argroup_;
+  mutable std::atomic<int> _argroup_cached_byte_size_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 pserver_;
+  int algo_;
+  friend struct ::TableStruct_taskgraph_2eproto;
+};
+// -------------------------------------------------------------------
+
 class Task :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaskGraphProtoBuf.Task) */ {
  public:
@@ -614,7 +857,7 @@ class Task :
                &_Task_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(Task& a, Task& b) {
     a.Swap(&b);
@@ -718,8 +961,8 @@ class Task :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kNexttasksFieldNumber = 7,
-    kArgroupFieldNumber = 8,
+    kNexttasksFieldNumber = 8,
+    kArtaskFieldNumber = 7,
     kTaskidFieldNumber = 2,
     kDeviceidFieldNumber = 3,
     kTypeFieldNumber = 1,
@@ -727,7 +970,7 @@ class Task :
     kOpidFieldNumber = 4,
     kXfersizeFieldNumber = 6,
   };
-  // repeated uint64 nexttasks = 7 [packed = true];
+  // repeated uint64 nexttasks = 8 [packed = true];
   int nexttasks_size() const;
   private:
   int _internal_nexttasks_size() const;
@@ -749,27 +992,20 @@ class Task :
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
       mutable_nexttasks();
 
-  // repeated uint64 argroup = 8 [packed = true];
-  int argroup_size() const;
+  // optional .TaskGraphProtoBuf.AllReduceTask artask = 7;
+  bool has_artask() const;
   private:
-  int _internal_argroup_size() const;
+  bool _internal_has_artask() const;
   public:
-  void clear_argroup();
+  void clear_artask();
+  const ::TaskGraphProtoBuf::AllReduceTask& artask() const;
+  ::TaskGraphProtoBuf::AllReduceTask* release_artask();
+  ::TaskGraphProtoBuf::AllReduceTask* mutable_artask();
+  void set_allocated_artask(::TaskGraphProtoBuf::AllReduceTask* artask);
   private:
-  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_argroup(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
-      _internal_argroup() const;
-  void _internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
-      _internal_mutable_argroup();
+  const ::TaskGraphProtoBuf::AllReduceTask& _internal_artask() const;
+  ::TaskGraphProtoBuf::AllReduceTask* _internal_mutable_artask();
   public:
-  ::PROTOBUF_NAMESPACE_ID::uint64 argroup(int index) const;
-  void set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value);
-  void add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
-      argroup() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
-      mutable_argroup();
 
   // required uint64 taskid = 2;
   bool has_taskid() const;
@@ -810,7 +1046,7 @@ class Task :
   void _internal_set_type(::TaskGraphProtoBuf::Task_SimTaskType value);
   public:
 
-  // optional float runtime = 5;
+  // optional float runtime = 5 [default = 0];
   bool has_runtime() const;
   private:
   bool _internal_has_runtime() const;
@@ -823,7 +1059,7 @@ class Task :
   void _internal_set_runtime(float value);
   public:
 
-  // optional uint64 opid = 4;
+  // optional uint64 opid = 4 [default = 0];
   bool has_opid() const;
   private:
   bool _internal_has_opid() const;
@@ -861,8 +1097,7 @@ class Task :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > nexttasks_;
   mutable std::atomic<int> _nexttasks_cached_byte_size_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > argroup_;
-  mutable std::atomic<int> _argroup_cached_byte_size_;
+  ::TaskGraphProtoBuf::AllReduceTask* artask_;
   ::PROTOBUF_NAMESPACE_ID::uint64 taskid_;
   ::PROTOBUF_NAMESPACE_ID::uint64 deviceid_;
   int type_;
@@ -922,7 +1157,7 @@ class Device :
                &_Device_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(Device& a, Device& b) {
     a.Swap(&b);
@@ -1221,7 +1456,7 @@ class Connection :
                &_Connection_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   friend void swap(Connection& a, Connection& b) {
     a.Swap(&b);
@@ -1394,7 +1629,7 @@ class Path :
                &_Path_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    5;
 
   friend void swap(Path& a, Path& b) {
     a.Swap(&b);
@@ -1544,7 +1779,7 @@ class Route :
                &_Route_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    6;
 
   friend void swap(Route& a, Route& b) {
     a.Swap(&b);
@@ -1722,7 +1957,7 @@ class TaskGraph :
                &_TaskGraph_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    7;
 
   friend void swap(TaskGraph& a, TaskGraph& b) {
     a.Swap(&b);
@@ -2025,7 +2260,7 @@ class Topology :
                &_Topology_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    8;
 
   friend void swap(Topology& a, Topology& b) {
     a.Swap(&b);
@@ -2295,11 +2530,119 @@ inline void Operator::set_allocated_name(std::string* name) {
 
 // -------------------------------------------------------------------
 
+// AllReduceTask
+
+// required .TaskGraphProtoBuf.AllReduceTask.AllReduceAlg algo = 1;
+inline bool AllReduceTask::_internal_has_algo() const {
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline bool AllReduceTask::has_algo() const {
+  return _internal_has_algo();
+}
+inline void AllReduceTask::clear_algo() {
+  algo_ = 0;
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg AllReduceTask::_internal_algo() const {
+  return static_cast< ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg >(algo_);
+}
+inline ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg AllReduceTask::algo() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.AllReduceTask.algo)
+  return _internal_algo();
+}
+inline void AllReduceTask::_internal_set_algo(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg value) {
+  assert(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_IsValid(value));
+  _has_bits_[0] |= 0x00000002u;
+  algo_ = value;
+}
+inline void AllReduceTask::set_algo(::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg value) {
+  _internal_set_algo(value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.AllReduceTask.algo)
+}
+
+// optional uint64 pserver = 2;
+inline bool AllReduceTask::_internal_has_pserver() const {
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool AllReduceTask::has_pserver() const {
+  return _internal_has_pserver();
+}
+inline void AllReduceTask::clear_pserver() {
+  pserver_ = PROTOBUF_ULONGLONG(0);
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 AllReduceTask::_internal_pserver() const {
+  return pserver_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 AllReduceTask::pserver() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.AllReduceTask.pserver)
+  return _internal_pserver();
+}
+inline void AllReduceTask::_internal_set_pserver(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _has_bits_[0] |= 0x00000001u;
+  pserver_ = value;
+}
+inline void AllReduceTask::set_pserver(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_pserver(value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.AllReduceTask.pserver)
+}
+
+// repeated uint64 argroup = 3 [packed = true];
+inline int AllReduceTask::_internal_argroup_size() const {
+  return argroup_.size();
+}
+inline int AllReduceTask::argroup_size() const {
+  return _internal_argroup_size();
+}
+inline void AllReduceTask::clear_argroup() {
+  argroup_.Clear();
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 AllReduceTask::_internal_argroup(int index) const {
+  return argroup_.Get(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 AllReduceTask::argroup(int index) const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.AllReduceTask.argroup)
+  return _internal_argroup(index);
+}
+inline void AllReduceTask::set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  argroup_.Set(index, value);
+  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.AllReduceTask.argroup)
+}
+inline void AllReduceTask::_internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  argroup_.Add(value);
+}
+inline void AllReduceTask::add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_add_argroup(value);
+  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.AllReduceTask.argroup)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+AllReduceTask::_internal_argroup() const {
+  return argroup_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
+AllReduceTask::argroup() const {
+  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.AllReduceTask.argroup)
+  return _internal_argroup();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+AllReduceTask::_internal_mutable_argroup() {
+  return &argroup_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
+AllReduceTask::mutable_argroup() {
+  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.AllReduceTask.argroup)
+  return _internal_mutable_argroup();
+}
+
+// -------------------------------------------------------------------
+
 // Task
 
 // required .TaskGraphProtoBuf.Task.SimTaskType type = 1;
 inline bool Task::_internal_has_type() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool Task::has_type() const {
@@ -2307,7 +2650,7 @@ inline bool Task::has_type() const {
 }
 inline void Task::clear_type() {
   type_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline ::TaskGraphProtoBuf::Task_SimTaskType Task::_internal_type() const {
   return static_cast< ::TaskGraphProtoBuf::Task_SimTaskType >(type_);
@@ -2318,7 +2661,7 @@ inline ::TaskGraphProtoBuf::Task_SimTaskType Task::type() const {
 }
 inline void Task::_internal_set_type(::TaskGraphProtoBuf::Task_SimTaskType value) {
   assert(::TaskGraphProtoBuf::Task_SimTaskType_IsValid(value));
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000008u;
   type_ = value;
 }
 inline void Task::set_type(::TaskGraphProtoBuf::Task_SimTaskType value) {
@@ -2328,7 +2671,7 @@ inline void Task::set_type(::TaskGraphProtoBuf::Task_SimTaskType value) {
 
 // required uint64 taskid = 2;
 inline bool Task::_internal_has_taskid() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Task::has_taskid() const {
@@ -2336,7 +2679,7 @@ inline bool Task::has_taskid() const {
 }
 inline void Task::clear_taskid() {
   taskid_ = PROTOBUF_ULONGLONG(0);
-  _has_bits_[0] &= ~0x00000001u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_taskid() const {
   return taskid_;
@@ -2346,7 +2689,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::taskid() const {
   return _internal_taskid();
 }
 inline void Task::_internal_set_taskid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  _has_bits_[0] |= 0x00000001u;
+  _has_bits_[0] |= 0x00000002u;
   taskid_ = value;
 }
 inline void Task::set_taskid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
@@ -2356,7 +2699,7 @@ inline void Task::set_taskid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
 
 // optional uint64 deviceid = 3;
 inline bool Task::_internal_has_deviceid() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Task::has_deviceid() const {
@@ -2364,7 +2707,7 @@ inline bool Task::has_deviceid() const {
 }
 inline void Task::clear_deviceid() {
   deviceid_ = PROTOBUF_ULONGLONG(0);
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_deviceid() const {
   return deviceid_;
@@ -2374,7 +2717,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::deviceid() const {
   return _internal_deviceid();
 }
 inline void Task::_internal_set_deviceid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000004u;
   deviceid_ = value;
 }
 inline void Task::set_deviceid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
@@ -2382,9 +2725,9 @@ inline void Task::set_deviceid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.deviceid)
 }
 
-// optional uint64 opid = 4;
+// optional uint64 opid = 4 [default = 0];
 inline bool Task::_internal_has_opid() const {
-  bool value = (_has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_has_bits_[0] & 0x00000020u) != 0;
   return value;
 }
 inline bool Task::has_opid() const {
@@ -2392,7 +2735,7 @@ inline bool Task::has_opid() const {
 }
 inline void Task::clear_opid() {
   opid_ = PROTOBUF_ULONGLONG(0);
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000020u;
 }
 inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_opid() const {
   return opid_;
@@ -2402,7 +2745,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::opid() const {
   return _internal_opid();
 }
 inline void Task::_internal_set_opid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000020u;
   opid_ = value;
 }
 inline void Task::set_opid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
@@ -2410,9 +2753,9 @@ inline void Task::set_opid(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.opid)
 }
 
-// optional float runtime = 5;
+// optional float runtime = 5 [default = 0];
 inline bool Task::_internal_has_runtime() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000010u) != 0;
   return value;
 }
 inline bool Task::has_runtime() const {
@@ -2420,7 +2763,7 @@ inline bool Task::has_runtime() const {
 }
 inline void Task::clear_runtime() {
   runtime_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline float Task::_internal_runtime() const {
   return runtime_;
@@ -2430,7 +2773,7 @@ inline float Task::runtime() const {
   return _internal_runtime();
 }
 inline void Task::_internal_set_runtime(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000010u;
   runtime_ = value;
 }
 inline void Task::set_runtime(float value) {
@@ -2440,7 +2783,7 @@ inline void Task::set_runtime(float value) {
 
 // optional uint64 xfersize = 6 [default = 0];
 inline bool Task::_internal_has_xfersize() const {
-  bool value = (_has_bits_[0] & 0x00000020u) != 0;
+  bool value = (_has_bits_[0] & 0x00000040u) != 0;
   return value;
 }
 inline bool Task::has_xfersize() const {
@@ -2448,7 +2791,7 @@ inline bool Task::has_xfersize() const {
 }
 inline void Task::clear_xfersize() {
   xfersize_ = PROTOBUF_ULONGLONG(0);
-  _has_bits_[0] &= ~0x00000020u;
+  _has_bits_[0] &= ~0x00000040u;
 }
 inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_xfersize() const {
   return xfersize_;
@@ -2458,7 +2801,7 @@ inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::xfersize() const {
   return _internal_xfersize();
 }
 inline void Task::_internal_set_xfersize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  _has_bits_[0] |= 0x00000020u;
+  _has_bits_[0] |= 0x00000040u;
   xfersize_ = value;
 }
 inline void Task::set_xfersize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
@@ -2466,7 +2809,67 @@ inline void Task::set_xfersize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.xfersize)
 }
 
-// repeated uint64 nexttasks = 7 [packed = true];
+// optional .TaskGraphProtoBuf.AllReduceTask artask = 7;
+inline bool Task::_internal_has_artask() const {
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  PROTOBUF_ASSUME(!value || artask_ != nullptr);
+  return value;
+}
+inline bool Task::has_artask() const {
+  return _internal_has_artask();
+}
+inline void Task::clear_artask() {
+  if (artask_ != nullptr) artask_->Clear();
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline const ::TaskGraphProtoBuf::AllReduceTask& Task::_internal_artask() const {
+  const ::TaskGraphProtoBuf::AllReduceTask* p = artask_;
+  return p != nullptr ? *p : *reinterpret_cast<const ::TaskGraphProtoBuf::AllReduceTask*>(
+      &::TaskGraphProtoBuf::_AllReduceTask_default_instance_);
+}
+inline const ::TaskGraphProtoBuf::AllReduceTask& Task::artask() const {
+  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Task.artask)
+  return _internal_artask();
+}
+inline ::TaskGraphProtoBuf::AllReduceTask* Task::release_artask() {
+  // @@protoc_insertion_point(field_release:TaskGraphProtoBuf.Task.artask)
+  _has_bits_[0] &= ~0x00000001u;
+  ::TaskGraphProtoBuf::AllReduceTask* temp = artask_;
+  artask_ = nullptr;
+  return temp;
+}
+inline ::TaskGraphProtoBuf::AllReduceTask* Task::_internal_mutable_artask() {
+  _has_bits_[0] |= 0x00000001u;
+  if (artask_ == nullptr) {
+    auto* p = CreateMaybeMessage<::TaskGraphProtoBuf::AllReduceTask>(GetArenaNoVirtual());
+    artask_ = p;
+  }
+  return artask_;
+}
+inline ::TaskGraphProtoBuf::AllReduceTask* Task::mutable_artask() {
+  // @@protoc_insertion_point(field_mutable:TaskGraphProtoBuf.Task.artask)
+  return _internal_mutable_artask();
+}
+inline void Task::set_allocated_artask(::TaskGraphProtoBuf::AllReduceTask* artask) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
+  if (message_arena == nullptr) {
+    delete artask_;
+  }
+  if (artask) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena = nullptr;
+    if (message_arena != submessage_arena) {
+      artask = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, artask, submessage_arena);
+    }
+    _has_bits_[0] |= 0x00000001u;
+  } else {
+    _has_bits_[0] &= ~0x00000001u;
+  }
+  artask_ = artask;
+  // @@protoc_insertion_point(field_set_allocated:TaskGraphProtoBuf.Task.artask)
+}
+
+// repeated uint64 nexttasks = 8 [packed = true];
 inline int Task::_internal_nexttasks_size() const {
   return nexttasks_.size();
 }
@@ -2511,53 +2914,6 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >
 Task::mutable_nexttasks() {
   // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Task.nexttasks)
   return _internal_mutable_nexttasks();
-}
-
-// repeated uint64 argroup = 8 [packed = true];
-inline int Task::_internal_argroup_size() const {
-  return argroup_.size();
-}
-inline int Task::argroup_size() const {
-  return _internal_argroup_size();
-}
-inline void Task::clear_argroup() {
-  argroup_.Clear();
-}
-inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::_internal_argroup(int index) const {
-  return argroup_.Get(index);
-}
-inline ::PROTOBUF_NAMESPACE_ID::uint64 Task::argroup(int index) const {
-  // @@protoc_insertion_point(field_get:TaskGraphProtoBuf.Task.argroup)
-  return _internal_argroup(index);
-}
-inline void Task::set_argroup(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  argroup_.Set(index, value);
-  // @@protoc_insertion_point(field_set:TaskGraphProtoBuf.Task.argroup)
-}
-inline void Task::_internal_add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  argroup_.Add(value);
-}
-inline void Task::add_argroup(::PROTOBUF_NAMESPACE_ID::uint64 value) {
-  _internal_add_argroup(value);
-  // @@protoc_insertion_point(field_add:TaskGraphProtoBuf.Task.argroup)
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
-Task::_internal_argroup() const {
-  return argroup_;
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
-Task::argroup() const {
-  // @@protoc_insertion_point(field_list:TaskGraphProtoBuf.Task.argroup)
-  return _internal_argroup();
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
-Task::_internal_mutable_argroup() {
-  return &argroup_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
-Task::mutable_argroup() {
-  // @@protoc_insertion_point(field_mutable_list:TaskGraphProtoBuf.Task.argroup)
-  return _internal_mutable_argroup();
 }
 
 // -------------------------------------------------------------------
@@ -3521,6 +3877,8 @@ Topology::routes() const {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -3532,6 +3890,11 @@ template <> struct is_proto_enum< ::TaskGraphProtoBuf::Operator_OperatorType> : 
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::TaskGraphProtoBuf::Operator_OperatorType>() {
   return ::TaskGraphProtoBuf::Operator_OperatorType_descriptor();
+}
+template <> struct is_proto_enum< ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg>() {
+  return ::TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_descriptor();
 }
 template <> struct is_proto_enum< ::TaskGraphProtoBuf::Task_SimTaskType> : ::std::true_type {};
 template <>

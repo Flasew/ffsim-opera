@@ -122,14 +122,31 @@ void FFApplication::load_taskgraph_protobuf(std::string & taskgraph) {
         TaskGraphProtoBuf::Task this_task = tg.tasks(i);
 
         if (this_task.type() == TaskGraphProtoBuf::Task_SimTaskType_TASK_ALLREDUCE) {
+            const TaskGraphProtoBuf::AllReduceTask& artask = this_task.artask();
             std::vector<int> node_group;
-            for (int j = this_task.argroup_size() - 1; j >= 0 ; j--) {
-                node_group.push_back(this_task.argroup(j));
+            for (int j = 0; j < artask.argroup_size() ; j++) {
+                node_group.push_back(artask.argroup(j));
             }
-            tasks[this_task.taskid()] = new FFRingAllreduce(
-                node_group, 
-                this_task.xfersize()
-            );
+
+            if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_RING) {
+                tasks[this_task.taskid()] = new FFRingAllreduce(
+                    node_group, 
+                    this_task.xfersize()
+                );
+            }
+            else if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_PSERVER) {
+                tasks[this_task.taskid()] = new FFPSAllreduce(
+                    node_group, 
+                    this_task.xfersize(),
+                    artask.pserver() 
+                );
+            }
+            else if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_DPS) {
+                tasks[this_task.taskid()] = new FFDPSAllreduce(
+                    node_group, 
+                    this_task.xfersize()
+                );
+            }
             cout << "size: " << this_task.xfersize() << ", " << node_group.size() << endl;
         }
 
@@ -489,7 +506,7 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 
 // FFRingAllReduce
 FFRingAllreduce::FFRingAllreduce(std::vector<int> ng, uint64_t sz) :
-    FFTask(FFTask::TASK_RINGALLREDUCE), node_group(ng), 
+    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
     finished_rounds = std::vector<int>(ng.size(), 0);
@@ -507,9 +524,9 @@ void FFRingAllreduce::doNextEvent() {
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
+        start_time = ready_time;
+        state = FFTask::TASK_RUNNING;
         for (size_t i = 0; i < node_group.size(); i++) {
-            start_time = ready_time;
-            state = FFTask::TASK_RUNNING;
             start_flow(i, i);
             // start_flow(i, 0);
         }
@@ -533,7 +550,7 @@ void FFRingAllreduce::doNextEvent() {
 //     f->round = round;
 
 //     DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
-//         eventlist(), src_node, dst_node, ar_finish, f);
+//         eventlist(), src_node, dst_node, ar_finish_ring, f);
 //     TcpSink* flowSnk = new TcpSink();
 //     flowSrc->set_flowsize(operator_size/node_group.size()); // bytes
 //     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
@@ -589,7 +606,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
     // }
 
     DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
-        eventlist(), src_node, dst_node, ar_finish, f);
+        eventlist(), src_node, dst_node, ar_finish_ring, f);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size/node_group.size()); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
@@ -623,7 +640,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
 
 }
 
-void ar_finish(void * arinfo) {
+void ar_finish_ring(void * arinfo) {
     
     FFRingAllreduceFlow * f = static_cast<FFRingAllreduceFlow*>(arinfo);
     FFRingAllreduce * ar = f->ar;
@@ -666,4 +683,224 @@ void ar_finish(void * arinfo) {
     // }
     // delete f;
 
+}
+
+// PARAMETER SERVER
+FFPSAllreduce::FFPSAllreduce(std::vector<int> ng, uint64_t sz, int pserver) :
+    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), operator_size(sz),
+    pserver(pserver), curr_round(0) , finished_curr_round(0)
+{
+    finished_rounds = std::vector<int>(ng.size(), 0);
+}
+
+void FFPSAllreduce::doNextEvent() {
+
+    // this should only be called once...
+    assert(curr_round == 0);
+    
+    if (node_group.size() == 1) {
+        // finished_partitions = 1;
+        finish_time = start_time = ready_time;
+        state = FFTask::TASK_FINISHED;
+        // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
+    }
+    else {
+        start_time = ready_time;
+        state = FFTask::TASK_RUNNING;
+        for (size_t i = 0; i < node_group.size(); i++) {
+            if (node_group[i] != pserver)
+                start_flow(i, 0);
+        }
+    }
+}
+
+void FFPSAllreduce::start_flow(int node_idx, int direction) {
+
+    assert(direction < 2);
+
+    int src_node, dst_node;
+    if (direction == 0) {
+        src_node = node_group[node_idx];
+        dst_node = pserver;
+    }
+    else {
+        dst_node = node_group[node_idx];
+        src_node = pserver;
+    }
+
+    std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << " pserver " << pserver << "\n";
+
+    FFPSAllreduceFlow * f = new FFPSAllreduceFlow();
+    f->ar = this;
+    f->node_idx = node_idx;
+    f->direction = direction;
+
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
+        eventlist(), src_node, dst_node, ar_finish_ps, f);
+    TcpSink* flowSnk = new TcpSink();
+    flowSrc->set_flowsize(operator_size); // bytes
+    flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
+    flowSrc->_rto = timeFromMs(1);
+    
+    ffapp->tcpRtxScanner.registerTcp(*flowSrc);
+
+    Route* routeout, *routein;
+
+    int choice = 0;
+    vector<const Route*>* srcpaths = ffapp->topology->get_paths(src_node, dst_node);
+    choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
+    routeout = new Route(*(srcpaths->at(choice)));
+    routeout->push_back(flowSnk);
+
+    choice = 0;
+    vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
+    choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+    routein = new Route(*(dstpaths->at(choice)));
+    routein->push_back(flowSrc);
+
+    flowSrc->connect(*routeout, *routein, *flowSnk, 
+        curr_round > 0 ? eventlist().now() : start_time);
+
+#ifdef PACKET_SCATTER 
+    flowSrc->set_paths(srcpaths);
+    flowSnk->set_paths(dstpaths);
+#endif
+    delete srcpaths;
+    delete dstpaths;
+}
+
+void ar_finish_ps(void * arinfo) {
+    
+    FFPSAllreduceFlow * f = static_cast<FFPSAllreduceFlow*>(arinfo);
+    FFPSAllreduce * ar = f->ar;
+
+    assert(ar->finished_rounds[f->node_idx] == ar->curr_round);
+    ar->finished_rounds[f->node_idx]++; 
+    ar->finished_curr_round++;
+    delete f;
+
+    if (ar->finished_curr_round == (int)ar->node_group.size() - 1) {
+        // ar->finished_partitions++;
+        ar->curr_round++;
+        ar->finished_curr_round = 0;
+        if (ar->curr_round == 2) {
+            ar->finish_time = ar->eventlist().now();
+            ar->state = FFTask::TASK_FINISHED;
+            std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            ar->ffapp->n_finished_tasks++;
+            if (ar->ffapp->final_finish_time < ar->finish_time) {
+                ar->ffapp->final_finish_time = ar->finish_time;
+            }
+        }
+        else {
+            for (size_t i = 0; i < ar->node_group.size(); i++) {
+                if (ar->pserver != ar->node_group[i])
+                    ar->start_flow(i, 1);
+            }
+        } 
+    }
+}
+
+
+FFDPSAllreduce::FFDPSAllreduce(std::vector<int> ng, uint64_t sz) :
+    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
+    finished_curr_round(0), curr_round(0) {
+    operator_size = sz / ng.size() > 0 ? sz : ng.size();
+    // finished_rounds = std::vector<int>(ng.size(), 0);
+}
+
+void FFDPSAllreduce::doNextEvent() {
+
+    // this should only be called once...
+    assert(curr_round == 0);
+    
+    if (node_group.size() == 1) {
+        // finished_partitions = 1;
+        finish_time = start_time = ready_time;
+        state = FFTask::TASK_FINISHED;
+        // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
+    }
+    else {
+        start_time = ready_time;
+        state = FFTask::TASK_RUNNING;
+        for (size_t i = 0; i < node_group.size(); i++) {
+            for (size_t j = 0; j < node_group.size(); j++) {
+                if (i != j)
+                    start_flow(i, j);
+            }
+        }
+    }
+
+}
+
+void FFDPSAllreduce::start_flow(int src_node, int dst_node) {
+   
+    // std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << "\n";
+
+    // f->src_idx = src_idx;
+    // f->round = round;
+
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
+        eventlist(), src_node, dst_node, ar_finish_dps, this);
+    TcpSink* flowSnk = new TcpSink();
+    flowSrc->set_flowsize(operator_size/node_group.size()); // bytes
+    flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
+    flowSrc->_rto = timeFromMs(1);
+    
+    ffapp->tcpRtxScanner.registerTcp(*flowSrc);
+
+    Route* routeout, *routein;
+
+    int choice = 0;
+    vector<const Route*>* srcpaths = ffapp->topology->get_paths(src_node, dst_node);
+    choice = rand()%srcpaths->size(); // comment this out if we want to use the first path
+    routeout = new Route(*(srcpaths->at(choice)));
+    routeout->push_back(flowSnk);
+
+    choice = 0;
+    vector<const Route*>* dstpaths = ffapp->topology->get_paths(dst_node, src_node);
+    choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
+    routein = new Route(*(dstpaths->at(choice)));
+    routein->push_back(flowSrc);
+
+    flowSrc->connect(*routeout, *routein, *flowSnk, 
+        curr_round > 0 ? eventlist().now() : start_time);
+
+#ifdef PACKET_SCATTER 
+    flowSrc->set_paths(srcpaths);
+    flowSnk->set_paths(dstpaths);
+#endif
+    delete srcpaths;
+    delete dstpaths;
+
+}
+
+void ar_finish_dps(void * ar_ptr) {
+    
+    FFDPSAllreduce * ar = static_cast<FFDPSAllreduce*>(ar_ptr);
+
+    ar->finished_curr_round++;
+
+    if (ar->finished_curr_round == (int)(ar->node_group.size() * (ar->node_group.size() - 1))) {
+        // ar->finished_partitions++;
+        ar->curr_round++;
+        ar->finished_curr_round = 0;
+        if (ar->curr_round == 2) {
+            ar->finish_time = ar->eventlist().now();
+            ar->state = FFTask::TASK_FINISHED;
+            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            ar->ffapp->n_finished_tasks++;
+            if (ar->ffapp->final_finish_time < ar->finish_time) {
+                ar->ffapp->final_finish_time = ar->finish_time;
+            }
+        }
+        else {
+            for (size_t i = 0; i < ar->node_group.size(); i++) {
+                for (size_t j = 0; j < ar->node_group.size(); j++) {
+                    if (i != j)
+                        ar->start_flow(i, j);
+                }
+            }
+        } 
+    }
 }
