@@ -35,7 +35,7 @@
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT = 20; // us
+uint32_t RTT = 2; // us
 int DEFAULT_NODES = 16;
 
 uint32_t SPEED;
