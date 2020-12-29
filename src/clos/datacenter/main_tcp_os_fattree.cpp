@@ -30,7 +30,7 @@
 
 // Simulation params
 
-#define PRINT_PATHS 1
+#define PRINT_PATHS 0
 
 #define PERIODIC 0
 #include "main.h"
@@ -54,7 +54,7 @@ string ntoa(double n);
 string itoa(uint64_t n);
 
 EventList eventlist;
-Logfile* lg;
+// Logfile* lg;
 
 void exit_error(char* progr, char *param) {
     cerr << "Bad parameter: " << param << endl;
@@ -90,16 +90,17 @@ int main(int argc, char **argv) {
     double simtime; // seconds
     double utiltime=.01; // seconds
 
-    stringstream filename(ios_base::out);
+    // stringstream filename(ios_base::out);
     int i = 1;
-    filename << "logout.dat";
+    // filename << "logout.dat";
 
     while (i<argc) {
-  if (!strcmp(argv[i],"-o")){
-      filename.str(std::string());
-      filename << argv[i+1];
-      i++;
-  } else if (!strcmp(argv[i],"-k")){
+//   if (!strcmp(argv[i],"-o")){
+//       filename.str(std::string());
+//       filename << argv[i+1];
+//       i++;
+//   } else 
+  if (!strcmp(argv[i],"-k")){
       k = atoi(argv[i+1]);
       cout << "K "<<k << endl;
       i++;
@@ -161,7 +162,7 @@ int main(int argc, char **argv) {
       
     //cout <<  "Using algo="<<algo<< " epsilon=" << epsilon << endl;
 
-    Logfile logfile(filename.str(), eventlist);
+    // Logfile logfile(filename.str(), eventlist);
 
 #if PRINT_PATHS
     filename << ".paths";
@@ -173,30 +174,31 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    lg = &logfile;
+    // lg = &logfile;
 
     
 
 
     // !!!!!!!!!!!!!!!!!!!!!!!
-    logfile.setStartTime(timeFromSec(10));
+    // logfile.setStartTime(timeFromSec(10));
 
 
 
 
 
 
-    TcpSinkLoggerSampling sinkLogger = TcpSinkLoggerSampling(timeFromUs(50.), eventlist);
-    logfile.addLogger(sinkLogger);
-    TcpTrafficLogger traffic_logger = TcpTrafficLogger();
-    traffic_logger.fct_util_out = &fct_util_out;
-    logfile.addLogger(traffic_logger);
+    // TcpSinkLoggerSampling sinkLogger = TcpSinkLoggerSampling(timeFromUs(50.), eventlist);
+    // logfile.addLogger(sinkLogger);
+    // TcpTrafficLogger traffic_logger = TcpTrafficLogger();
+    // traffic_logger.fct_util_out = &fct_util_out;
+    // logfile.addLogger(traffic_logger);
 
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
-    OverSubscribedFatTree* top = new OverSubscribedFatTree(k, nlp, queuesize, &logfile, &eventlist, ff, ECN);
+    OverSubscribedFatTree* top = new OverSubscribedFatTree(k, nlp, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
 
-    FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
+    // FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
+    FFApplication app = FFApplication(top, ssthresh, &fct_util_out, tcpRtxScanner, eventlist);
     app.load_taskgraph_protobuf(flowfile);
     app.start_init_tasks();
 
@@ -206,10 +208,10 @@ int main(int argc, char **argv) {
 
     // Record the setup
     int pktsize = Packet::data_packet_size();
-    logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
+    // logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
     //logfile.write("# subflows=" + ntoa(subflow_count));
-    logfile.write("# hostnicrate = " + ntoa(SPEED) + " pkt/sec");
-    logfile.write("# corelinkrate = " + ntoa(SPEED*CORE_TO_HOST) + " pkt/sec");
+    // logfile.write("# hostnicrate = " + ntoa(SPEED) + " pkt/sec");
+    // logfile.write("# corelinkrate = " + ntoa(SPEED*CORE_TO_HOST) + " pkt/sec");
     //logfile.write("# buffer = " + ntoa((double) (queues_na_ni[0][1]->_maxsize) / ((double) pktsize)) + " pkt");
     //double rtt = timeAsSec(timeFromUs(RTT));
     //logfile.write("# rtt =" + ntoa(rtt));

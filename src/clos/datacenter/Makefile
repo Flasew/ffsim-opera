@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall  -O0 -ggdb
+CFLAGS=-Wall  -O3
 FF_HOME?=/home/weiyangw/FlexFlow
 CRT=`pwd`
 INCLUDE= -I/$(CRT)/.. -I$(CRT) -I$(FF_HOME)/protobuf/src

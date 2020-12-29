@@ -17,10 +17,10 @@ FFApplication * FFTask::ffapp;
 // FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
 // 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
 //     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
-FFApplication::FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, //TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     TcpRtxTimerScanner & rtx, EventList & eventlist)
     : topology(top), ssthresh(ss), eventlist(eventlist), 
-      sinkLogger(sl), tcpTrafficLogger(tl), tcpRtxScanner(rtx), 
+      fstream_out(_fstream_out), tcpRtxScanner(rtx), 
       final_finish_time(0), n_finished_tasks(0) {
 
     FFTask::ffapp = this;
@@ -389,7 +389,7 @@ void FFTask::start_flow() {
     //     return;
     // }
 
-    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, eventlist(), src_node, dst_node, taskfinish, this);
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, NULL, ffapp->fstream_out, eventlist(), src_node, dst_node, taskfinish, this);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(xfersize); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
@@ -605,7 +605,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
     //     return;
     // }
 
-    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, NULL, ffapp->fstream_out, 
         eventlist(), src_node, dst_node, ar_finish_ring, f);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size/node_group.size()); // bytes
@@ -735,7 +735,7 @@ void FFPSAllreduce::start_flow(int node_idx, int direction) {
     f->node_idx = node_idx;
     f->direction = direction;
 
-    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, NULL, ffapp->fstream_out, 
         eventlist(), src_node, dst_node, ar_finish_ps, f);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size); // bytes
@@ -840,7 +840,7 @@ void FFDPSAllreduce::start_flow(int src_node, int dst_node) {
     // f->src_idx = src_idx;
     // f->round = round;
 
-    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, &ffapp->tcpTrafficLogger, 
+    DCTCPSrc* flowSrc = new DCTCPSrc(NULL, NULL, ffapp->fstream_out, 
         eventlist(), src_node, dst_node, ar_finish_dps, this);
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size/node_group.size()); // bytes

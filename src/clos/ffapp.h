@@ -199,7 +199,7 @@ public:
 	// 		NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
     // FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     //     TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
-    FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
+    FFApplication(Topology* top, int ss, ofstream * _fstream_out, // TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl, 
         TcpRtxTimerScanner & rtx, EventList & eventlist);
         
 	~FFApplication();
@@ -217,8 +217,9 @@ public:
     EventList & eventlist;
 	// NdpRtxTimerScanner & ndpRtxScanner;
 	// NdpSinkLoggerSampling & sinkLogger;
-    TcpSinkLoggerSampling & sinkLogger;
-    TcpTrafficLogger & tcpTrafficLogger;
+    // TcpSinkLoggerSampling & sinkLogger;
+    // TcpTrafficLogger & tcpTrafficLogger;
+    ofstream * fstream_out;
     TcpRtxTimerScanner & tcpRtxScanner;
 
     simtime_picosec final_finish_time;

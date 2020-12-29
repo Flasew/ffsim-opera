@@ -17,6 +17,7 @@
 
 extern uint32_t RTT;
 extern uint32_t SPEED;
+extern ofstream fct_util_out;
 
 string ntoa(double n);
 string itoa(uint64_t n);
@@ -73,7 +74,7 @@ Queue* FCTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b q
 }
 
 void FCTopology::init_network(){
-  // QueueLoggerSampling* queueLogger;
+  QueueLoggerSampling* queueLogger = nullptr;
   
   for (int j=0; j<_no_of_nodes; j++)
     for (int k=0; k<_no_of_nodes; k++){
@@ -90,25 +91,25 @@ void FCTopology::init_network(){
   for (int j = 0; j < _no_of_nodes; j++) {
     for (int k = 0; k < j; k++) {
 
-    QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-    QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    // QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+    // QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
     // queueLogger = NULL;
-    logfile->addLogger(*queueLoggerd);
-    logfile->addLogger(*queueLoggeru);
+    // logfile->addLogger(*queueLoggerd);
+    // logfile->addLogger(*queueLoggeru);
     
-    queues[j][k] = alloc_queue(queueLoggerd, _queuesize);
-    queues[k][j] = alloc_queue(queueLoggeru, _queuesize);
+    queues[j][k] = alloc_queue(queueLogger, _queuesize);
+    queues[k][j] = alloc_queue(queueLogger, _queuesize);
     queues[j][k]->setName("L" + ntoa(j) + "->DST" +ntoa(k));
     queues[k][j]->setName("L" + ntoa(k) + "->DST" +ntoa(j));
-    logfile->writeName(*(queues[j][k]));
-    logfile->writeName(*(queues[k][j]));
+    // logfile->writeName(*(queues[j][k]));
+    // logfile->writeName(*(queues[k][j]));
 
     pipes[j][k] = new Pipe(timeFromUs(RTT), *eventlist);
     pipes[k][j] = new Pipe(timeFromUs(RTT), *eventlist);
     pipes[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
     pipes[k][j]->setName("Pipe-LS" + ntoa(k)  + "->DST" + ntoa(j));
-    logfile->writeName(*(pipes[j][k]));
-    logfile->writeName(*(pipes[k][j]));
+    // logfile->writeName(*(pipes[j][k]));
+    // logfile->writeName(*(pipes[k][j]));
     
     if (qt==LOSSLESS){
         switchs[j]->addPort(queues[j][k]);
@@ -294,7 +295,7 @@ void UtilMonitor::printAggUtil() {
 
     double util = (double)B_sum / (double)_max_B_in_period;
 
-    cout << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+    fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
 
     //if (eventlist().now() + _period < eventlist().getEndtime())
     eventlist().sourceIsPendingRel(*this, _period);

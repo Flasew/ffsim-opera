@@ -10,7 +10,7 @@
 //  TCP SOURCE
 ////////////////////////////////////////////////////////////////
 
-TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, 
+TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out,
 	       EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*), void* acd)
     : EventSource(eventlist,"tcp"),  _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), application_callback(acf), application_callback_data(acd)
 {
@@ -30,7 +30,7 @@ TcpSrc::TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger,
     _effcwnd = 0;
 		_finished = false;
 
-		fstream_out = pktlogger->fct_util_out;
+		fstream_out = _fstream_out;
     //_ssthresh = 30000;
     _ssthresh = 0xffffffff;
 

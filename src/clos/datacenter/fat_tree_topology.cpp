@@ -114,7 +114,7 @@ Queue* FatTreeTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, me
     else if (qt==CTRL_PRIO)
 	return new CtrlPrioQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger);
     else if (qt==ECN)
-	return new ECNQueue(speedFromMbps(speed), memFromPkt(50*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(10000));
+	return new ECNQueue(speedFromMbps(speed), memFromPkt(100), *eventlist, queueLogger, memFromPkt(20));
     else if (qt==LOSSLESS)
 	return new LosslessQueue(speedFromMbps(speed), memFromPkt(50), *eventlist, queueLogger, NULL);
     else if (qt==LOSSLESS_INPUT)
@@ -125,7 +125,7 @@ Queue* FatTreeTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, me
 }
 
 void FatTreeTopology::init_network(){
-  QueueLoggerSampling* queueLogger;
+  QueueLoggerSampling* queueLogger = nullptr;
 
   for (int j=0;j<NC;j++)
     for (int k=0;k<NK;k++){
@@ -165,17 +165,17 @@ void FatTreeTopology::init_network(){
       for (int l = 0; l < K/2; l++) {
 	  int k = j * K/2 + l;
 	  // Downlink
-	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	  //queueLogger = NULL;
-	  logfile->addLogger(*queueLogger);
+	  // queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	  // queueLogger = NULL;
+	  // logfile->addLogger(*queueLogger);
 	  
 	  queues_nlp_ns[j][k] = alloc_queue(queueLogger, _queuesize);
 	  queues_nlp_ns[j][k]->setName("LS" + ntoa(j) + "->DST" +ntoa(k));
-	  logfile->writeName(*(queues_nlp_ns[j][k]));
+	  // logfile->writeName(*(queues_nlp_ns[j][k]));
 
 	  pipes_nlp_ns[j][k] = new Pipe(timeFromNs(RTT_rack), *eventlist);
 	  pipes_nlp_ns[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
-	  logfile->writeName(*(pipes_nlp_ns[j][k]));
+	  // logfile->writeName(*(pipes_nlp_ns[j][k]));
 
 
     pipes_nlp_ns[j][k]->set_pipe_downlink(); // modification - set this for the UtilMonitor
@@ -183,11 +183,11 @@ void FatTreeTopology::init_network(){
 
 
 	  // Uplink
-	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	  logfile->addLogger(*queueLogger);
+	  // queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	  // logfile->addLogger(*queueLogger);
 	  queues_ns_nlp[k][j] = alloc_src_queue(queueLogger);
 	  queues_ns_nlp[k][j]->setName("SRC" + ntoa(k) + "->LS" +ntoa(j));
-	  logfile->writeName(*(queues_ns_nlp[k][j]));
+	  // logfile->writeName(*(queues_ns_nlp[k][j]));
 
 	  if (qt==LOSSLESS){
 	      switches_lp[j]->addPort(queues_nlp_ns[j][k]);
@@ -199,7 +199,7 @@ void FatTreeTopology::init_network(){
 	  
 	  pipes_ns_nlp[k][j] = new Pipe(timeFromNs(RTT_rack), *eventlist);
 	  pipes_ns_nlp[k][j]->setName("Pipe-SRC" + ntoa(k) + "->LS" + ntoa(j));
-	  logfile->writeName(*(pipes_ns_nlp[k][j]));
+	  // logfile->writeName(*(pipes_ns_nlp[k][j]));
 	  
 	  if (ff){
 	    ff->add_queue(queues_nlp_ns[j][k]);
@@ -221,22 +221,22 @@ void FatTreeTopology::init_network(){
       //Connect the lower layer switch to the upper layer switches in the same pod
       for (int k=MIN_POD_ID(podid); k<=MAX_POD_ID(podid);k++){
 	// Downlink
-	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	logfile->addLogger(*queueLogger);
+	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	// logfile->addLogger(*queueLogger);
 	queues_nup_nlp[k][j] = alloc_queue(queueLogger, _queuesize);
 	queues_nup_nlp[k][j]->setName("US" + ntoa(k) + "->LS_" + ntoa(j));
-	logfile->writeName(*(queues_nup_nlp[k][j]));
+	// logfile->writeName(*(queues_nup_nlp[k][j]));
 	
 	pipes_nup_nlp[k][j] = new Pipe(timeFromNs(RTT_net), *eventlist);
 	pipes_nup_nlp[k][j]->setName("Pipe-US" + ntoa(k) + "->LS" + ntoa(j));
-	logfile->writeName(*(pipes_nup_nlp[k][j]));
+	// logfile->writeName(*(pipes_nup_nlp[k][j]));
 	
 	// Uplink
-	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	logfile->addLogger(*queueLogger);
+	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	// logfile->addLogger(*queueLogger);
 	queues_nlp_nup[j][k] = alloc_queue(queueLogger, _queuesize);
 	queues_nlp_nup[j][k]->setName("LS" + ntoa(j) + "->US" + ntoa(k));
-	logfile->writeName(*(queues_nlp_nup[j][k]));
+	// logfile->writeName(*(queues_nlp_nup[j][k]));
 
 	if (qt==LOSSLESS){
 	    switches_lp[j]->addPort(queues_nlp_nup[j][k]);
@@ -250,7 +250,7 @@ void FatTreeTopology::init_network(){
 	
 	pipes_nlp_nup[j][k] = new Pipe(timeFromNs(RTT_net), *eventlist);
 	pipes_nlp_nup[j][k]->setName("Pipe-LS" + ntoa(j) + "->US" + ntoa(k));
-	logfile->writeName(*(pipes_nlp_nup[j][k]));
+	// logfile->writeName(*(pipes_nlp_nup[j][k]));
 	
 	if (ff){
 	  ff->add_queue(queues_nlp_nup[j][k]);
@@ -272,21 +272,21 @@ void FatTreeTopology::init_network(){
       for (int l = 0; l < K/2; l++) {
 	int k = podpos * K/2 + l;
 	  // Downlink
-	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	logfile->addLogger(*queueLogger);
+	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	// logfile->addLogger(*queueLogger);
 
 	queues_nup_nc[j][k] = alloc_queue(queueLogger, _queuesize);
 	queues_nup_nc[j][k]->setName("US" + ntoa(j) + "->CS" + ntoa(k));
-	logfile->writeName(*(queues_nup_nc[j][k]));
+	// logfile->writeName(*(queues_nup_nc[j][k]));
 	
 	pipes_nup_nc[j][k] = new Pipe(timeFromNs(RTT_net), *eventlist);
 	pipes_nup_nc[j][k]->setName("Pipe-US" + ntoa(j) + "->CS" + ntoa(k));
-	logfile->writeName(*(pipes_nup_nc[j][k]));
+	// logfile->writeName(*(pipes_nup_nc[j][k]));
 	
 	// Uplink
 	
-	queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	logfile->addLogger(*queueLogger);
+	// queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	// logfile->addLogger(*queueLogger);
 	
 	if ((l+j*K/2)<failed_links){
 	    queues_nc_nup[k][j] = alloc_queue(queueLogger,SPEED/10, _queuesize);
@@ -309,11 +309,11 @@ void FatTreeTopology::init_network(){
 	    new LosslessInputQueue(*eventlist, queues_nc_nup[k][j]);
 	}
 
-	logfile->writeName(*(queues_nc_nup[k][j]));
+	// logfile->writeName(*(queues_nc_nup[k][j]));
 	
 	pipes_nc_nup[k][j] = new Pipe(timeFromNs(RTT_net), *eventlist);
 	pipes_nc_nup[k][j]->setName("Pipe-CS" + ntoa(k) + "->US" + ntoa(j));
-	logfile->writeName(*(pipes_nc_nup[k][j]));
+	// logfile->writeName(*(pipes_nc_nup[k][j]));
 	
 	if (ff){
 	  ff->add_queue(queues_nup_nc[j][k]);

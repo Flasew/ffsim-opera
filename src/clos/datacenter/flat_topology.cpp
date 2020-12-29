@@ -115,7 +115,7 @@ Queue* FlatTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b
 }
 
 void FlatTopology::init_network(){
-  // QueueLoggerSampling* queueLogger;
+  QueueLoggerSampling* queueLogger = nullptr;
   
   for (int j=0; j<_no_of_nodes; j++)
     for (int k=0; k<_no_of_nodes; k++){
@@ -132,26 +132,26 @@ void FlatTopology::init_network(){
   for (int j = 0; j < _no_of_nodes; j++) {
     for (int k = 0; k < j; k++) {
       if (_conn_list.find(EDGE(j, k, _no_of_nodes)) != _conn_list.end()) {
-        QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-        QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+        // QueueLoggerSampling* queueLoggerd = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+        // QueueLoggerSampling* queueLoggeru = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
         // queueLogger = NULL;
-        logfile->addLogger(*queueLoggerd);
-        logfile->addLogger(*queueLoggeru);
+        // logfile->addLogger(*queueLoggerd);
+        // logfile->addLogger(*queueLoggeru);
         
-        queues[j][k] = alloc_queue(queueLoggerd, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
+        queues[j][k] = alloc_queue(queueLogger, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
         cerr << "(" << j << ", " << k << ")" << SPEED * _conn_list[EDGE(j, k, _no_of_nodes)] << endl;
-        queues[k][j] = alloc_queue(queueLoggeru, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
+        queues[k][j] = alloc_queue(queueLogger, SPEED * _conn_list[EDGE(j, k, _no_of_nodes)], _queuesize);
         queues[j][k]->setName("L" + ntoa(j) + "->DST" +ntoa(k));
         queues[k][j]->setName("L" + ntoa(k) + "->DST" +ntoa(j));
-        logfile->writeName(*(queues[j][k]));
-        logfile->writeName(*(queues[k][j]));
+        // logfile->writeName(*(queues[j][k]));
+        // logfile->writeName(*(queues[k][j]));
 
         pipes[j][k] = new Pipe(timeFromUs(RTT), *eventlist);
         pipes[k][j] = new Pipe(timeFromUs(RTT), *eventlist);
         pipes[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
         pipes[k][j]->setName("Pipe-LS" + ntoa(k)  + "->DST" + ntoa(j));
-        logfile->writeName(*(pipes[j][k]));
-        logfile->writeName(*(pipes[k][j]));
+        // logfile->writeName(*(pipes[j][k]));
+        // logfile->writeName(*(pipes[k][j]));
         
         if (qt==LOSSLESS){
           switchs[j]->addPort(queues[j][k]);
