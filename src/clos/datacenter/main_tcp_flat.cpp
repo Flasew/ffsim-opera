@@ -35,7 +35,7 @@
 #define PERIODIC 0
 #include "main.h"
 
-uint32_t RTT = 2; // us
+uint32_t RTT = 1000; // ns
 int DEFAULT_NODES = 16;
 
 uint32_t SPEED;
@@ -105,6 +105,10 @@ int main(int argc, char **argv) {
   } else if (!strcmp(argv[i],"-speed")){
       SPEED = atoi(argv[i+1]);
       cout << "speed "<<SPEED << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-rtt")){
+      RTT = atoi(argv[i+1]);
+      cout << "RTT "<<RTT << endl;
       i++;
   } else if (!strcmp(argv[i],"-ofile")){
       fct_util_out = std::ofstream(argv[i+1]);
@@ -196,8 +200,8 @@ int main(int argc, char **argv) {
     app.load_taskgraph_protobuf(flowfile);
     app.start_init_tasks();
 
-    UtilMonitor* UM = new UtilMonitor(top, eventlist);
-    UM->start(timeFromSec(utiltime));
+    // UtilMonitor* UM = new UtilMonitor(top, eventlist);
+    // UM->start(timeFromSec(utiltime));
 
 
     // Record the setup
@@ -214,7 +218,7 @@ int main(int argc, char **argv) {
     while (eventlist.doNextEvent()) {
     }
 
-    fct_util_out << "Final finsih time: " << app.final_finish_time << std::endl;
+    fct_util_out << "FinalFinish " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {

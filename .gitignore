@@ -33,3 +33,5 @@
 
 *.mat
 *.dat
+
+htsim_tcp_*

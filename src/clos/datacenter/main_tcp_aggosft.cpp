@@ -8,6 +8,7 @@
 #include <math.h>
 #include "network.h"
 #include "randomqueue.h"
+//#include "shortflows.h"
 #include "pipe.h"
 #include "eventlist.h"
 #include "logfile.h"
@@ -22,7 +23,7 @@
 
 // Choose the topology here:
 // #include "test_topology.h"
-#include "fat_tree_topology.h"
+#include "agg_os_fattree.h"
 #include "ffapp.h"
 
 #include <list>
@@ -36,25 +37,24 @@
 
 uint32_t RTT_rack = 500; // ns
 uint32_t RTT_net = 500; // ns
+// int DEFAULT_NODES = 16;
+
 uint32_t SPEED;
 std::ofstream fct_util_out;
-
-int DEFAULT_NODES = 128;
 
 FirstFit* ff = NULL;
 //unsigned int subflow_count = 8; // probably not necessary ???
 
 #define DEFAULT_PACKET_SIZE 9000 // full packet (including header), Bytes
 #define DEFAULT_HEADER_SIZE 64 // header size, Bytes
-#define DEFAULT_QUEUE_SIZE 200
+#define DEFAULT_QUEUE_SIZE 100
 
-#define DEFAULT_SPEED 40000
 
 string ntoa(double n);
 string itoa(uint64_t n);
 
 EventList eventlist;
-Logfile* lg;
+// Logfile* lg;
 
 void exit_error(char* progr, char *param) {
     cerr << "Bad parameter: " << param << endl;
@@ -71,7 +71,7 @@ void print_path(std::ofstream &paths, const Route* rt){
       paths << "NULL ";
     }
 
-    paths << endl;
+    paths<<endl;
 }
 
 int main(int argc, char **argv) {
@@ -83,9 +83,8 @@ int main(int argc, char **argv) {
     double epsilon = 1;
     int ssthresh = 15;
 
-    int no_of_nodes = DEFAULT_NODES;
-    SPEED = DEFAULT_SPEED;
-    // fct_util_out = std::cout;
+    int k;
+    int nup;
 
     string flowfile; // so we can read the flows from a specified file
     double simtime; // seconds
@@ -101,15 +100,19 @@ int main(int argc, char **argv) {
 //       filename << argv[i+1];
 //       i++;
 //   } else 
-  if (!strcmp(argv[i],"-nodes")){
-      no_of_nodes = atoi(argv[i+1]);
-      cout << "no_of_nodes "<<no_of_nodes << endl;
+  if (!strcmp(argv[i],"-k")){
+      k = atoi(argv[i+1]);
+      cout << "K "<<k << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-nup")){
+      nup = atoi(argv[i+1]);
+      cout << "nup "<<nup << endl;
       i++;
   } else if (!strcmp(argv[i],"-speed")){
       SPEED = atoi(argv[i+1]);
       cout << "speed "<<SPEED << endl;
       i++;
-  }  else if (!strcmp(argv[i],"-rttrack")){
+  } else if (!strcmp(argv[i],"-rttrack")){
       RTT_rack = atoi(argv[i+1]);
       cout << "RTT_rack "<<RTT_rack << endl;
       i++;
@@ -167,7 +170,7 @@ int main(int argc, char **argv) {
       
     //cout <<  "Using algo="<<algo<< " epsilon=" << epsilon << endl;
 
-    //Logfile logfile(filename.str(), eventlist);
+    // Logfile logfile(filename.str(), eventlist);
 
 #if PRINT_PATHS
     filename << ".paths";
@@ -179,13 +182,13 @@ int main(int argc, char **argv) {
     }
 #endif
 
-    //lg = &logfile;
+    // lg = &logfile;
 
     
 
 
     // !!!!!!!!!!!!!!!!!!!!!!!
-    //logfile.setStartTime(timeFromSec(10));
+    // logfile.setStartTime(timeFromSec(10));
 
 
 
@@ -193,16 +196,14 @@ int main(int argc, char **argv) {
 
 
     // TcpSinkLoggerSampling sinkLogger = TcpSinkLoggerSampling(timeFromUs(50.), eventlist);
-    //logfile.addLogger(sinkLogger);
+    // logfile.addLogger(sinkLogger);
     // TcpTrafficLogger traffic_logger = TcpTrafficLogger();
     // traffic_logger.fct_util_out = &fct_util_out;
-    //logfile.addLogger(traffic_logger);
+    // logfile.addLogger(traffic_logger);
 
     TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1), eventlist);
 
-
-    FatTreeTopology* top = new FatTreeTopology(no_of_nodes, queuesize, nullptr /*&logfile*/, &eventlist, ff, ECN);
-    // note that 'queuesize' does not pass throuf_nodesgh currently for RANDOM...
+    AggOverSubscribedFatTree* top = new AggOverSubscribedFatTree(k, nup, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
 
     // FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
     FFApplication app = FFApplication(top, ssthresh, &fct_util_out, tcpRtxScanner, eventlist);
@@ -215,10 +216,10 @@ int main(int argc, char **argv) {
 
     // Record the setup
     int pktsize = Packet::data_packet_size();
-    //logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
+    // logfile.write("# pktsize=" + ntoa(pktsize) + " bytes");
     //logfile.write("# subflows=" + ntoa(subflow_count));
-    //logfile.write("# hostnicrate = " + ntoa(SPEED) + " pkt/sec");
-    //logfile.write("# corelinkrate = " + ntoa(SPEED*CORE_TO_HOST) + " pkt/sec");
+    // logfile.write("# hostnicrate = " + ntoa(SPEED) + " pkt/sec");
+    // logfile.write("# corelinkrate = " + ntoa(SPEED*CORE_TO_HOST) + " pkt/sec");
     //logfile.write("# buffer = " + ntoa((double) (queues_na_ni[0][1]->_maxsize) / ((double) pktsize)) + " pkt");
     //double rtt = timeAsSec(timeFromUs(RTT));
     //logfile.write("# rtt =" + ntoa(rtt));
@@ -227,7 +228,7 @@ int main(int argc, char **argv) {
     while (eventlist.doNextEvent()) {
     }
 
-    fct_util_out << "FinalFinish " << app.final_finish_time << std::endl;
+    fct_util_out << "Final finsih time: " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {

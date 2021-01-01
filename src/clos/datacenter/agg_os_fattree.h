@@ -1,5 +1,5 @@
-#ifndef FAT_TREE_3TO1_K12
-#define FAT_TREE_3TO1_K12
+#ifndef AGG_OS_FATTREE
+#define AGG_OS_FATTREE
 #include "main.h"
 #include "randomqueue.h"
 #include "pipe.h"
@@ -28,7 +28,7 @@ typedef enum {RANDOM, ECN, COMPOSITE, CTRL_PRIO, LOSSLESS, LOSSLESS_INPUT, LOSSL
 #endif
 
 // Edeg-oversubscribed fattree
-class OverSubscribedFatTree: public Topology{
+class AggOverSubscribedFatTree: public Topology{
  public:
 
   vector <Switch*> switches_lp; // lower pod
@@ -57,8 +57,8 @@ class OverSubscribedFatTree: public Topology{
   int failed_links;
   queue_type qt;
 
-  OverSubscribedFatTree(int k, int racksz, mem_b queuesize, Logfile* log, EventList* ev, FirstFit* f, queue_type q);
-  // OverSubscribedFatTree(int no_of_nodes, mem_b queuesize, Logfile* log, EventList* ev, FirstFit* f, queue_type q, int fail);
+  AggOverSubscribedFatTree(int k, int racksz, mem_b queuesize, Logfile* log, EventList* ev, FirstFit* f, queue_type q);
+  // AggOverSubscribedFatTree(int no_of_nodes, mem_b queuesize, Logfile* log, EventList* ev, FirstFit* f, queue_type q, int fail);
 
   void init_network();
   virtual vector<const Route*>* get_paths(int src, int dest);
@@ -89,13 +89,13 @@ class OverSubscribedFatTree: public Topology{
 // class UtilMonitor : public EventSource {
 //  public:
 
-//     UtilMonitor(OverSubscribedFatTree* top, EventList &eventlist);
+//     UtilMonitor(AggOverSubscribedFatTree* top, EventList &eventlist);
 
 //     void start(simtime_picosec period);
 //     void doNextEvent();
 //     void printAggUtil();
 
-//     OverSubscribedFatTree* _top;
+//     AggOverSubscribedFatTree* _top;
 //     simtime_picosec _period; // picoseconds between utilization reports
 //     int64_t _max_agg_Bps; // delivered to endhosts, across the whole network
 //     int64_t _max_B_in_period;

@@ -104,8 +104,8 @@ void FCTopology::init_network(){
     // logfile->writeName(*(queues[j][k]));
     // logfile->writeName(*(queues[k][j]));
 
-    pipes[j][k] = new Pipe(timeFromUs(RTT), *eventlist);
-    pipes[k][j] = new Pipe(timeFromUs(RTT), *eventlist);
+    pipes[j][k] = new Pipe(timeFromNs(RTT), *eventlist);
+    pipes[k][j] = new Pipe(timeFromNs(RTT), *eventlist);
     pipes[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
     pipes[k][j]->setName("Pipe-LS" + ntoa(k)  + "->DST" + ntoa(j));
     // logfile->writeName(*(pipes[j][k]));
@@ -240,65 +240,65 @@ void FCTopology::print_path(std::ofstream &paths,int src,const Route* route){
 
 
 
-UtilMonitor::UtilMonitor(FCTopology* top, EventList &eventlist)
-  : EventSource(eventlist,"utilmonitor"), _top(top)
-{
-    _H = _top->no_of_nodes(); // number of hosts
-    uint64_t rate = 10000000000 / 8; // bytes / second
-    rate = rate * _H * _H;
+// UtilMonitor::UtilMonitor(FCTopology* top, EventList &eventlist)
+//   : EventSource(eventlist,"utilmonitor"), _top(top)
+// {
+//     _H = _top->no_of_nodes(); // number of hosts
+//     uint64_t rate = 10000000000 / 8; // bytes / second
+//     rate = rate * _H * _H;
     
-    _max_agg_Bps = rate;
+//     _max_agg_Bps = rate;
 
-    // debug:
-    //cout << "max packets per second = " << rate << endl;
+//     // debug:
+//     //cout << "max packets per second = " << rate << endl;
 
-}
+// }
 
-void UtilMonitor::start(simtime_picosec period) {
-    _period = period;
-    _max_B_in_period = _max_agg_Bps * timeAsSec(_period);
+// void UtilMonitor::start(simtime_picosec period) {
+//     _period = period;
+//     _max_B_in_period = _max_agg_Bps * timeAsSec(_period);
 
-    // debug:
-    //cout << "_max_pkts_in_period = " << _max_pkts_in_period << endl;
+//     // debug:
+//     //cout << "_max_pkts_in_period = " << _max_pkts_in_period << endl;
 
-    eventlist().sourceIsPending(*this, _period);
-}
+//     eventlist().sourceIsPending(*this, _period);
+// }
 
-void UtilMonitor::doNextEvent() {
-    printAggUtil();
-}
+// void UtilMonitor::doNextEvent() {
+//     printAggUtil();
+// }
 
-void UtilMonitor::printAggUtil() {
+// void UtilMonitor::printAggUtil() {
 
-    uint64_t B_sum = 0;
+//     uint64_t B_sum = 0;
 
-    // int host = 0;
-    // for (int tor = 0; tor < _N; tor++) {
-    //     for (int downlink = 0; downlink < _hpr; downlink++) {
-    //         Pipe* pipe = _top->get_downlink(tor, host);
-    //         B_sum = B_sum + pipe->reportBytes();
-    //         host++;
-    //     }
-    // }
-    for (int i = 0; i < _H; i++) {
-      for (int j = 0; j < _H; j++) {
-        Pipe * pipe = _top->get_pipe(i, j);
-        if (pipe != nullptr) {
-          B_sum = B_sum + pipe->reportBytes();
-        }
-      }
-    }
+//     // int host = 0;
+//     // for (int tor = 0; tor < _N; tor++) {
+//     //     for (int downlink = 0; downlink < _hpr; downlink++) {
+//     //         Pipe* pipe = _top->get_downlink(tor, host);
+//     //         B_sum = B_sum + pipe->reportBytes();
+//     //         host++;
+//     //     }
+//     // }
+//     for (int i = 0; i < _H; i++) {
+//       for (int j = 0; j < _H; j++) {
+//         Pipe * pipe = _top->get_pipe(i, j);
+//         if (pipe != nullptr) {
+//           B_sum = B_sum + pipe->reportBytes();
+//         }
+//       }
+//     }
 
-    // debug:
-    //cout << "Bsum = " << B_sum << endl;
-    //cout << "_max_B_in_period = " << _max_B_in_period << endl;
+//     // debug:
+//     //cout << "Bsum = " << B_sum << endl;
+//     //cout << "_max_B_in_period = " << _max_B_in_period << endl;
 
-    double util = (double)B_sum / (double)_max_B_in_period;
+//     double util = (double)B_sum / (double)_max_B_in_period;
 
-    fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+//     fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
 
-    //if (eventlist().now() + _period < eventlist().getEndtime())
-    eventlist().sourceIsPendingRel(*this, _period);
+//     //if (eventlist().now() + _period < eventlist().getEndtime())
+//     eventlist().sourceIsPendingRel(*this, _period);
 
-}
+// }
 

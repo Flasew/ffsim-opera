@@ -64,22 +64,22 @@ private:
   mem_b _queuesize;
 };
 
-class UtilMonitor : public EventSource {
- public:
+// class UtilMonitor : public EventSource {
+//  public:
 
-    UtilMonitor(FlatTopology* top, EventList &eventlist);
+//     UtilMonitor(FlatTopology* top, EventList &eventlist);
 
-    void start(simtime_picosec period);
-    void doNextEvent();
-    void printAggUtil();
+//     void start(simtime_picosec period);
+//     void doNextEvent();
+//     void printAggUtil();
 
-    FlatTopology* _top;
-    simtime_picosec _period; // picoseconds between utilization reports
-    int64_t _max_agg_Bps; // delivered to endhosts, across the whole network
-    int64_t _max_B_in_period;
-    int _H; // number of hosts
+//     FlatTopology* _top;
+//     simtime_picosec _period; // picoseconds between utilization reports
+//     int64_t _max_agg_Bps; // delivered to endhosts, across the whole network
+//     int64_t _max_B_in_period;
+//     int _H; // number of hosts
 
-};
+// };
 
 
 

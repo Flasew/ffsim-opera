@@ -1,5 +1,5 @@
 // -*- c-basic-offset: 4; tab-width: 8; indent-tabs-mode: t -*-
-#include "os_fattree.h"
+#include "agg_os_fattree.h"
 #include <vector>
 #include "string.h"
 #include <sstream>
@@ -25,7 +25,7 @@ string itoa(uint64_t n);
 
 //extern int N;
 
-OverSubscribedFatTree::OverSubscribedFatTree(int k, int racksz, mem_b queuesize, Logfile* lg, 
+AggOverSubscribedFatTree::AggOverSubscribedFatTree(int k, int up_port, mem_b queuesize, Logfile* lg, 
 				 EventList* ev,FirstFit * fit,queue_type q){
 
     _queuesize = queuesize;
@@ -36,12 +36,12 @@ OverSubscribedFatTree::OverSubscribedFatTree(int k, int racksz, mem_b queuesize,
     failed_links = 0;
 
     K = k;
-    Nhpr = racksz;
+    Nhpr = k / 2;
 
     assert(Nhpr >= K/2); // No undersubscribe
 
     Nlp = k * k / 2;
-    Nup = k * (k - racksz);
+    Nup = k * up_port;
 
     Nc = Nup / 2;
 
@@ -55,7 +55,7 @@ OverSubscribedFatTree::OverSubscribedFatTree(int k, int racksz, mem_b queuesize,
     init_network();
 }
 
-void OverSubscribedFatTree::set_params(int no_of_nodes) {
+void AggOverSubscribedFatTree::set_params(int no_of_nodes) {
 
     switches_lp.resize(Nlp,NULL); // lower pod (ToRs)
     switches_up.resize(Nup,NULL); // upper pod (agg)
@@ -78,15 +78,15 @@ void OverSubscribedFatTree::set_params(int no_of_nodes) {
     queues_ns_nlp.resize(Nh, vector<Queue*>(Nlp));
 }
 
-Queue* OverSubscribedFatTree::alloc_src_queue(QueueLogger* queueLogger){
+Queue* AggOverSubscribedFatTree::alloc_src_queue(QueueLogger* queueLogger){
     return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 }
 
-Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
+Queue* AggOverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
     return alloc_queue(queueLogger, SPEED, queuesize);
 }
 
-Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
+Queue* AggOverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
     if (qt==RANDOM)
 	return new RandomQueue(speedFromMbps(speed), memFromPkt(SWITCH_BUFFER + RANDOM_BUFFER), *eventlist, queueLogger, memFromPkt(RANDOM_BUFFER));
     else if (qt==COMPOSITE)
@@ -94,7 +94,7 @@ Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t spe
     else if (qt==CTRL_PRIO)
 	return new CtrlPrioQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger);
     else if (qt==ECN)
-	return new ECNQueue(speedFromMbps(speed), memFromPkt(50*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(10000));
+	return new ECNQueue(speedFromMbps(speed), memFromPkt(100), *eventlist, queueLogger, memFromPkt(20));
     else if (qt==LOSSLESS)
 	return new LosslessQueue(speedFromMbps(speed), memFromPkt(50), *eventlist, queueLogger, NULL);
     else if (qt==LOSSLESS_INPUT)
@@ -104,7 +104,7 @@ Queue* OverSubscribedFatTree::alloc_queue(QueueLogger* queueLogger, uint64_t spe
     assert(0);
 }
 
-void OverSubscribedFatTree::init_network(){
+void AggOverSubscribedFatTree::init_network(){
   QueueLoggerSampling* queueLogger = nullptr;
 
   // core to upper pod:
@@ -149,7 +149,7 @@ void OverSubscribedFatTree::init_network(){
   	  int k = j * Nhpr + l;
   	  // Downlink
   	  // queueLogger = nullptr; //new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-  	  //queueLogger = NULL;
+  	  // queueLogger = NULL;
   	  // logfile->addLogger(*queueLogger);
   	  
   	  queues_nlp_ns[j][k] = alloc_queue(queueLogger, _queuesize);
@@ -163,7 +163,7 @@ void OverSubscribedFatTree::init_network(){
       pipes_nlp_ns[j][k]->set_pipe_downlink(); // modification - set this for the UtilMonitor
 
   	  // Uplink
-  	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+  	  // queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
   	  // logfile->addLogger(*queueLogger);
   	  queues_ns_nlp[k][j] = alloc_src_queue(queueLogger);
   	  queues_ns_nlp[k][j]->setName("SRC" + ntoa(k) + "->LS" +ntoa(j));
@@ -199,7 +199,7 @@ void OverSubscribedFatTree::init_network(){
   for (int k = 0; k < Nup; k++) { // sweep upper pod switch id
     for (int l = 0; l < K/2; l++) { // sweep lower pod
 
-      int pod = k / (K - Nhpr); // get the current pod
+      int pod = k / (Nup / K); // get the current pod
       int j = pod * K/2 + l;    // !!! there are K/2 ToRs per pod
 
       // Downlink
@@ -252,8 +252,8 @@ void OverSubscribedFatTree::init_network(){
   // Upper layer in pod to core!
   for (int j = 0; j < Nup; j++) { // sweep upper pod switch ID
 
-    int pod = j / (K - Nhpr); // get current pod
-    int switch_pos = j % (K - Nhpr); // get switch position within pod
+    int pod = j / (Nup / K); // get current pod
+    int switch_pos = j % (Nup / K); // get switch position within pod
 
     for (int l = 0; l < K/2; l++) {
 
@@ -343,11 +343,11 @@ void check_non_null(Route* rt){
   }
 }
 
-vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
+vector<const Route*>* AggOverSubscribedFatTree::get_paths(int src, int dest){
   vector<const Route*>* paths = new vector<const Route*>();
 
   route_t *routeout, *routeback;
-  QueueLoggerSimple *simplequeuelogger = new QueueLoggerSimple();
+  // QueueLoggerSimple *simplequeuelogger = new QueueLoggerSimple();
   //QueueLoggerSimple *simplequeuelogger = 0;
   // logfile->addLogger(*simplequeuelogger);
   //Queue* pqueue = new Queue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, simplequeuelogger);
@@ -395,12 +395,12 @@ vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
 
     int pod = src / (Nhpr * K/2); // get the pod
 
-    //there are (K - Nhpr) paths between the source and the destination
-    for (int u = 0; u < (K - Nhpr); u++){
+    //there are (Nup / K) paths between the source and the destination
+    for (int u = 0; u < (Nup / K); u++){
       // upper is nup
     // cerr << u << endl;
 
-      int upper = pod * (K - Nhpr) + u; // get the upper switch ID
+      int upper = pod * (Nup / K) + u; // get the upper switch ID
       
       routeout = new Route();
       //routeout->push_back(pqueue);
@@ -464,9 +464,9 @@ vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
       // cerr << "diff pod! " << endl;
     int pod = src / (Nhpr * K/2); // get the pod
 
-    for (int u = 0; u < (K - Nhpr); u++) {
+    for (int u = 0; u < (Nup / K); u++) {
 
-      int upper = pod * (K - Nhpr) + u; // get the upper switch ID
+      int upper = pod * (Nup / K) + u; // get the upper switch ID
 
       for (int c = 0; c < (K/2); c++){
 
@@ -498,7 +498,7 @@ vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
       	//now take the only link down to the destination server!
       	
         int pod2 = dest / (Nhpr * K/2); // get the pod
-      	int upper2 = pod2 * (K - Nhpr) + u;
+      	int upper2 = pod2 * (Nup / K) + u;
       	//printf("K %d HOST_POD(%d) %d core %d upper2 %d\n",K,dest,HOST_POD(dest),core, upper2);
       	
       	routeout->push_back(queues_nc_nup[core][upper2]);
@@ -567,7 +567,7 @@ vector<const Route*>* OverSubscribedFatTree::get_paths(int src, int dest){
   }
 }
 
-void OverSubscribedFatTree::count_queue(Queue* queue){
+void AggOverSubscribedFatTree::count_queue(Queue* queue){
   if (_link_usage.find(queue)==_link_usage.end()){
     _link_usage[queue] = 0;
   }
@@ -575,7 +575,7 @@ void OverSubscribedFatTree::count_queue(Queue* queue){
   _link_usage[queue] = _link_usage[queue] + 1;
 }
 
-int OverSubscribedFatTree::find_lp_switch(Queue* queue){
+int AggOverSubscribedFatTree::find_lp_switch(Queue* queue){
   //first check ns_nlp
   for (int i=0;i<Nh;i++)
     for (int j = 0;j<Nlp;j++)
@@ -593,7 +593,7 @@ int OverSubscribedFatTree::find_lp_switch(Queue* queue){
   return -1;
 }
 
-int OverSubscribedFatTree::find_up_switch(Queue* queue){
+int AggOverSubscribedFatTree::find_up_switch(Queue* queue){
   count_queue(queue);
   //first check nc_nup
   for (int i=0;i<Nc;i++)
@@ -610,7 +610,7 @@ int OverSubscribedFatTree::find_up_switch(Queue* queue){
   return -1;
 }
 
-int OverSubscribedFatTree::find_core_switch(Queue* queue){
+int AggOverSubscribedFatTree::find_core_switch(Queue* queue){
   count_queue(queue);
   //first check nup_nc
   for (int i=0;i<Nup;i++)
@@ -621,7 +621,7 @@ int OverSubscribedFatTree::find_core_switch(Queue* queue){
   return -1;
 }
 
-int OverSubscribedFatTree::find_destination(Queue* queue){
+int AggOverSubscribedFatTree::find_destination(Queue* queue){
   //first check nlp_ns
   for (int i=0;i<Nlp;i++)
     for (int j = 0;j<Nh;j++)
@@ -631,7 +631,7 @@ int OverSubscribedFatTree::find_destination(Queue* queue){
   return -1;
 }
 
-void OverSubscribedFatTree::print_path(std::ofstream &paths,int src,const Route* route){
+void AggOverSubscribedFatTree::print_path(std::ofstream &paths,int src,const Route* route){
   paths << "SRC_" << src << " ";
   
   if (route->size()/2==2){
@@ -664,60 +664,62 @@ void OverSubscribedFatTree::print_path(std::ofstream &paths,int src,const Route*
 //      Aggregate utilization monitor       //
 //////////////////////////////////////////////
 
+#if 0
+UtilMonitor::UtilMonitor(AggOverSubscribedFatTree* top, EventList &eventlist)
+  : EventSource(eventlist,"utilmonitor"), _top(top)
+{
+    _H = _top->no_of_nodes(); // number of hosts
+    _N = _top->K * _top->K / 2; // racks
+    _hpr = _top->Nhpr; // hosts per rack
+    uint64_t rate = speedFromMbps((uint64_t)SPEED) / 8; // bytes / second
+    rate = rate * _H;
+    //rate = rate / 1500; // total packets per second
 
-// UtilMonitor::UtilMonitor(OverSubscribedFatTree* top, EventList &eventlist)
-//   : EventSource(eventlist,"utilmonitor"), _top(top)
-// {
-//     _H = _top->no_of_nodes(); // number of hosts
-//     _N = _top->K * _top->K / 2; // racks
-//     _hpr = _top->Nhpr; // hosts per rack
-//     uint64_t rate = speedFromMbps((uint64_t)SPEED) / 8; // bytes / second
-//     rate = rate * _H;
-//     //rate = rate / 1500; // total packets per second
+    _max_agg_Bps = rate;
 
-//     _max_agg_Bps = rate;
+    // debug:
+    //cout << "max packets per second = " << rate << endl;
 
-//     // debug:
-//     //cout << "max packets per second = " << rate << endl;
+}
 
-// }
+void UtilMonitor::start(simtime_picosec period) {
+    _period = period;
+    _max_B_in_period = _max_agg_Bps * timeAsSec(_period);
 
-// void UtilMonitor::start(simtime_picosec period) {
-//     _period = period;
-//     _max_B_in_period = _max_agg_Bps * timeAsSec(_period);
+    // debug:
+    //cout << "_max_pkts_in_period = " << _max_pkts_in_period << endl;
 
-//     // debug:
-//     //cout << "_max_pkts_in_period = " << _max_pkts_in_period << endl;
+    eventlist().sourceIsPending(*this, _period);
+}
 
-//     eventlist().sourceIsPending(*this, _period);
-// }
+void UtilMonitor::doNextEvent() {
+    printAggUtil();
+}
 
-// void UtilMonitor::doNextEvent() {
-//     printAggUtil();
-// }
+void UtilMonitor::printAggUtil() {
 
-// void UtilMonitor::printAggUtil() {
+    uint64_t B_sum = 0;
 
-//     uint64_t B_sum = 0;
+    int host = 0;
+    for (int tor = 0; tor < _N; tor++) {
+        for (int downlink = 0; downlink < _hpr; downlink++) {
+            Pipe* pipe = _top->get_downlink(tor, host);
+            B_sum = B_sum + pipe->reportBytes();
+            host++;
+        }
+    }
 
-//     int host = 0;
-//     for (int tor = 0; tor < _N; tor++) {
-//         for (int downlink = 0; downlink < _hpr; downlink++) {
-//             Pipe* pipe = _top->get_downlink(tor, host);
-//             B_sum = B_sum + pipe->reportBytes();
-//             host++;
-//         }
-//     }
+    // debug:
+    //cout << "Bsum = " << B_sum << endl;
+    //cout << "_max_B_in_period = " << _max_B_in_period << endl;
 
-//     // debug:
-//     //cout << "Bsum = " << B_sum << endl;
-//     //cout << "_max_B_in_period = " << _max_B_in_period << endl;
+    double util = (double)B_sum / (double)_max_B_in_period;
 
-//     double util = (double)B_sum / (double)_max_B_in_period;
+    fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
 
-//     fct_util_out << "Util " << fixed << util << " " << timeAsMs(eventlist().now()) << endl;
+    //if (eventlist().now() + _period < eventlist().getEndtime())
+    eventlist().sourceIsPendingRel(*this, _period);
 
-//     //if (eventlist().now() + _period < eventlist().getEndtime())
-//     eventlist().sourceIsPendingRel(*this, _period);
+}
 
-// }
+#endif

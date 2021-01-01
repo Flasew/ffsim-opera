@@ -9,7 +9,7 @@ LIB=-L.. -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
 #-Lksp
 OBJS=../eventlist.o ../tcppacket.o ../pipe.o ../queue.o ../queue_lossless.o ../queue_lossless_input.o ../queue_lossless_output.o ../ecnqueue.o ../tcp.o ../dctcp.o ../mtcp.o ../loggers.o ../logfile.o ../clock.o ../config.o ../network.o ../qcn.o ../exoqueue.o ../randomqueue.o ../cbr.o ../cbrpacket.o ../sent_packets.o ../ndp.o ../ndppacket.o ../eth_pause_packet.o ../compositequeue.o ../prioqueue.o ../cpqueue.o ../compositeprioqueue.o ../switch.o ../fairpullqueue.o ../route.o ../ffapp.o ../taskgraph.pb.o
 
-all: htsim_tcp_fc htsim_tcp_fattree htsim_tcp_os_fattree htsim_tcp_flat
+all: htsim_tcp_fc htsim_tcp_fattree htsim_tcp_os_fattree htsim_tcp_flat htsim_tcp_aggosft
 
 htsim_tcp_fc: main_tcp_fc.o firstfit.o  fc_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_fc.o fc_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_fc
@@ -23,6 +23,9 @@ htsim_tcp_os_fattree: main_tcp_os_fattree.o firstfit.o os_fattree.o
 htsim_tcp_flat: main_tcp_flat.o firstfit.o flat_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_flat.o flat_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_flat
 
+htsim_tcp_aggosft: main_tcp_aggosft.o firstfit.o agg_os_fattree.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_aggosft.o agg_os_fattree.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_aggosft
+
 main_tcp_fc.o: main_tcp_fc.cpp 
 	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_fc.cpp
 
@@ -31,6 +34,9 @@ main_tcp_fattree.o: main_tcp_fattree.cpp
 
 main_tcp_os_fattree.o: main_tcp_os_fattree.cpp 
 	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_os_fattree.cpp
+
+main_tcp_aggosft.o: main_tcp_aggosft.cpp 
+	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_aggosft.cpp
 
 main_tcp_flat.o: main_tcp_flat.cpp 
 	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_flat.cpp
@@ -52,6 +58,9 @@ os_fattree.o: os_fattree.cpp os_fattree.h topology.h
 
 flat_topology.o: flat_topology.cpp flat_topology.h topology.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c flat_topology.cpp
+
+agg_os_fattree.o: agg_os_fattree.cpp agg_os_fattree.h topology.h
+	$(CC) $(INCLUDE) $(CFLAGS) -c agg_os_fattree.cpp
 
 clean:	
 	rm -f *.o htsim_ndp* htsim_tcp* htsim_dctcp*

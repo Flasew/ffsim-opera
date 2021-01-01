@@ -112,7 +112,15 @@ int main(int argc, char **argv) {
       SPEED = atoi(argv[i+1]);
       cout << "speed "<<SPEED << endl;
       i++;
-  } else if (!strcmp(argv[i],"-ofile")){
+  } else if (!strcmp(argv[i],"-rttrack")){
+      RTT_rack = atoi(argv[i+1]);
+      cout << "RTT_rack "<<RTT_rack << endl;
+      i++;
+  } else if (!strcmp(argv[i],"-rttnet")){
+      RTT_net = atoi(argv[i+1]);
+      cout << "rttnet "<<RTT_net << endl;
+      i++;
+  }  else if (!strcmp(argv[i],"-ofile")){
       fct_util_out = std::ofstream(argv[i+1]);
       cout << "ofile "<<argv[i + 1] << endl;
       i++;
@@ -202,8 +210,8 @@ int main(int argc, char **argv) {
     app.load_taskgraph_protobuf(flowfile);
     app.start_init_tasks();
 
-    UtilMonitor* UM = new UtilMonitor(top, eventlist);
-    UM->start(timeFromSec(utiltime));
+    // UtilMonitor* UM = new UtilMonitor(top, eventlist);
+    // UM->start(timeFromSec(utiltime));
 
 
     // Record the setup
@@ -220,7 +228,7 @@ int main(int argc, char **argv) {
     while (eventlist.doNextEvent()) {
     }
 
-    fct_util_out << "Final finsih time: " << app.final_finish_time << std::endl;
+    fct_util_out << "FinalFinish " << app.final_finish_time << std::endl;
 }
 
 string ntoa(double n) {
