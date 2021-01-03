@@ -35,3 +35,4 @@
 *.dat
 
 htsim_tcp_*
+src/clos/datacenter/htsim_tcp_*
