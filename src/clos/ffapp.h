@@ -12,7 +12,8 @@
 #include "eventlist.h"
 #include "ndp.h"
 
-#include "taskgraph.pb.h"
+#include "taskgraph_generated.h"
+// #include "taskgraph.pb.h"
 
 /*
  * An application that takes a Flex-flow generated task graph
@@ -49,8 +50,8 @@ public:
 
     FFDevice(std::string type, float bandwidth, int node_id, int gpu_id, 
              int from_node, int to_node, int from_gpu, int to_gpu);
-    FFDevice(TaskGraphProtoBuf::Device_DeviceType devtype, float bandwidth, int node_id, int gpu_id, 
-             int from_node, int to_node, int from_gpu, int to_gpu);
+    FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
+             uint64_t deviceproperty, uint64_t bandwidth);
 };
 
 class FFTask : public EventSource {
@@ -95,7 +96,8 @@ public:
 	simtime_picosec start_time, finish_time;
 
     FFTask(std::string type, FFDevice * device, uint64_t xfersize, float runtime);
-    FFTask(TaskGraphProtoBuf::Task_SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
+    // FFTask(TaskGraphProtoBuf::Task_SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
+    FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
     FFTask(FFTaskType tasktype);
 };
 
@@ -111,10 +113,10 @@ struct FFRingAllreduceFlow {
 class FFRingAllreduce : public FFTask {
 
 public:
-    FFRingAllreduce(std::vector<int> ng, uint64_t sz);
+    FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz);
     ~FFRingAllreduce() = default;
 
-    std::vector<int> node_group; // group of nodes in the order of the ring
+    std::vector<uint64_t> node_group; // group of nodes in the order of the ring
     uint32_t operator_size;      // total data size of the operator
     int finished_partitions;     // number of finished partitions
 
@@ -205,9 +207,26 @@ public:
 	~FFApplication();
 
     void load_taskgraph_json(std::string & taskgraph);
-    void load_taskgraph_protobuf(std::string & taskgraph);
+    // void load_taskgraph_protobuf(std::string & taskgraph);
+    void load_taskgraph_flatbuf(std::string & taskgraph);
     void start_init_tasks();
 
+    static bool LoadFileRaw(const char *name, std::string *buf) {
+        std::ifstream ifs(name, std::ifstream::binary);
+        if (!ifs.is_open()) {
+            return false;
+        }
+        // The fastest way to read a file into a string.
+        ifs.seekg(0, std::ios::end);
+        auto size = ifs.tellg();
+        (*buf).resize(static_cast<size_t>(size));
+        ifs.seekg(0, std::ios::beg);
+        ifs.read(&(*buf)[0], (*buf).size());
+        return !ifs.bad();
+    }
+
+    size_t nnodes, ngpupernode, nswitches;
+    
 	int cwnd;
 	double pull_rate;
     std::unordered_map<uint64_t, FFTask*> tasks;
