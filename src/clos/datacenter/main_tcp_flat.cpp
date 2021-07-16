@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
 
     // FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
     FFApplication app = FFApplication(top, ssthresh, &fct_util_out, tcpRtxScanner, eventlist);
-    app.load_taskgraph_protobuf(flowfile);
+    app.load_taskgraph_flatbuf(flowfile);
     app.start_init_tasks();
 
     // UtilMonitor* UM = new UtilMonitor(top, eventlist);

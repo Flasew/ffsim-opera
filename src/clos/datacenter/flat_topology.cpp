@@ -6,7 +6,8 @@
 #include <fstream>
 #include <strstream>
 #include <iostream>
-#include "taskgraph.pb.h"
+// #include "taskgraph.pb.h"
+
 #include "main.h"
 #include "queue.h"
 #include "switch.h"
@@ -16,6 +17,8 @@
 #include "queue_lossless_input.h"
 #include "queue_lossless_output.h"
 #include "ecnqueue.h"
+
+#include "taskgraph_generated.h"
 
 #define EDGE(a, b, n) ((a) > (b) ? ((a) * (n) + (b)) : ((b) * (n) + (a)))
 
@@ -27,6 +30,19 @@ string ntoa(double n);
 string itoa(uint64_t n);
 
 //extern int N;
+static bool LoadFileRaw(const char *name, std::string *buf) {
+    std::ifstream ifs(name, std::ifstream::binary);
+    if (!ifs.is_open()) {
+        return false;
+    }
+    // The fastest way to read a file into a string.
+    ifs.seekg(0, std::ios::end);
+    auto size = ifs.tellg();
+    (*buf).resize(static_cast<size_t>(size));
+    ifs.seekg(0, std::ios::beg);
+    ifs.read(&(*buf)[0], (*buf).size());
+    return !ifs.bad();
+}
 
 FlatTopology::FlatTopology(int no_of_nodes, const string& tgfile, mem_b queuesize, Logfile* lg, EventList* ev,FirstFit * fit,queue_type q){
     _queuesize = queuesize;
@@ -37,7 +53,8 @@ FlatTopology::FlatTopology(int no_of_nodes, const string& tgfile, mem_b queuesiz
     failed_links = 0;
 
     set_params(no_of_nodes);
-    load_topology_protobuf(tgfile);
+    // load_topology_protobuf(tgfile);
+    load_topology_flatbuf(tgfile);
 
     init_network();
 }
@@ -52,6 +69,40 @@ void FlatTopology::set_params(int no_of_nodes) {
     queues.resize(_no_of_nodes, vector<Queue*>(_no_of_nodes));
 }
 
+void FlatTopology::load_topology_flatbuf(const std::string & taskgraph) {
+    string buffer;
+    bool success = LoadFileRaw(taskgraph.c_str(), &buffer);
+    if (!success) {
+        assert("Failed to read file!" && false);
+    } 
+    auto fbuf_tg = flatbuffers::GetRoot<FlatBufTaskGraph::TaskGraph>(buffer.c_str()); 
+    for (int i = 0; i < fbuf_tg->conn()->size(); i++) {
+        auto conn = fbuf_tg->conn()->Get(i);
+        _conn_list[EDGE(conn->fromnode(), conn->tonode(), _no_of_nodes)] = conn->nconn();
+    }
+
+    for (int i = 0; i < fbuf_tg->routes()->size(); i++) {
+        auto route = fbuf_tg->routes()->Get(i);
+        uint64_t route_id = route->fromnode() * _no_of_nodes + route->tonode();
+        // cerr << "adding " << route.from() << "->" <<  route.to() << "id" << route_id << endl;
+        
+        for (int j = 0; j < route->paths()->size(); j++) {
+            auto path = route->paths()->Get(j);
+            vector<size_t>* path_vector = new vector<size_t>();
+            for (int k = 0; k < path->hopnode()->size(); k++) {
+                path_vector->push_back(path->hopnode()->Get(k));
+                // cerr << path.hopnode(k) << ", ";
+            }
+            if (_routes.find(route_id) == _routes.end()) {
+                _routes[route_id] = vector<vector<size_t>* >();
+            }
+            _routes[route_id].push_back(path_vector);
+            // cerr << endl;
+        }
+    }
+}
+
+#if 0
 void FlatTopology::load_topology_protobuf(const std::string & taskgraph) {
     TaskGraphProtoBuf::TaskGraph tg;
     std::fstream input(taskgraph, std::ios::in | std::ios::binary);
@@ -87,7 +138,7 @@ void FlatTopology::load_topology_protobuf(const std::string & taskgraph) {
         }
     }
 }
-
+#endif
 // Queue* FlatTopology::alloc_src_queue(QueueLogger* queueLogger){
 //     return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 // }

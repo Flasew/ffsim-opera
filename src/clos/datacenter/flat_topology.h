@@ -39,7 +39,8 @@ public:
                FirstFit* f, queue_type q);
 
   void init_network();
-  void load_topology_protobuf(const std::string & taskgraph);
+  // void load_topology_protobuf(const std::string & taskgraph);
+  void load_topology_flatbuf(const std::string & taskgraph);
   virtual vector<const Route*>* get_paths(int src, int dest);
 
   Pipe * get_pipe(int src, int dst) { return pipes[src][dst]; };

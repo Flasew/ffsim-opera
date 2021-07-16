@@ -321,19 +321,19 @@ FFTask::FFTask(std::string type, FFDevice * device, uint64_t xfersize,
 FFTask::FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device,
      uint64_t xfersize, float runtime): EventSource(FFTask::ffapp->eventlist, "FFTask") {
     
-    if (type == FlatBufTaskGraph::SimTaskType_TASK_FORWARD) {
+    if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_FORWARD) {
         this->type = FFTaskType::TASK_FORWARD;
     }
-    else if (type == FlatBufTaskGraph::SimTaskType_TASK_BACKWARD) {
+    else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_BACKWARD) {
         this->type = FFTaskType::TASK_BACKWARD;
     }
-    else if (type == FlatBufTaskGraph::SimTaskType_TASK_NOMINAL_COMM) {
+    else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_NOMINAL_COMM) {
         this->type = FFTaskType::TASK_COMM;
     }
-    else if (type == FlatBufTaskGraph::SimTaskType_TASK_UPDATE) {
+    else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_UPDATE) {
         this->type = FFTaskType::TASK_UPDATE;
     }
-    else if (type == FlatBufTaskGraph::SimTaskType_TASK_BARRIER) {
+    else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_BARRIER) {
         this->type = FFTaskType::TASK_BARRIER;
     }
     else {
@@ -597,7 +597,7 @@ FFDevice::FFDevice(std::string type, float bandwidth, int node_id, int gpu_id,
 
 FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
              uint64_t deviceproperty, uint64_t bandwidth) {
-    if (type == FlatBufTaskGraph::DeviceType_DEVICE_COMP_GPU) {
+    if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMP_GPU) {
         this->type = FFDeviceType::DEVICE_GPU;
         this->node_id = node_id;
         this->gpu_id = deviceproperty;
@@ -606,7 +606,7 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
-    else if (type == FlatBufTaskGraph::DeviceType_DEVICE_COMP_CPU) {
+    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMP_CPU) {
         this->type = FFDeviceType::DEVICE_CPU;
         this->node_id = node_id;
         this->gpu_id = deviceproperty;
@@ -615,7 +615,7 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
-    else if (type == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NVLINK_COMM) {
+    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NVLINK_COMM) {
         this->type = FFDeviceType::DEVICE_GPU_COMM;
         this->node_id = node_id;
         this->gpu_id = 0;
@@ -624,8 +624,8 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->from_gpu = deviceproperty / FFTask::ffapp->ngpupernode;
         this->to_gpu = deviceproperty % FFTask::ffapp->ngpupernode;
     }
-    else if (type == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_DEV_COMM 
-          || type == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_HOST_COMM) {
+    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_DEV_COMM 
+          || devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_HOST_COMM) {
         this->type = FFDeviceType::DEVICE_DRAM_COMM;
         this->node_id = node_id;
         this->gpu_id = 0;
@@ -634,7 +634,7 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
-    else if (type == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NW_COMM) {
+    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NW_COMM) {
         this->type = FFDeviceType::DEVICE_NW_COMM;
         this->node_id = 0;
         this->gpu_id = 0;
@@ -703,7 +703,7 @@ FFRingAllreduce::FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz) :
     FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
-    finished_rounds = std::vector<uint64_t>(ng.size(), 0);
+    finished_rounds = std::vector<int>(ng.size(), 0);
 }
 
 void FFRingAllreduce::doNextEvent() {

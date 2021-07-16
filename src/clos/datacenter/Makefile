@@ -1,13 +1,13 @@
 CC=g++
 CXX=g++
 CFLAGS=-Wall  -O3
-FF_HOME?=/home/weiyangw/FlexFlow
-CRT=`pwd`
-INCLUDE= -I/$(CRT)/.. -I$(CRT) -I$(FF_HOME)/protobuf/src
+FF_HOME?=$(HOME)/FlexFlow
+CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+INCLUDE= -I$(CRT)/.. -I$(CRT) -I$(FF_HOME)/fbuf2/include
 #-I$(CRT)/ksp -I$(CRT)/ksp/boost
-LIB=-L.. -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
+LIB=-L.. # -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
 #-Lksp
-OBJS=../eventlist.o ../tcppacket.o ../pipe.o ../queue.o ../queue_lossless.o ../queue_lossless_input.o ../queue_lossless_output.o ../ecnqueue.o ../tcp.o ../dctcp.o ../mtcp.o ../loggers.o ../logfile.o ../clock.o ../config.o ../network.o ../qcn.o ../exoqueue.o ../randomqueue.o ../cbr.o ../cbrpacket.o ../sent_packets.o ../ndp.o ../ndppacket.o ../eth_pause_packet.o ../compositequeue.o ../prioqueue.o ../cpqueue.o ../compositeprioqueue.o ../switch.o ../fairpullqueue.o ../route.o ../ffapp.o ../taskgraph.pb.o
+OBJS=../eventlist.o ../tcppacket.o ../pipe.o ../queue.o ../queue_lossless.o ../queue_lossless_input.o ../queue_lossless_output.o ../ecnqueue.o ../tcp.o ../dctcp.o ../mtcp.o ../loggers.o ../logfile.o ../clock.o ../config.o ../network.o ../qcn.o ../exoqueue.o ../randomqueue.o ../cbr.o ../cbrpacket.o ../sent_packets.o ../ndp.o ../ndppacket.o ../eth_pause_packet.o ../compositequeue.o ../prioqueue.o ../cpqueue.o ../compositeprioqueue.o ../switch.o ../fairpullqueue.o ../route.o ../ffapp.o #../taskgraph.pb.o
 
 all: htsim_tcp_fc htsim_tcp_fattree htsim_tcp_os_fattree htsim_tcp_flat htsim_tcp_aggosft
 

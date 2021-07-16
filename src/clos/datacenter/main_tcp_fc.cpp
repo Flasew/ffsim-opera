@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
     FCTopology* top = new FCTopology(no_of_nodes, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
 
     FFApplication app = FFApplication(top, ssthresh, &fct_util_out, tcpRtxScanner, eventlist);
-    app.load_taskgraph_protobuf(flowfile);
+    app.load_taskgraph_flatbuf(flowfile);
     app.start_init_tasks();
 
     // UtilMonitor* UM = new UtilMonitor(top, eventlist);
