@@ -26,6 +26,12 @@ struct RouteBuilder;
 struct Operator;
 struct OperatorBuilder;
 
+struct RingDescriptor;
+struct RingDescriptorBuilder;
+
+struct Rings;
+struct RingsBuilder;
+
 struct TaskGraph;
 struct TaskGraphBuilder;
 
@@ -613,6 +619,121 @@ inline flatbuffers::Offset<Operator> CreateOperatorDirect(
       name__);
 }
 
+struct RingDescriptor FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RingDescriptorBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_JUMPS = 4
+  };
+  const flatbuffers::Vector<int32_t> *jumps() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_JUMPS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_JUMPS) &&
+           verifier.VerifyVector(jumps()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RingDescriptorBuilder {
+  typedef RingDescriptor Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_jumps(flatbuffers::Offset<flatbuffers::Vector<int32_t>> jumps) {
+    fbb_.AddOffset(RingDescriptor::VT_JUMPS, jumps);
+  }
+  explicit RingDescriptorBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<RingDescriptor> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<RingDescriptor>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RingDescriptor> CreateRingDescriptor(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> jumps = 0) {
+  RingDescriptorBuilder builder_(_fbb);
+  builder_.add_jumps(jumps);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<RingDescriptor> CreateRingDescriptorDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<int32_t> *jumps = nullptr) {
+  auto jumps__ = jumps ? _fbb.CreateVector<int32_t>(*jumps) : 0;
+  return FlatBufTaskGraph::CreateRingDescriptor(
+      _fbb,
+      jumps__);
+}
+
+struct Rings FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  typedef RingsBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_RINGSZ = 4,
+    VT_RINGPATHS = 6
+  };
+  uint64_t ringsz() const {
+    return GetField<uint64_t>(VT_RINGSZ, 0);
+  }
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>> *ringpaths() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>> *>(VT_RINGPATHS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint64_t>(verifier, VT_RINGSZ) &&
+           VerifyOffset(verifier, VT_RINGPATHS) &&
+           verifier.VerifyVector(ringpaths()) &&
+           verifier.VerifyVectorOfTables(ringpaths()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RingsBuilder {
+  typedef Rings Table;
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_ringsz(uint64_t ringsz) {
+    fbb_.AddElement<uint64_t>(Rings::VT_RINGSZ, ringsz, 0);
+  }
+  void add_ringpaths(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>>> ringpaths) {
+    fbb_.AddOffset(Rings::VT_RINGPATHS, ringpaths);
+  }
+  explicit RingsBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  flatbuffers::Offset<Rings> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Rings>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Rings> CreateRings(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t ringsz = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>>> ringpaths = 0) {
+  RingsBuilder builder_(_fbb);
+  builder_.add_ringsz(ringsz);
+  builder_.add_ringpaths(ringpaths);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Rings> CreateRingsDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    uint64_t ringsz = 0,
+    const std::vector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>> *ringpaths = nullptr) {
+  auto ringpaths__ = ringpaths ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::RingDescriptor>>(*ringpaths) : 0;
+  return FlatBufTaskGraph::CreateRings(
+      _fbb,
+      ringsz,
+      ringpaths__);
+}
+
 struct TaskGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   typedef TaskGraphBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -626,7 +747,8 @@ struct TaskGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OPS = 18,
     VT_TASKS = 20,
     VT_DEVICES = 22,
-    VT_ROUTES = 24
+    VT_ROUTES = 24,
+    VT_RINGS = 26
   };
   uint32_t ngpupernode() const {
     return GetField<uint32_t>(VT_NGPUPERNODE, 0);
@@ -661,6 +783,9 @@ struct TaskGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Route>> *routes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Route>> *>(VT_ROUTES);
   }
+  const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Rings>> *rings() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Rings>> *>(VT_RINGS);
+  }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint32_t>(verifier, VT_NGPUPERNODE) &&
@@ -684,6 +809,9 @@ struct TaskGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyOffset(verifier, VT_ROUTES) &&
            verifier.VerifyVector(routes()) &&
            verifier.VerifyVectorOfTables(routes()) &&
+           VerifyOffset(verifier, VT_RINGS) &&
+           verifier.VerifyVector(rings()) &&
+           verifier.VerifyVectorOfTables(rings()) &&
            verifier.EndTable();
   }
 };
@@ -725,6 +853,9 @@ struct TaskGraphBuilder {
   void add_routes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Route>>> routes) {
     fbb_.AddOffset(TaskGraph::VT_ROUTES, routes);
   }
+  void add_rings(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Rings>>> rings) {
+    fbb_.AddOffset(TaskGraph::VT_RINGS, rings);
+  }
   explicit TaskGraphBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
@@ -748,8 +879,10 @@ inline flatbuffers::Offset<TaskGraph> CreateTaskGraph(
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Operator>>> ops = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Task>>> tasks = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Device>>> devices = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Route>>> routes = 0) {
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Route>>> routes = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatBufTaskGraph::Rings>>> rings = 0) {
   TaskGraphBuilder builder_(_fbb);
+  builder_.add_rings(rings);
   builder_.add_routes(routes);
   builder_.add_devices(devices);
   builder_.add_tasks(tasks);
@@ -776,12 +909,14 @@ inline flatbuffers::Offset<TaskGraph> CreateTaskGraphDirect(
     const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Operator>> *ops = nullptr,
     const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Task>> *tasks = nullptr,
     const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Device>> *devices = nullptr,
-    const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Route>> *routes = nullptr) {
+    const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Route>> *routes = nullptr,
+    const std::vector<flatbuffers::Offset<FlatBufTaskGraph::Rings>> *rings = nullptr) {
   auto conn__ = conn ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Connection>>(*conn) : 0;
   auto ops__ = ops ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Operator>>(*ops) : 0;
   auto tasks__ = tasks ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Task>>(*tasks) : 0;
   auto devices__ = devices ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Device>>(*devices) : 0;
   auto routes__ = routes ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Route>>(*routes) : 0;
+  auto rings__ = rings ? _fbb.CreateVector<flatbuffers::Offset<FlatBufTaskGraph::Rings>>(*rings) : 0;
   return FlatBufTaskGraph::CreateTaskGraph(
       _fbb,
       ngpupernode,
@@ -794,7 +929,8 @@ inline flatbuffers::Offset<TaskGraph> CreateTaskGraphDirect(
       ops__,
       tasks__,
       devices__,
-      routes__);
+      routes__,
+      rings__);
 }
 
 struct Topology FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

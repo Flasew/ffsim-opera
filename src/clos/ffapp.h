@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "topology.h"
+#include "flat_topology.h"
 #include "eventlist.h"
 #include "ndp.h"
 
@@ -100,6 +101,41 @@ public:
     FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
     FFTask(FFTaskType tasktype);
 };
+
+class FFNewRingAllreduce;
+
+struct FFNewRingAllreduceFlow {
+    FFNewRingAllreduce * ar;
+    int id;
+    int src_idx; 
+    int ring_idx;
+    int round;
+};
+
+class FFNewRingAllreduce : public FFTask {
+
+public:
+    FFNewRingAllreduce(std::vector<uint64_t> ng, 
+        const std::vector<std::vector<int>>& jumps, uint64_t sz);
+    ~FFNewRingAllreduce() = default;
+
+    std::vector<uint64_t> node_group; // group of nodes in the order of the ring
+    const std::vector<std::vector<int>>& jumps;
+
+    uint64_t operator_size;      // total data size of the operator
+    int total_jump;
+    int total_finished_rounds;
+
+    std::vector<int> finished_curr_round;
+    std::vector<int> curr_round;
+    std::vector<std::vector<int>> finished_rounds;
+
+    virtual void doNextEvent();
+
+    void start_flow(int src_idx, const std::vector<int>& jump, int ring_id, int id);
+};
+
+void ar_finish_newring(void * arinfo);
 
 class FFRingAllreduce;
 
@@ -240,6 +276,8 @@ public:
     // TcpTrafficLogger & tcpTrafficLogger;
     ofstream * fstream_out;
     TcpRtxTimerScanner & tcpRtxScanner;
+    std::unordered_map<uint64_t, std::vector<std::vector<int>>> selected_jumps;
+    bool fancy_ring;
 
     simtime_picosec final_finish_time;
     size_t n_finished_tasks;
