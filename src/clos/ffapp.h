@@ -123,8 +123,8 @@ public:
     const std::vector<std::vector<int>>& jumps;
 
     uint64_t operator_size;      // total data size of the operator
-    int total_jump;
-    int total_finished_rounds;
+    std::vector<int> total_jump;
+    int finished_rings;
 
     std::vector<int> finished_curr_round;
     std::vector<int> curr_round;

@@ -128,7 +128,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                 auto & this_path = *this_ring.ringpaths()->Get(j);
                 std::vector<int> ringdesc{};
                 for (int k = 0; k < this_path.jumps()->size(); k++) {
-                    ringdesc.push_back(k);
+                    ringdesc.push_back(this_path.jumps()->Get(k));
                 }
                 routes.push_back(ringdesc);
             }
@@ -661,12 +661,12 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
-    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NW_COMM) {
+    else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NW_COMM || devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_NW_NOMINAL) {
         this->type = FFDeviceType::DEVICE_NW_COMM;
         this->node_id = 0;
         this->gpu_id = 0;
         this->from_node = deviceproperty / (FFTask::ffapp->nnodes + FFTask::ffapp->nswitches);
-        this->to_node = deviceproperty / (FFTask::ffapp->nnodes + FFTask::ffapp->nswitches);
+        this->to_node = deviceproperty % (FFTask::ffapp->nnodes + FFTask::ffapp->nswitches);
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
@@ -897,10 +897,11 @@ FFNewRingAllreduce::FFNewRingAllreduce(std::vector<uint64_t> ng, const std::vect
     finished_curr_round = std::vector<int>(jumps.size(), 0);
     curr_round =  std::vector<int>(jumps.size(), 0);
     finished_rounds = std::vector<std::vector<int>>(jumps.size(), std::vector<int>(node_group.size(), 0));
-    total_finished_rounds = 0;
-    total_jump = 0;
-    for (int j: jumps[0]) {
-        total_jump += j;
+    finished_rings = 0;
+    for (auto j: jumps) {
+        int sum_of_jump = 0;
+        for (int k: j) sum_of_jump += k;
+        total_jump.push_back(sum_of_jump);
     }
 }
 
@@ -926,7 +927,7 @@ void FFNewRingAllreduce::doNextEvent()
 void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, int ring_id, int id)
 {
     int src_node = node_group[src_idx];
-    int dst_node = node_group[(src_idx + total_jump) % node_group.size()];
+    int dst_node = node_group[(src_idx + total_jump[ring_id]) % node_group.size()];
 
     FFNewRingAllreduceFlow * f = new FFNewRingAllreduceFlow();
     f->ar = this;
@@ -946,11 +947,12 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
     Route* routeout = new Route();
     int curr = src_idx;
     for (int j: jump) {
+        assert(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%node_group.size()] != nullptr);
         routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%node_group.size()]);
         routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%node_group.size()]);
         curr = (curr + j) % node_group.size();
     }
-    assert(curr == (src_idx + total_jump) % node_group.size());
+    assert(curr == (src_idx + total_jump[ring_id]) % node_group.size());
     routeout->push_back(flowSnk);
 
     Route* routein = new Route();
@@ -960,7 +962,7 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
         routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%node_group.size()]);
         curr = (curr + j) % node_group.size();
     }
-    assert(curr == (src_idx + total_jump) % node_group.size());
+    assert(curr == (src_idx + total_jump[ring_id]) % node_group.size());
     routein->push_back(flowSrc);
 
     flowSrc->connect(*routeout, *routein, *flowSnk, 
@@ -978,18 +980,28 @@ void ar_finish_newring(void * arinfo)
     FFNewRingAllreduceFlow * f = static_cast<FFNewRingAllreduceFlow*>(arinfo);
     FFNewRingAllreduce * ar = f->ar;
     int ring_idx = f->ring_idx;
+    std::cerr << "callback: ar " << f->ar << ", id: " << f->id << ", src_idx: " << f->src_idx << ", " << "ring_idx: " << f->ring_idx << ", round: " << f->round << std::endl;
 
     assert(ar->finished_rounds[f->ring_idx][f->id] == ar->curr_round[f->ring_idx]);
     ar->finished_rounds[f->ring_idx][f->id]++; 
     ar->finished_curr_round[f->ring_idx]++;
     delete f;
+    // ar->total_finished_rounds++;
 
     if (ar->finished_curr_round[ring_idx] == (int)ar->node_group.size()) {
         // ar->finished_partitions++;
         ar->curr_round[ring_idx]++;
         ar->finished_curr_round[ring_idx] = 0;
-        ar->total_finished_rounds++;
-        if (ar->total_finished_rounds == 2 * ((int)ar->node_group.size() - 1) * ar->jumps.size()) {
+        if (ar->curr_round[ring_idx] == 2 * ((int)ar->node_group.size() - 1)) {
+            ar->finished_rings++;
+        }
+        else {
+            for (size_t i = 0; i < ar->node_group.size(); i++) {
+                ar->start_flow(i, ar->jumps[ring_idx], ring_idx, i);
+            }
+        }
+        std::cerr << ar << ": ring finished " << ar->finished_rings << std::endl;
+        if (ar->finished_rings == ar->jumps.size()) {
             ar->finish_time = ar->eventlist().now();
             ar->state = FFTask::TASK_FINISHED;
             // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
@@ -998,11 +1010,7 @@ void ar_finish_newring(void * arinfo)
                 ar->ffapp->final_finish_time = ar->finish_time;
             }
         }
-        else {
-            for (size_t i = 0; i < ar->node_group.size(); i++) {
-                ar->start_flow(i, ar->jumps[ring_idx], ring_idx, i);
-            }
-        } 
+         
     }
 }
 

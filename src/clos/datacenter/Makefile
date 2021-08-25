@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall  -O3
+CFLAGS=-Wall  -O0 -g
 FF_HOME?=$(HOME)/FlexFlow
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 INCLUDE= -I$(CRT)/.. -I$(CRT) -I$(FF_HOME)/fbuf2/include
@@ -56,7 +56,7 @@ fat_tree_topology.o: fat_tree_topology.cpp fat_tree_topology.h topology.h
 os_fattree.o: os_fattree.cpp os_fattree.h topology.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c os_fattree.cpp
 
-flat_topology.o: flat_topology.cpp flat_topology.h topology.h
+flat_topology.o: flat_topology.cpp ../flat_topology.h topology.h
 	$(CC) $(INCLUDE) $(CFLAGS) -c flat_topology.cpp
 
 agg_os_fattree.o: agg_os_fattree.cpp agg_os_fattree.h topology.h

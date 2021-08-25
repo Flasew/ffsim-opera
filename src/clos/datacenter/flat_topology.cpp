@@ -84,20 +84,20 @@ void FlatTopology::load_topology_flatbuf(const std::string & taskgraph) {
     for (int i = 0; i < fbuf_tg->routes()->size(); i++) {
         auto route = fbuf_tg->routes()->Get(i);
         uint64_t route_id = route->fromnode() * _no_of_nodes + route->tonode();
-        // cerr << "adding " << route.from() << "->" <<  route.to() << "id" << route_id << endl;
+        cerr << "adding " << route->fromnode() << "->" << route->tonode() << " id " << route_id << endl;
         
         for (int j = 0; j < route->paths()->size(); j++) {
             auto path = route->paths()->Get(j);
             vector<size_t>* path_vector = new vector<size_t>();
             for (int k = 0; k < path->hopnode()->size(); k++) {
                 path_vector->push_back(path->hopnode()->Get(k));
-                // cerr << path.hopnode(k) << ", ";
+                cerr << path->hopnode()->Get(k) << ", ";
             }
             if (_routes.find(route_id) == _routes.end()) {
                 _routes[route_id] = vector<vector<size_t>* >();
             }
             _routes[route_id].push_back(path_vector);
-            // cerr << endl;
+            cerr << endl;
         }
     }
 }
