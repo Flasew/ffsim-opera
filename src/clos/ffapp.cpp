@@ -257,7 +257,7 @@ void FFApplication::load_taskgraph_protobuf(std::string & taskgraph) {
                     this_task.xfersize()
                 );
             }
-            cout << "size: " << this_task.xfersize() << ", " << node_group.size() << endl;
+            // cout << "size: " << this_task.xfersize() << ", " << node_group.size() << endl;
         }
 
         else {
@@ -980,7 +980,7 @@ void ar_finish_newring(void * arinfo)
     FFNewRingAllreduceFlow * f = static_cast<FFNewRingAllreduceFlow*>(arinfo);
     FFNewRingAllreduce * ar = f->ar;
     int ring_idx = f->ring_idx;
-    std::cerr << "callback: ar " << f->ar << ", id: " << f->id << ", src_idx: " << f->src_idx << ", " << "ring_idx: " << f->ring_idx << ", round: " << f->round << std::endl;
+    // std::cerr << "callback: ar " << f->ar << ", id: " << f->id << ", src_idx: " << f->src_idx << ", " << "ring_idx: " << f->ring_idx << ", round: " << f->round << std::endl;
 
     assert(ar->finished_rounds[f->ring_idx][f->id] == ar->curr_round[f->ring_idx]);
     ar->finished_rounds[f->ring_idx][f->id]++; 
@@ -1000,7 +1000,7 @@ void ar_finish_newring(void * arinfo)
                 ar->start_flow(i, ar->jumps[ring_idx], ring_idx, i);
             }
         }
-        std::cerr << ar << ": ring finished " << ar->finished_rings << std::endl;
+        // std::cerr << ar << ": ring finished " << ar->finished_rings << std::endl;
         if (ar->finished_rings == ar->jumps.size()) {
             ar->finish_time = ar->eventlist().now();
             ar->state = FFTask::TASK_FINISHED;
@@ -1057,7 +1057,7 @@ void FFPSAllreduce::start_flow(int node_idx, int direction) {
         src_node = pserver;
     }
 
-    std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << " pserver " << pserver << "\n";
+    // std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << " pserver " << pserver << "\n";
 
     FFPSAllreduceFlow * f = new FFPSAllreduceFlow();
     f->ar = this;
@@ -1115,7 +1115,7 @@ void ar_finish_ps(void * arinfo) {
         if (ar->curr_round == 2) {
             ar->finish_time = ar->eventlist().now();
             ar->state = FFTask::TASK_FINISHED;
-            std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
             ar->ffapp->n_finished_tasks++;
             if (ar->ffapp->final_finish_time < ar->finish_time) {
                 ar->ffapp->final_finish_time = ar->finish_time;
