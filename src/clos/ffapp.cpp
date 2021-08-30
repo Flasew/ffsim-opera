@@ -151,13 +151,15 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                 tasks[this_task.taskid()] = new FFNewRingAllreduce(
                     node_group, 
                     selected_jumps[node_group.size()],
-                    this_task.xfersize()
+                    this_task.xfersize(),
+                    this_task.runtime()
                 );
             }
             else {
                 tasks[this_task.taskid()] = new FFRingAllreduce(
                     node_group, 
-                    this_task.xfersize()
+                    this_task.xfersize(),
+                    this_task.runtime()
                 );
             }
             // }
@@ -726,9 +728,10 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 #endif
 
 // FFRingAllReduce
-FFRingAllreduce::FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz) :
+FFRingAllreduce::FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz, double local_runtime) :
     FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
+    run_time = local_runtime;
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
     finished_rounds = std::vector<int>(ng.size(), 0);
 }
@@ -848,7 +851,7 @@ void FFRingAllreduce::start_flow(int src_idx, int id) {
     routein->push_back(flowSrc);
 
     flowSrc->connect(*routeout, *routein, *flowSnk, 
-        curr_round > 0 ? eventlist().now() : start_time);
+        curr_round > 0 ? eventlist().now() : start_time + run_time);
 
 #ifdef PACKET_SCATTER 
     flowSrc->set_paths(srcpaths);
@@ -891,9 +894,10 @@ void ar_finish_ring(void * arinfo) {
 
 }
 
-FFNewRingAllreduce::FFNewRingAllreduce(std::vector<uint64_t> ng, const std::vector<std::vector<int>>& jumps, uint64_t sz)
+FFNewRingAllreduce::FFNewRingAllreduce(std::vector<uint64_t> ng, const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime)
 : FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), jumps(jumps), operator_size(sz)
 {
+    run_time = local_runtime * 1000000000ULL;
     finished_curr_round = std::vector<int>(jumps.size(), 0);
     curr_round =  std::vector<int>(jumps.size(), 0);
     finished_rounds = std::vector<std::vector<int>>(jumps.size(), std::vector<int>(node_group.size(), 0));
@@ -966,7 +970,7 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
     routein->push_back(flowSrc);
 
     flowSrc->connect(*routeout, *routein, *flowSnk, 
-        curr_round[ring_id] > 0 ? eventlist().now() : start_time);
+        curr_round[ring_id] > 0 ? eventlist().now() : start_time + run_time);
 
 #ifdef PACKET_SCATTER 
     flowSrc->set_paths(srcpaths);

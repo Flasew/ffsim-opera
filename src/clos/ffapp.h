@@ -116,7 +116,7 @@ class FFNewRingAllreduce : public FFTask {
 
 public:
     FFNewRingAllreduce(std::vector<uint64_t> ng, 
-        const std::vector<std::vector<int>>& jumps, uint64_t sz);
+        const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime);
     ~FFNewRingAllreduce() = default;
 
     std::vector<uint64_t> node_group; // group of nodes in the order of the ring
@@ -149,7 +149,7 @@ struct FFRingAllreduceFlow {
 class FFRingAllreduce : public FFTask {
 
 public:
-    FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz);
+    FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz, double local_runtime = 0);
     ~FFRingAllreduce() = default;
 
     std::vector<uint64_t> node_group; // group of nodes in the order of the ring
