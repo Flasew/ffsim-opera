@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall -O3  #-O0 -g
+CFLAGS=-Wall -O3 #-O0 -g
 FF_HOME?=$(HOME)/FlexFlow
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 INCLUDE= -I$(CRT)/.. -I$(CRT) -I$(FF_HOME)/fbuf2/include

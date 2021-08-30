@@ -118,7 +118,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
     }
 
     // load rings if they exist
-    if (fbuf_tg->rings()->size() > 0) {
+    if (fbuf_tg->rings() && fbuf_tg->rings()->size() > 0) {
         fancy_ring = true;
         for (int i = 0; i < fbuf_tg->rings()->size(); i++) {
             auto& this_ring = *fbuf_tg->rings()->Get(i);
@@ -947,22 +947,22 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
     Route* routeout = new Route();
     int curr = src_idx;
     for (int j: jump) {
-        assert(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%node_group.size()] != nullptr);
-        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%node_group.size()]);
-        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%node_group.size()]);
-        curr = (curr + j) % node_group.size();
+        assert(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*node_group.size()*/] != nullptr);
+        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        curr = (curr + j) % ffapp->nnodes /*% node_group.size()*/;
     }
-    assert(curr == (src_idx + total_jump[ring_id]) % node_group.size());
+    assert(curr == (src_idx + total_jump[ring_id]) % ffapp->nnodes /*% node_group.size()*/);
     routeout->push_back(flowSnk);
 
     Route* routein = new Route();
     curr = src_idx;
     for (int j: jump) {
-        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%node_group.size()]);
-        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%node_group.size()]);
-        curr = (curr + j) % node_group.size();
+        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        curr = (curr + j) % ffapp->nnodes /*% node_group.size() */;
     }
-    assert(curr == (src_idx + total_jump[ring_id]) % node_group.size());
+    assert(curr == (src_idx + total_jump[ring_id]) % ffapp->nnodes /*% node_group.size()*/);
     routein->push_back(flowSrc);
 
     flowSrc->connect(*routeout, *routein, *flowSnk, 

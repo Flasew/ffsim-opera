@@ -9,7 +9,7 @@ CC=g++
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 INC= -I$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/fbuf2/include/
 
-CFLAGS= -Wall -O3 $(INC) -std=c++14 #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
+CFLAGS= -Wall $(INC) -std=c++14 -O3 #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
 
 # all:	htsim lib parse_output
 all:	lib 
