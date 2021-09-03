@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${default}",
-                "${workspaceFolder}/src/opera/datacenter"
+                "${workspaceFolder}/src/opera/datacenter",
+                "/Library/gurobi912/mac64/include"
             ],
             "defines": [],
             "macFrameworkPath": [

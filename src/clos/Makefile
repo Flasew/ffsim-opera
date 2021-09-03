@@ -1,15 +1,16 @@
 #OBJS=eventlist.o tcppacket.o pipe.o queue.o queue_lossless.o queue_lossless_input.o queue_lossless_output.o ecnqueue.o tcp.o dctcp.o mtcp.o loggers.o logfile.o clock.o config.o network.o qcn.o exoqueue.o randomqueue.o cbr.o cbrpacket.o sent_packets.o ndp.o ndppacket.o eth_pause_packet.o tcp_transfer.o tcp_periodic.o compositequeue.o prioqueue.o cpqueue.o ndp_transfer.o compositeprioqueue.o switch.o dctcp_transfer.o fairpullqueue.o route.o
 #HDRS=network.h ndp.h queue_lossless.h queue_lossless_input.h queue_lossless_output.h compositequeue.h prioqueue.h cpqueue.h queue.h loggers.h loggertypes.h pipe.h eventlist.h config.h tcp.h dctcp.h mtcp.h sent_packets.h tcppacket.h ndppacket.h eth_pause_packet.h ndp_transfer.h compositeprioqueue.h ecnqueue.h switch.h dctcp_transfer.h 
 
-OBJS=eventlist.o tcppacket.o pipe.o queue.o queue_lossless.o queue_lossless_input.o queue_lossless_output.o ecnqueue.o tcp.o dctcp.o mtcp.o loggers.o logfile.o clock.o config.o network.o qcn.o exoqueue.o randomqueue.o cbr.o cbrpacket.o sent_packets.o ndp.o ndppacket.o eth_pause_packet.o compositequeue.o prioqueue.o cpqueue.o compositeprioqueue.o switch.o fairpullqueue.o route.o ffapp.o #taskgraph.pb.o
-HDRS=network.h ndp.h queue_lossless.h queue_lossless_input.h queue_lossless_output.h compositequeue.h prioqueue.h cpqueue.h queue.h loggers.h loggertypes.h pipe.h eventlist.h config.h tcp.h dctcp.h mtcp.h sent_packets.h tcppacket.h ndppacket.h eth_pause_packet.h compositeprioqueue.h ecnqueue.h switch.h ffapp.h taskgraph_generated.h #taskgraph.pb.h
+OBJS=eventlist.o tcppacket.o pipe.o queue.o queue_lossless.o queue_lossless_input.o queue_lossless_output.o ecnqueue.o tcp.o dctcp.o mtcp.o loggers.o logfile.o clock.o config.o network.o qcn.o exoqueue.o randomqueue.o cbr.o cbrpacket.o sent_packets.o ndp.o ndppacket.o eth_pause_packet.o compositequeue.o prioqueue.o cpqueue.o compositeprioqueue.o switch.o fairpullqueue.o route.o ffapp.o dyn_net_sch.o #taskgraph.pb.o
+HDRS=network.h ndp.h queue_lossless.h queue_lossless_input.h queue_lossless_output.h compositequeue.h prioqueue.h cpqueue.h queue.h loggers.h loggertypes.h pipe.h eventlist.h config.h tcp.h dctcp.h mtcp.h sent_packets.h tcppacket.h ndppacket.h eth_pause_packet.h compositeprioqueue.h ecnqueue.h switch.h ffapp.h taskgraph_generated.h dyn_net_sch.h #taskgraph.pb.h
 
 FF_HOME?=$(HOME)/FlexFlow
+GUROBI_DIR?=$(HOME)/gurobi912/linux64
 CC=g++
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-INC= -I$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/fbuf2/include/
+INC= -I$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/fbuf2/include/ -I$(GUROBI_DIR)/include/ #-I/usr/local/Cellar/flatbuffers/2.0.0/include/
 
-CFLAGS= -Wall $(INC) -std=c++14 -O3 #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
+CFLAGS= -Wall $(INC) -std=c++14 -L$(GUROBI_DIR)/lib -lgurobi_c++ -lgurobi91 -O3 #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
 
 # all:	htsim lib parse_output
 all:	lib 
@@ -57,6 +58,7 @@ compositeprioqueue.o: compositeprioqueue.cpp $(HDRS)
 qcn.o: qcn.cpp qcn.h loggers.h config.h 
 ffapp.o: ffapp.cpp ffapp.h $(HDRS)
 taskgraph.pb.o: taskgraph.pb.cc taskgraph.pb.h $(HDRS)
+dyn_net_sch.o: dyn_net_sch.cpp $(HDRS)
 
 .cpp.o:
 	source='$<' object='$@' libtool=no depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' $(CXXDEPMODE) $(depcomp) $(CC) $(CFLAGS) -Wuninitialized  -c -o $@ `test -f $< || echo '$(srcdir)/'`$<

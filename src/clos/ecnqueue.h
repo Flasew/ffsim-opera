@@ -18,7 +18,7 @@ class ECNQueue : public Queue {
 		QueueLogger* logger, mem_b drop);
     void receivePacket(Packet & pkt);
     void completeService();
- private:
+//  private:
     mem_b _K;
     int _state_send;
 };

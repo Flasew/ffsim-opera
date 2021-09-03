@@ -12,6 +12,7 @@
 #include "tcppacket.h"
 #include "eventlist.h"
 #include "sent_packets.h"
+// #include "dyn_net_sch.h"
 
 // #define MODEL_RECEIVE_WINDOW 1
 
@@ -21,6 +22,7 @@
 // #define RANDOM_PATH 1
 
 //#define MAX_SENT 10000
+struct DemandRecorder;
 
 class TcpSink;
 class MultipathTcpSrc;
@@ -29,7 +31,9 @@ class MultipathTcpSink;
 class TcpSrc : public PacketSink, public EventSource {
     friend class TcpSink;
  public:
-    TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out, EventList &eventlist, int flow_src, int flow_dst, void (*acf)(void*) = nullptr, void* acd = nullptr);
+    TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out, 
+            EventList &eventlist, int flow_src, int flow_dst, 
+            void (*acf)(void*) = nullptr, void* acd = nullptr, DemandRecorder * drd = nullptr);
     ~TcpSrc();
     uint32_t get_id(){ return id;}
     virtual void connect(const Route& routeout, const Route& routeback, 
@@ -42,6 +46,8 @@ class TcpSrc : public PacketSink, public EventSource {
 
     void (*application_callback)(void*);
     void * application_callback_data;
+
+    DemandRecorder * demand_recorder;
 
     void doNextEvent();
     virtual void receivePacket(Packet& pkt);
