@@ -163,6 +163,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                 if (allreduce_strategy == FFApplication::FF_RING_AR || 
                     allreduce_strategy == FFApplication::FF_DEFAULT_AR) 
                 {
+                    // cout << "ring" << endl;
                     tasks[this_task.taskid()] = new FFRingAllreduce(
                         this,
                         node_group, 
@@ -172,6 +173,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                 }
                 else if (allreduce_strategy == FFApplication::FF_PS_AR)
                 {
+                    // cout << "ps" << endl;
                     tasks[this_task.taskid()] = new FFPSAllreduce(
                         this,
                         node_group, 
@@ -180,6 +182,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                     );
                 }
                 else if (allreduce_strategy == FFApplication::FF_DPS_AR) {
+                    // cout << "dps" << endl;
                     tasks[this_task.taskid()] = new FFDPSAllreduce(
                         this,
                         node_group, 
