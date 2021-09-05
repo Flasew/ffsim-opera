@@ -1,36 +1,87 @@
 #include "dyn_net_sch.h"
 #include "ecnqueue.h"
 #include "queue_lossless.h"
+#include "tcp.h"
+
+#ifdef USE_GUROBI
 #include "gurobi_c++.h"
+#endif
+
+#define INSERT_OR_ADD(_map, _key, _val) do {                                \
+  if ((_map).find(_key) == (_map).end()) {                                  \
+    (_map)[(_key)] = _val;                                                  \
+  } else {                                                                  \
+    (_map)[(_key)] += _val;                                                 \
+  }                                                                         \
+} while (0);                                                                \
+
 
 extern uint32_t SPEED;
 
-void DemandRecorder::init(int degree)
+DemandRecorder::DemandRecorder(int degree, TcpRtxTimerScanner * rtx_scanner)
+: degree(degree), rtx_scanner(rtx_scanner)
 {
-  this->degree = degree;
-  unsatisfied_demand = std::vector<uint64_t>(degree * degree, 0);
+  // unsatisfied_demand = std::vector<uint64_t>(degree * degree, 0);
 }
 
-void DemandRecorder::add_demand(int src, int dst, uint64_t bytes)
+void DemandRecorder::get_unsatisfied_demand(Matrix2D<double> & tm) 
 {
-  unsatisfied_demand[src * degree + dst] += bytes;
+  tm.fill_zeros();
+  // simtime_picosec now = eventlist().now();
+	list<TcpSrc*>::iterator i = rtx_scanner->_tcps.begin();
+	while (i != rtx_scanner->_tcps.end())
+	{
+    TcpSrc * tcpsrc = *i;
+		if (tcpsrc->_finished)
+		{
+			tcpsrc->eventlist().cancelPendingSource(**i);
+			// delete *i;
+			i = rtx_scanner->_tcps.erase(i);
+		}
+		else
+		{
+      tm.add_elem_by(tcpsrc->_flow_src, tcpsrc->_flow_dst, tcpsrc->_flow_size - tcpsrc->_last_acked);
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      i++;
+		}
+	}
 }
 
-void DemandRecorder::satisfied(int src, int dst, uint64_t bytes)
-{
-  unsatisfied_demand[src * degree + dst] -= bytes;
-}
+// void DemandRecorder::add_demand(int src, int dst, uint64_t bytes)
+// {
+//   unsatisfied_demand[src * degree + dst] += bytes;
+//   // std::cerr << "added (" << src << ", " << dst << "): " << bytes << std::endl;
+// }
 
-DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo, OptStrategy method, simtime_picosec reconf_delay, EventList &eventlist)
-    : EventSource(eventlist, "DynFlatScheduler"), nnodes(nnodes), degree(degree), topo(topo), reconf_delay(reconf_delay), optstrategy(method), eventlist(eventlist)
+// void DemandRecorder::satisfied(int src, int dst, uint64_t bytes)
+// {
+//   unsatisfied_demand[src * degree + dst] -= bytes;
+//   // std::cerr << "removed (" << src << ", " << dst << "): " << bytes << std::endl;
+// }
+
+DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo, 
+        OptStrategy method, DemandRecorder* demandrecorder, simtime_picosec reconf_delay, EventList &eventlist)
+: EventSource(eventlist, "DynFlatScheduler"), nnodes(nnodes), degree(degree), demandrecorder(demandrecorder),
+  topo(topo), reconf_delay(reconf_delay), optstrategy(method), eventlist(eventlist)
 {
-  demandrecorder.init(nnodes);
+  // demandrecorder.init(nnodes);
   status = DynNetworkStatus::DYN_NET_LIVE;
   eventlist.sourceIsPending(*this, n_nondelay * reconf_delay);
-  if (optstrategy == OptStrategy::SIPML_RING)
+  if (optstrategy == OptStrategy::SIPML_OCS)
   {
+#ifdef USE_GUROBI
     try
     {
+      GRBEnv env = GRBEnv( true );
+
+      /* create an empty model */
+      try{
+        env.start( );
+      } catch(GRBException e) {
+        cout << "Error code = " << e.getErrorCode() << endl;
+        cout << e.getMessage() << endl;
+      }
+      gmodel = new GRBModel( env );
       Matrix2D<double> normal_tm(nnodes, nnodes);
       normalize_tm(normal_tm);
       //    cout << normal_tm;
@@ -112,9 +163,9 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo, O
         {
           for (int ocs_no = 0; ocs_no < degree; ocs_no++)
           {
-            uint16_t src_dev = src_port; // port_map.at( ocs_no ).at( src_port )->dev_id;
-            uint16_t dst_dev = dst_port; //port_map.at( ocs_no ).at( dst_port )->dev_id;
-            bw[src_dev][dst_dev] += perms[ocs_no][src_port][dst_port];
+            // uint16_t src_dev = src_port; // port_map.at( ocs_no ).at( src_port )->dev_id;
+            // uint16_t dst_dev = dst_port; //port_map.at( ocs_no ).at( dst_port )->dev_id;
+            bw[src_port][dst_port] += perms[ocs_no][src_port][dst_port];
           }
         }
       }
@@ -139,11 +190,13 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo, O
         cout << e.getMessage() << endl;
       }
     }
+#endif
   }
 }
 
 void DynFlatScheduler::doNextEvent()
 {
+  // std::cerr << "At time " << eventlist.now() << " scheduler run, go to " << status << std::endl;
   if (status == DynNetworkStatus::DYN_NET_LIVE)
   {
     start_reconf();
@@ -168,15 +221,22 @@ void DynFlatScheduler::finish_reconf()
 {
   // resume_lively_queues();
   // pause_no_bw_queues();
-  for (auto &srcs : topo->queues)
+  for (int i = 0; i < nnodes; i++)
   {
-    for (Queue *q : srcs)
+    for (int j = 0; j < nnodes; j++)
     {
+      if (i == j) continue;
+      Queue * q = topo->queues[i][j];
       ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
+      // std::cerr << "queue " << i << ", " << j << " br " << eq->_bitrate << " ps per byte " << eq->_ps_per_byte << " size " << eq->_enqueued.size() << std::endl;
       if (eq->_bitrate > 0)
       {
         eq->_state_send = LosslessQueue::READY;
-        eq->beginService();
+        if (!eq->_enqueued.empty()) {
+          eq->beginService();
+          // std::cerr << "queue " << i << ", " << j << " br " << eq->_bitrate << " ps per byte " << eq->_ps_per_byte << " size " << eq->_enqueued.size() << std::endl;
+          // std::cerr << "\t starting... " << std::endl;
+        }
       }
     }
   }
@@ -184,10 +244,12 @@ void DynFlatScheduler::finish_reconf()
 
 void DynFlatScheduler::set_all_queues_pause_recved()
 {
-  for (auto &srcs : topo->queues)
+  for (int i = 0; i < nnodes; i++)
   {
-    for (Queue *q : srcs)
+    for (int j = 0; j < nnodes; j++)
     {
+      if (i == j) continue;
+      Queue * q = topo->queues[i][j];
       ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
       if (eq->queuesize() > 0)
       {
@@ -199,6 +261,14 @@ void DynFlatScheduler::set_all_queues_pause_recved()
       }
     }
   }
+}
+
+inline static bool has_tx_endpoint(uint64_t e, size_t v, size_t n) {
+  return e / n == v;
+}
+
+inline static bool has_rx_endpoint(uint64_t e, size_t v, size_t n) {
+  return e % n == v;
 }
 
 void DynFlatScheduler::update_all_queue_bandwidth()
@@ -228,9 +298,9 @@ void DynFlatScheduler::update_all_queue_bandwidth()
         {
           for (int ocs_no = 0; ocs_no < degree; ocs_no++)
           {
-            uint16_t src_dev = src_port; //port_map.at( ocs_no ).at( src_port )->dev_id;
-            uint16_t dst_dev = dst_port; //port_map.at( ocs_no ).at( dst_port )->dev_id;
-            bw[src_dev][dst_dev] += gmodel->getVarByName("perm_" + to_string(ocs_no) +
+            // uint16_t src_dev = src_port; //port_map.at( ocs_no ).at( src_port )->dev_id;
+            // uint16_t dst_dev = dst_port; //port_map.at( ocs_no ).at( dst_port )->dev_id;
+            bw[src_port][dst_port] += gmodel->getVarByName("perm_" + to_string(ocs_no) +
                                                         "_" + to_string(src_port) +
                                                         "_" + to_string(dst_port));
           }
@@ -261,16 +331,17 @@ void DynFlatScheduler::update_all_queue_bandwidth()
       // double delta = double( cnfg.degree ) * double( cnfg.bwxstep_per_wave ) / double( degree );
       for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
         for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
+          if (src_port == dst_port) continue;
           topo->queues[src_port][dst_port]->_bitrate = 0;
           topo->queues[src_port][dst_port]->_ps_per_byte = std::numeric_limits<simtime_picosec>::max();
           for ( int ocs_no = 0; ocs_no < degree; ocs_no ++ ) {
-            uint16_t src_dev = src_port; // port_map.at( ocs_no ).at( src_port )->dev_id;
-            uint16_t dst_dev = dst_port; // port_map.at( ocs_no ).at( dst_port )->dev_id;
+            // uint16_t src_dev = src_port; // port_map.at( ocs_no ).at( src_port )->dev_id;
+            // uint16_t dst_dev = dst_port; // port_map.at( ocs_no ).at( dst_port )->dev_id;
             bool is_connected = gmodel->getVarByName( "perm_" + to_string( ocs_no ) +
                 "_" + to_string( src_port ) +
                 "_" + to_string( dst_port )).get( GRB_DoubleAttr_X );
             if ( is_connected ){
-              topo->queues[ src_dev ][ dst_dev ]->_bitrate += SPEED;
+              topo->queues[src_port][dst_port]->_bitrate += speedFromMbps((uint64_t)SPEED);
               topo->queues[src_port][dst_port]->_ps_per_byte = 
                 (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
             }
@@ -418,12 +489,14 @@ void DynFlatScheduler::update_all_queue_bandwidth()
           }
         }
       }
+      // std::cerr << "allocation: " << allocation << std::endl;
 
       // TODO episode_bw.mul_by( cnfg.bwxstep_per_wave );
       // assert(/* TODO */ false);
       for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
         for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
-          topo->queues[src_port][dst_port]->_bitrate = allocation.get_elem(src_port, dst_port) * SPEED;
+          if (src_port == dst_port) continue;
+          topo->queues[src_port][dst_port]->_bitrate = allocation.get_elem(src_port, dst_port) * speedFromMbps((uint64_t)SPEED);
           topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
         }
       }
@@ -441,20 +514,108 @@ void DynFlatScheduler::update_all_queue_bandwidth()
   }
   else
   {
-    assert("unimplemented" && false);
+    Matrix2D<double> normal_tm(nnodes, nnodes);
+    normalize_tm(normal_tm);
+    std::vector<uint64_t> conn(nnodes * nnodes, 0);
+    // for (int i = 0; i < nnode; i++) {
+    //   for (int j = 0; j < nnode; j++) {
+    //     size_t eid = edge_id(i, j);
+    //     if (logical_traffic_demand.find(eid) != logical_traffic_demand.end()) {
+    //       size_t ueid = unordered_edge_id(i, j);
+    //       uint64_t traffic_amount = logical_traffic_demand[eid];
+    //       if (max_of_bidir.find(ueid) == max_of_bidir.end() 
+    //           || traffic_amount > max_of_bidir[ueid]) {
+    //         max_of_bidir[ueid] = traffic_amount;
+    //       }
+    //     }
+    //   }
+    // }
+    std::set<std::pair<double, uint64_t>, std::greater<std::pair<double, uint64_t>>> pq;
+    std::unordered_map<size_t, size_t> node_if_allocated_tx;
+    std::unordered_map<size_t, size_t> node_if_allocated_rx;
+    
+    for (int i = 0; i < nnodes; i++) {
+      for (int j = 0; j < nnodes; j++) {
+      // mod: pre-unscale the demand
+        if (normal_tm.get_elem(i, j) > 0)
+          pq.insert(std::pair<double, uint64_t>(normal_tm.get_elem(i, j), i * nnodes + j));
+      }
+    }
+
+    while (pq.size() > 0) {
+
+      std::pair<double, uint64_t> target = *pq.begin();
+      pq.erase(pq.begin());
+
+      size_t node0 = target.second / nnodes;
+      size_t node1 = target.second % nnodes;
+      
+      // conn[target.second]++;
+      conn[node0 * nnodes + node1]++;
+      // conn[edge_id(node1, node0)]++;
+
+      INSERT_OR_ADD(node_if_allocated_tx, node0, 1);
+      INSERT_OR_ADD(node_if_allocated_rx, node1, 1);
+
+      target.first /= 2; //*= (double)conn[target.second]/(conn[target.second] + 1);
+      if (target.first > 0) {
+        pq.insert(target);
+      }
+
+      if (node_if_allocated_tx[node0] == degree || node_if_allocated_rx[node1] == degree) {
+        for (auto it = pq.begin(); it != pq.end(); ) {
+          if (node_if_allocated_tx[node0] == degree && has_tx_endpoint(it->second, node0, nnodes)) {
+            // std::cout << "node0 full, removing " << it->second /nnodes << ", " << it->second % nnodes << " with demand left " << it->first << std::endl; 
+            it = pq.erase(it);
+          }
+          else if (node_if_allocated_rx[node1] == degree && has_rx_endpoint(it->second, node1, nnodes)) {
+            // std::cout << "node1 full, removing " << it->second /nnodes << ", " << it->second % nnodes << " with demand left " << it->first << std::endl; 
+            it = pq.erase(it);
+          }
+          else {
+            ++it;
+          }
+        } 
+      }
+    }
+    for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
+      for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
+        if (src_port == dst_port) continue;
+        topo->queues[src_port][dst_port]->_bitrate = conn[src_port * nnodes + dst_port] * speedFromMbps((uint64_t)SPEED);
+        topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
+      }
+    }
   }
 }
 
 void DynFlatScheduler::normalize_tm(Matrix2D<double> &normal_tm)
 {
+  demandrecorder->get_unsatisfied_demand(normal_tm);
   uint64_t max_entry = 0;
   for (int i = 0; i < nnodes; i++) {
     for (int j = 0; j < nnodes; j++) {
-      normal_tm.add_elem_by(i, j, demandrecorder.unsatisfied_demand[i * nnodes + j]);
-      if (demandrecorder.unsatisfied_demand[i * nnodes + j] > max_entry) {
-        max_entry = demandrecorder.unsatisfied_demand[i * nnodes + j];
+      if (i == j) continue;
+      Queue * q = topo->queues[i][j];
+      ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
+      // std::cerr << "queue " << i << ", " << j << " br " << eq->_bitrate << " size " << eq->_enqueued.size() << std::endl;
+      // if (eq->_bitrate > 0)
+      normal_tm.add_elem_by(i, j, eq->_enqueued.size());
+      if (normal_tm.get_elem(i, j) > max_entry) {
+        max_entry = normal_tm.get_elem(i, j);
       }
+      //       if (demandrecorder.unsatisfied_demand[i * nnodes + j] > max_entry) {
+      //   max_entry = demandrecorder.unsatisfied_demand[i * nnodes + j];
+      // }
     }
   }
+  // if (max_entry == 0) {
+  //   max_entry = 1;
+  //   for (int i = 0; i < nnodes; i++) {
+  //     for (int j = 0; j < nnodes; j++) {
+  //       if (i != j && rand() / double(RAND_MAX) > 0.5) normal_tm.add_elem_by(i, j, 1);
+  //     }
+  //   }
+  // }
   normal_tm.mul_by(1.0/(double)max_entry);
+  // std::cerr << "normalized tm: " << normal_tm << std::endl;
 }

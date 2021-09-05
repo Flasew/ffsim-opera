@@ -37,7 +37,7 @@ public:
         DEVICE_IDLE,
         DEVICE_BUSY,
     };
-
+    FFApplication * ffapp;
 
     int node_id, gpu_id;
     float bandwidth;
@@ -49,15 +49,15 @@ public:
     simtime_picosec busy_up_to;
     // int nqueued_tasks;
 
-    FFDevice(std::string type, float bandwidth, int node_id, int gpu_id, 
+    FFDevice(FFApplication * ffapp, std::string type, float bandwidth, int node_id, int gpu_id, 
              int from_node, int to_node, int from_gpu, int to_gpu);
-    FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
+    FFDevice(FFApplication * ffapp, FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
              uint64_t deviceproperty, uint64_t bandwidth);
 };
 
 class FFTask : public EventSource {
 public:
-    static FFApplication * ffapp;
+    FFApplication * ffapp;
     // static EventList & evl;
 
     enum FFTaskType {
@@ -96,10 +96,10 @@ public:
 	simtime_picosec ready_time, run_time;
 	simtime_picosec start_time, finish_time;
 
-    FFTask(std::string type, FFDevice * device, uint64_t xfersize, float runtime);
+    FFTask(FFApplication * ffapp, std::string type, FFDevice * device, uint64_t xfersize, float runtime);
     // FFTask(TaskGraphProtoBuf::Task_SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
-    FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
-    FFTask(FFTaskType tasktype);
+    FFTask(FFApplication * ffapp, FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device, uint64_t xfersize, float runtime);
+    FFTask(FFApplication * ffapp, FFTaskType tasktype);
 };
 
 class FFNewRingAllreduce;
@@ -115,7 +115,7 @@ struct FFNewRingAllreduceFlow {
 class FFNewRingAllreduce : public FFTask {
 
 public:
-    FFNewRingAllreduce(std::vector<uint64_t> ng, 
+    FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, 
         const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime);
     ~FFNewRingAllreduce() = default;
 
@@ -149,7 +149,7 @@ struct FFRingAllreduceFlow {
 class FFRingAllreduce : public FFTask {
 
 public:
-    FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz, double local_runtime = 0);
+    FFRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, double local_runtime = 0);
     ~FFRingAllreduce() = default;
 
     std::vector<uint64_t> node_group; // group of nodes in the order of the ring
@@ -181,7 +181,7 @@ struct FFPSAllreduceFlow {
 class FFPSAllreduce : public FFTask {
 
 public:
-    FFPSAllreduce(std::vector<int> ng, uint64_t sz, int pserver);
+    FFPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz, int pserver);
     ~FFPSAllreduce() = default;
 
     std::vector<int> node_group; // group of nodes
@@ -212,7 +212,7 @@ class FFDPSAllreduce;
 class FFDPSAllreduce : public FFTask {
 
 public:
-    FFDPSAllreduce(std::vector<int> ng, uint64_t sz);
+    FFDPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz);
     ~FFDPSAllreduce() = default;
 
     std::vector<int> node_group; // group of nodes in the order of the ring

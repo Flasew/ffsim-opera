@@ -33,7 +33,7 @@ class TcpSrc : public PacketSink, public EventSource {
  public:
     TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out, 
             EventList &eventlist, int flow_src, int flow_dst, 
-            void (*acf)(void*) = nullptr, void* acd = nullptr, DemandRecorder * drd = nullptr);
+            void (*acf)(void*) = nullptr, void* acd = nullptr);
     ~TcpSrc();
     uint32_t get_id(){ return id;}
     virtual void connect(const Route& routeout, const Route& routeback, 
@@ -47,7 +47,7 @@ class TcpSrc : public PacketSink, public EventSource {
     void (*application_callback)(void*);
     void * application_callback_data;
 
-    DemandRecorder * demand_recorder;
+    static DemandRecorder * demand_recorder;
 
     void doNextEvent();
     virtual void receivePacket(Packet& pkt);
@@ -203,7 +203,7 @@ class TcpRtxTimerScanner : public EventSource {
     TcpRtxTimerScanner(simtime_picosec scanPeriod, EventList& eventlist);
     void doNextEvent();
     void registerTcp(TcpSrc &tcpsrc);
- private:
+//  private:
     simtime_picosec _scanPeriod;
     typedef list<TcpSrc*> tcps_t;
     tcps_t _tcps;

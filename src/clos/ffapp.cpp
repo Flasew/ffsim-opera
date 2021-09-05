@@ -13,7 +13,7 @@
 
 using json = nlohmann::json;
 
-FFApplication * FFTask::ffapp;
+// FFApplication * ffapp;
 
 // FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
 // 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
@@ -24,7 +24,7 @@ FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, //T
       fstream_out(_fstream_out), tcpRtxScanner(rtx), 
       final_finish_time(0), n_finished_tasks(0) {
 
-    FFTask::ffapp = this;
+    // FFTask::ffapp = this;
     // FFTask::evl = this->eventlist;
    
 }
@@ -55,6 +55,7 @@ void FFApplication::load_taskgraph_json(std::string & taskgraph) {
 
     for (auto & jsdev: tg_json["devices"]) {
         devices[jsdev["deviceid"].get<uint64_t>()] = new FFDevice(
+            this,
             jsdev["type"].get<std::string>(), 
             jsdev["bandwidth"].get<float>(), 
             jsdev["nodeid"].get<int>(), 
@@ -71,6 +72,7 @@ void FFApplication::load_taskgraph_json(std::string & taskgraph) {
     for (auto & jstask: tg_json["tasks"]) {
         uint64_t this_task = jstask["taskid"].get<uint64_t>();
         tasks[this_task] = new FFTask(
+            this,
             jstask["type"].get<std::string>(), 
             devices[jstask["deviceid"].get<uint64_t>()], 
             jstask["xfersize"].get<uint64_t>(), 
@@ -110,6 +112,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
     for (int i = 0; i < fbuf_tg->devices()->size(); i++) {
         auto dev = fbuf_tg->devices()->Get(i);
         devices[dev->deviceid()] = new FFDevice(
+            this,
             dev->type(),
             dev->nodeid(),
             dev->deviceproperty(),
@@ -149,6 +152,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
             // if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_RING) {
             if (fancy_ring) {
                 tasks[this_task.taskid()] = new FFNewRingAllreduce(
+                    this, 
                     node_group, 
                     selected_jumps[node_group.size()],
                     this_task.xfersize(),
@@ -157,6 +161,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
             }
             else {
                 tasks[this_task.taskid()] = new FFRingAllreduce(
+                    this,
                     node_group, 
                     this_task.xfersize(),
                     this_task.runtime()
@@ -181,6 +186,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
 
         else {
             tasks[this_task.taskid()] = new FFTask(
+                this, 
                 this_task.type(), 
                 devices[this_task.deviceid()], 
                 this_task.xfersize(), 
@@ -306,8 +312,8 @@ void FFApplication::start_init_tasks() {
     // std::cerr << "added " << count << " init tasks." << std::endl;
 }
 
-FFTask::FFTask(std::string type, FFDevice * device, uint64_t xfersize, 
-    float runtime): EventSource(FFTask::ffapp->eventlist, "FFTask") {
+FFTask::FFTask(FFApplication * ffapp, std::string type, FFDevice * device, uint64_t xfersize, 
+    float runtime): ffapp(ffapp), EventSource(ffapp->eventlist, "FFTask") {
 
     if (type == "TASK_FORWARD") {
         this->type = FFTaskType::TASK_FORWARD;
@@ -347,8 +353,8 @@ FFTask::FFTask(std::string type, FFDevice * device, uint64_t xfersize,
     counter = 0;
 }
 
-FFTask::FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device,
-     uint64_t xfersize, float runtime): EventSource(FFTask::ffapp->eventlist, "FFTask") {
+FFTask::FFTask(FFApplication * ffapp, FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device,
+     uint64_t xfersize, float runtime): ffapp(ffapp), EventSource(ffapp->eventlist, "FFTask") {
     
     if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_FORWARD) {
         this->type = FFTaskType::TASK_FORWARD;
@@ -358,6 +364,7 @@ FFTask::FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device,
     }
     else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_NOMINAL_COMM) {
         this->type = FFTaskType::TASK_COMM;
+        // std::cerr << "adding COMM " << std::endl;
     }
     else if (tasktype == FlatBufTaskGraph::SimTaskType_TASK_UPDATE) {
         this->type = FFTaskType::TASK_UPDATE;
@@ -390,7 +397,7 @@ FFTask::FFTask(FlatBufTaskGraph::SimTaskType tasktype, FFDevice * device,
 
 #if 0
 FFTask::FFTask(TaskGraphProtoBuf::Task_SimTaskType type, FFDevice * device, 
-         uint64_t xfersize, float runtime): EventSource(FFTask::ffapp->eventlist, "FFTask") {
+         uint64_t xfersize, float runtime): EventSource(ffapp->eventlist, "FFTask") {
 
     if (type == TaskGraphProtoBuf::Task_SimTaskType_TASK_FORWARD) {
         this->type = FFTaskType::TASK_FORWARD;
@@ -431,8 +438,8 @@ FFTask::FFTask(TaskGraphProtoBuf::Task_SimTaskType type, FFDevice * device,
 }
 #endif
 
-FFTask::FFTask(FFTask::FFTaskType type):
-    EventSource(FFTask::ffapp->eventlist, "FFTask") {
+FFTask::FFTask(FFApplication * ffapp, FFTask::FFTaskType type):
+    ffapp(ffapp), EventSource(ffapp->eventlist, "FFTask") {
 
     this->type = type;
 }
@@ -492,12 +499,13 @@ void FFTask::execute_compute() {
 }
 
 void FFTask::cleanup() {
+    this->state = FFTask::TASK_FINISHED;
     ffapp->n_finished_tasks++;
     if (ffapp->final_finish_time < finish_time) {
         ffapp->final_finish_time = finish_time;
     }
     for (uint64_t next_id: next_tasks) {
-        FFTask * task = FFTask::ffapp->tasks[next_id];
+        FFTask * task = ffapp->tasks[next_id];
         task->counter--;
         // std::cerr << (uint64_t)this << " -> Task " << (uint64_t)task << " counter at " << task->counter << std::endl;
         if (task->counter == 0) {
@@ -505,6 +513,9 @@ void FFTask::cleanup() {
             task->state = FFTask::TASK_READY;
             eventlist().sourceIsPending(*task, task->ready_time);
         }
+    }
+    if (ffapp->n_finished_tasks == ffapp->tasks.size()) {
+        eventlist().setEndtime(eventlist().now());
     }
 }
 
@@ -590,9 +601,9 @@ void taskfinish(void * task) {
 }
 
 /* FFDevice */
-FFDevice::FFDevice(std::string type, float bandwidth, int node_id, int gpu_id,
+FFDevice::FFDevice(FFApplication * ffapp, std::string type, float bandwidth, int node_id, int gpu_id,
                    int from_node, int to_node, int from_gpu, int to_gpu) {
-
+    this->ffapp = ffapp;
     if (type == "DEVICE_GPU") {
         this->type = FFDeviceType::DEVICE_GPU;
     }
@@ -624,8 +635,9 @@ FFDevice::FFDevice(std::string type, float bandwidth, int node_id, int gpu_id,
     this->busy_up_to = 0;
 }
 
-FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
+FFDevice::FFDevice(FFApplication * ffapp, FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid, 
              uint64_t deviceproperty, uint64_t bandwidth) {
+    this->ffapp = ffapp;
     if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMP_GPU) {
         this->type = FFDeviceType::DEVICE_GPU;
         this->node_id = node_id;
@@ -650,8 +662,8 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->gpu_id = 0;
         this->from_node = 0;
         this->to_node = 0;
-        this->from_gpu = deviceproperty / FFTask::ffapp->ngpupernode;
-        this->to_gpu = deviceproperty % FFTask::ffapp->ngpupernode;
+        this->from_gpu = deviceproperty / ffapp->ngpupernode;
+        this->to_gpu = deviceproperty % ffapp->ngpupernode;
     }
     else if (devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_DEV_COMM 
           || devtype == FlatBufTaskGraph::DeviceType_DEVICE_COMM_PCI_TO_HOST_COMM) {
@@ -667,8 +679,8 @@ FFDevice::FFDevice(FlatBufTaskGraph::DeviceType devtype, uint64_t nodeid,
         this->type = FFDeviceType::DEVICE_NW_COMM;
         this->node_id = 0;
         this->gpu_id = 0;
-        this->from_node = deviceproperty / (FFTask::ffapp->nnodes + FFTask::ffapp->nswitches);
-        this->to_node = deviceproperty % (FFTask::ffapp->nnodes + FFTask::ffapp->nswitches);
+        this->from_node = deviceproperty / (ffapp->nnodes + ffapp->nswitches);
+        this->to_node = deviceproperty % (ffapp->nnodes + ffapp->nswitches);
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
@@ -728,8 +740,8 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 #endif
 
 // FFRingAllReduce
-FFRingAllreduce::FFRingAllreduce(std::vector<uint64_t> ng, uint64_t sz, double local_runtime) :
-    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
+FFRingAllreduce::FFRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, double local_runtime) :
+    FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
     run_time = local_runtime;
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
@@ -878,12 +890,13 @@ void ar_finish_ring(void * arinfo) {
         ar->finished_curr_round = 0;
         if (ar->curr_round == 2 * ((int)ar->node_group.size() - 1)) {
             ar->finish_time = ar->eventlist().now();
-            ar->state = FFTask::TASK_FINISHED;
-            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
-            ar->ffapp->n_finished_tasks++;
-            if (ar->ffapp->final_finish_time < ar->finish_time) {
-                ar->ffapp->final_finish_time = ar->finish_time;
-            }
+            ar->cleanup();
+            // ar->state = FFTask::TASK_FINISHED;
+            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            // ar->ffapp->n_finished_tasks++;
+            // if (ar->ffapp->final_finish_time < ar->finish_time) {
+            //     ar->ffapp->final_finish_time = ar->finish_time;
+            // }
         }
         else {
             for (size_t i = 0; i < ar->node_group.size(); i++) {
@@ -894,8 +907,8 @@ void ar_finish_ring(void * arinfo) {
 
 }
 
-FFNewRingAllreduce::FFNewRingAllreduce(std::vector<uint64_t> ng, const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime)
-: FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), jumps(jumps), operator_size(sz)
+FFNewRingAllreduce::FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime)
+: FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), jumps(jumps), operator_size(sz)
 {
     run_time = local_runtime * 1000000000ULL;
     finished_curr_round = std::vector<int>(jumps.size(), 0);
@@ -1007,20 +1020,21 @@ void ar_finish_newring(void * arinfo)
         // std::cerr << ar << ": ring finished " << ar->finished_rings << std::endl;
         if (ar->finished_rings == ar->jumps.size()) {
             ar->finish_time = ar->eventlist().now();
-            ar->state = FFTask::TASK_FINISHED;
-            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
-            ar->ffapp->n_finished_tasks++;
-            if (ar->ffapp->final_finish_time < ar->finish_time) {
-                ar->ffapp->final_finish_time = ar->finish_time;
-            }
+            ar->cleanup();
+            // ar->state = FFTask::TASK_FINISHED;
+            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            // ar->ffapp->n_finished_tasks++;
+            // if (ar->ffapp->final_finish_time < ar->finish_time) {
+            //     ar->ffapp->final_finish_time = ar->finish_time;
+            // }
         }
          
     }
 }
 
 // PARAMETER SERVER
-FFPSAllreduce::FFPSAllreduce(std::vector<int> ng, uint64_t sz, int pserver) :
-    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), operator_size(sz),
+FFPSAllreduce::FFPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz, int pserver) :
+    FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), operator_size(sz),
     pserver(pserver), curr_round(0) , finished_curr_round(0)
 {
     finished_rounds = std::vector<int>(ng.size(), 0);
@@ -1117,13 +1131,14 @@ void ar_finish_ps(void * arinfo) {
         ar->curr_round++;
         ar->finished_curr_round = 0;
         if (ar->curr_round == 2) {
-            ar->finish_time = ar->eventlist().now();
-            ar->state = FFTask::TASK_FINISHED;
-            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
-            ar->ffapp->n_finished_tasks++;
-            if (ar->ffapp->final_finish_time < ar->finish_time) {
-                ar->ffapp->final_finish_time = ar->finish_time;
-            }
+            ar->finish_time = ar->eventlist().now();            
+            ar->cleanup();
+            // ar->state = FFTask::TASK_FINISHED;
+            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            // ar->ffapp->n_finished_tasks++;
+            // if (ar->ffapp->final_finish_time < ar->finish_time) {
+            //     ar->ffapp->final_finish_time = ar->finish_time;
+            // }
         }
         else {
             for (size_t i = 0; i < ar->node_group.size(); i++) {
@@ -1135,8 +1150,8 @@ void ar_finish_ps(void * arinfo) {
 }
 
 
-FFDPSAllreduce::FFDPSAllreduce(std::vector<int> ng, uint64_t sz) :
-    FFTask(FFTask::TASK_ALLREDUCE), node_group(ng), 
+FFDPSAllreduce::FFDPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz) :
+    FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
     // finished_rounds = std::vector<int>(ng.size(), 0);
@@ -1220,12 +1235,13 @@ void ar_finish_dps(void * ar_ptr) {
         ar->finished_curr_round = 0;
         if (ar->curr_round == 2) {
             ar->finish_time = ar->eventlist().now();
-            ar->state = FFTask::TASK_FINISHED;
-            // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
-            ar->ffapp->n_finished_tasks++;
-            if (ar->ffapp->final_finish_time < ar->finish_time) {
-                ar->ffapp->final_finish_time = ar->finish_time;
-            }
+            ar->cleanup();
+            // ar->state = FFTask::TASK_FINISHED;
+            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            // ar->ffapp->n_finished_tasks++;
+            // if (ar->ffapp->final_finish_time < ar->finish_time) {
+            //     ar->ffapp->final_finish_time = ar->finish_time;
+            // }
         }
         else {
             for (size_t i = 0; i < ar->node_group.size(); i++) {

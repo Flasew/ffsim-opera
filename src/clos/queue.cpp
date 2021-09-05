@@ -22,6 +22,7 @@ void Queue::beginService()
     /* schedule the next dequeue event */
     assert(!_enqueued.empty());
     eventlist().sourceIsPendingRel(*this, drainTime(_enqueued.back()));
+    // std::cerr << "scheduling finish transfer at " << eventlist().now() << " taking " << drainTime(_enqueued.back()) << std::endl;
 }
 
 void Queue::completeService()

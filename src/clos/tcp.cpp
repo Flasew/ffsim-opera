@@ -10,11 +10,12 @@
 ////////////////////////////////////////////////////////////////
 //  TCP SOURCE
 ////////////////////////////////////////////////////////////////
+DemandRecorder * TcpSrc::demand_recorder = nullptr;
 
 TcpSrc::TcpSrc(TcpLogger *logger, TrafficLogger *pktlogger, ofstream *_fstream_out,
 							 EventList &eventlist, int flow_src, int flow_dst, 
-							 void (*acf)(void *), void *acd, DemandRecorder * drd)
-		: EventSource(eventlist, "tcp"), _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), application_callback(acf), application_callback_data(acd), demand_recorder(drd)
+							 void (*acf)(void *), void *acd)
+		: EventSource(eventlist, "tcp"), _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), application_callback(acf), application_callback_data(acd)
 {
 	_mss = Packet::data_packet_size();
 	_maxcwnd = 0xffffffff; //MAX_SENT*_mss;
@@ -122,8 +123,8 @@ void TcpSrc::set_flowsize(uint64_t flow_size_in_bytes)
 	if (_flow_size < _mss)
 		_flow_size = _mss;
 
-	if (demand_recorder)
-		demand_recorder->add_demand(_flow_src, _flow_dst, _flow_size);
+	// if (demand_recorder)
+	// 	demand_recorder->add_demand(_flow_src, _flow_dst, _flow_size);
 
 	// !!! Note: need to implement this for short flows:
 
@@ -267,6 +268,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 
 	if (seqno >= _flow_size && !_finished)
 	{
+		_last_acked =
 		_finished = true;
 		// original:
 		//cout << "Flow " << nodename() << " finished at " << timeAsMs(eventlist().now()) << endl;
@@ -666,10 +668,10 @@ void TcpSrc::rtx_timer_hook(simtime_picosec now, simtime_picosec period)
 	if (_highest_sent == 0)
 		return;
 
-	//   cout <<"At " << now/(double)1000000000<< " RTO " << _rto/1000000000 << " MDEV "
-	//  << _mdev/1000000000 << " RTT "<< _rtt/1000000000 << " SEQ " << _last_acked / _mss << " HSENT "  << _highest_sent
-	//  << " CWND "<< _cwnd/_mss << " FAST RECOVERY? " << 	_in_fast_recovery << " Flow ID "
-	//  << str()  << endl;
+	  cout <<"At " << now/(double)1000000000<< " RTO " << _rto/1000000000 << " MDEV "
+	 << _mdev/1000000000 << " RTT "<< _rtt/1000000000 << " SEQ " << _last_acked / _mss << " HSENT "  << _highest_sent
+	 << " CWND "<< _cwnd/_mss << " FAST RECOVERY? " << 	_in_fast_recovery << " Flow ID "
+	 << str()  << endl;
 
 	// here we can run into phase effects because the timer is checked
 	// only periodically for ALL flows but if we keep the difference
@@ -812,16 +814,16 @@ void TcpSink::receivePacket(Packet &pkt)
 	if (seqno == _cumulative_ack + 1)
 	{ // it's the next expected seq no
 		_cumulative_ack = seqno + size - 1;
-		if (_src->demand_recorder)
-			_src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
+		// if (_src->demand_recorder)
+		// 	_src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
 		//cout << "New cumulative ack is " << _cumulative_ack << endl;
 		// are there any additional received packets we can now ack?
 		while (!_received.empty() && (_received.front() == _cumulative_ack + 1))
 		{
 			_received.pop_front();
 			_cumulative_ack += size;
-			if (_src->demand_recorder)
-				_src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
+			// if (_src->demand_recorder)
+				// _src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
 		}
 	}
 	else if (seqno < _cumulative_ack + 1)

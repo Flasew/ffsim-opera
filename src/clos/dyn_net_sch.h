@@ -4,7 +4,9 @@
 #include <vector>
 #include "flat_topology.h"
 #include "queue.h"
+#ifdef USE_GUROBI
 #include "gurobi_c++.h"
+#endif
 
 #include <cstdlib>
 #include <stdexcept>
@@ -269,14 +271,21 @@ int Graph< NodeType >::summary( ) const {
   return 0;
 }
 
+class TcpRtxTimerScanner;
+
 struct DemandRecorder {
-  void init(int degree);
-  void add_demand(int src, int dst, uint64_t bytes);
-  void satisfied(int src, int dst, uint64_t bytes);
+
+  // as a trick, use rtx_scanner to record the tcp flows
+  DemandRecorder(int degree, TcpRtxTimerScanner * rtx_scanner);
+  
+  // void add_demand(int src, int dst, uint64_t bytes);
+  // void satisfied(int src, int dst, uint64_t bytes);
+
+  void get_unsatisfied_demand(Matrix2D<double> & tm);
 
   /* unsatisfied traffic demand over the last reconf_delay */
   int degree;
-  std::vector<uint64_t> unsatisfied_demand; 
+  TcpRtxTimerScanner * rtx_scanner;
 };
 
 class DynFlatScheduler : public EventSource {
@@ -294,7 +303,7 @@ public:
   };
 
   DynFlatScheduler(int nnodes, int degree, FlatTopology* topo, OptStrategy method,
-    simtime_picosec refonc_delay, EventList & eventlist);
+    DemandRecorder* demandrecorder, simtime_picosec refonc_delay, EventList & eventlist);
 
   virtual void doNextEvent();
 
@@ -317,14 +326,16 @@ public:
   int nnodes;
   int degree;
   int n_nondelay = 4;
+#ifdef USE_GUROBI
   GRBModel *gmodel;
+#endif
   FlatTopology* topo;
   simtime_picosec reconf_delay;
   DynNetworkStatus status;
   OptStrategy optstrategy;
   EventList & eventlist;
 
-  DemandRecorder demandrecorder;
+  DemandRecorder * demandrecorder;
 };
 
 #endif

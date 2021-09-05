@@ -207,19 +207,14 @@ int main(int argc, char **argv)
   Clock c(timeFromSec(5 / 100.), eventlist);
 
   DynFlatScheduler::OptStrategy optstrategy;
-  switch (opt_method) {
-    case "sipring":
-      optstrategy = DynFlatScheduler::SIPML_RING;
-    break;
-    case "sipocs":
-      optstrategy = DynFlatScheduler::SIPML_OCS;
-    break;
-    case "dheu":
-      optstrategy = DynFlatScheduler::D_HEURISTIC;
-    break;
-    default:
-      assert("unknown strategy!" && false);
-  }
+  if (opt_method == "sipring")
+    optstrategy = DynFlatScheduler::SIPML_RING;
+  else if (opt_method == "sipocs")
+    optstrategy = DynFlatScheduler::SIPML_OCS;
+  else if (opt_method == "dheu")
+    optstrategy = DynFlatScheduler::D_HEURISTIC;
+  else 
+    assert("unknown strategy!" && false);
 
 #if PRINT_PATHS
   filename << ".paths";
@@ -233,9 +228,11 @@ int main(int argc, char **argv)
 #endif
 
   TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1000), eventlist);
+  DemandRecorder demandrecorder = DemandRecorder(degree, &tcpRtxScanner);
 
   FlatTopology *top = new FlatTopology(no_of_nodes, flowfile, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
-  DynFlatScheduler sch = DynFlatScheduler(no_of_nodes, degree, top, optstrategy, 10000000ULL * reconf_delay, eventlist);
+  DynFlatScheduler sch = DynFlatScheduler(no_of_nodes, degree, top, optstrategy, &demandrecorder, 10000000ULL * reconf_delay, eventlist);
+  // TcpSrc::demand_recorder = &sch.demandrecorder;
 
       // FFApplication app = FFApplication(top, ssthresh, sinkLogger, traffic_logger, tcpRtxScanner, eventlist);
   FFApplication app = FFApplication(top, ssthresh, &fct_util_out, tcpRtxScanner, eventlist);
