@@ -37,6 +37,7 @@ public:
 
   FlatTopology(int no_of_nodes, const string& tgfile, mem_b queuesize, Logfile* log, EventList* ev, 
                FirstFit* f, queue_type q);
+  FlatTopology(int no_of_nodes, mem_b queuesize, Logfile *lg, EventList *ev, FirstFit *fit, queue_type q);
 
   void init_network();
   // void load_topology_protobuf(const std::string & taskgraph);

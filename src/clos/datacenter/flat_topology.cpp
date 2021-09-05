@@ -73,6 +73,37 @@ void FlatTopology::set_params(int no_of_nodes)
   queues.resize(_no_of_nodes, vector<Queue *>(_no_of_nodes));
 }
 
+FlatTopology::FlatTopology(int no_of_nodes, mem_b queuesize, Logfile *lg, EventList *ev, FirstFit *fit, queue_type q)
+{
+  _queuesize = queuesize;
+  logfile = lg;
+  eventlist = ev;
+  ff = fit;
+  qt = q;
+  failed_links = 0;
+
+  set_params(no_of_nodes);
+  // load_topology_protobuf(tgfile);
+  // load_topology_flatbuf(tgfile);
+  for (int i = 0; i < _no_of_nodes; i++)
+  {
+    for (int j = 0; j < _no_of_nodes; j++)
+    {
+      if (i != j)
+      {
+        _conn_list[EDGE(i, j, _no_of_nodes)] = 1;
+        uint64_t route_id = i * _no_of_nodes + j;
+        _routes[route_id] = vector<vector<size_t> *>();
+        vector<size_t> *path_vector = new vector<size_t>();
+        path_vector->push_back(i);
+        path_vector->push_back(j);
+        _routes[route_id].push_back(path_vector);
+      }
+    }
+  }
+  init_network();
+}
+
 void FlatTopology::load_topology_flatbuf(const std::string &taskgraph)
 {
   string buffer;

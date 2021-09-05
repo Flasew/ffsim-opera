@@ -19,10 +19,10 @@ using json = nlohmann::json;
 // 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
 //     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
 FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, //TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
-    TcpRtxTimerScanner & rtx, EventList & eventlist)
+    TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars)
     : topology(top), ssthresh(ss), eventlist(eventlist), 
       fstream_out(_fstream_out), tcpRtxScanner(rtx), 
-      final_finish_time(0), n_finished_tasks(0) {
+      final_finish_time(0), n_finished_tasks(0), allreduce_strategy(ars) {
 
     // FFTask::ffapp = this;
     // FFTask::evl = this->eventlist;
@@ -160,12 +160,33 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
                 );
             }
             else {
-                tasks[this_task.taskid()] = new FFRingAllreduce(
-                    this,
-                    node_group, 
-                    this_task.xfersize(),
-                    this_task.runtime()
-                );
+                if (allreduce_strategy == FFApplication::FF_RING_AR || 
+                    allreduce_strategy == FFApplication::FF_DEFAULT_AR) 
+                {
+                    tasks[this_task.taskid()] = new FFRingAllreduce(
+                        this,
+                        node_group, 
+                        this_task.xfersize(),
+                        this_task.runtime()
+                    );
+                }
+                else if (allreduce_strategy == FFApplication::FF_PS_AR)
+                {
+                    tasks[this_task.taskid()] = new FFPSAllreduce(
+                        this,
+                        node_group, 
+                        this_task.xfersize(),
+                        this_task.runtime()
+                    );
+                }
+                else if (allreduce_strategy == FFApplication::FF_DPS_AR) {
+                    tasks[this_task.taskid()] = new FFDPSAllreduce(
+                        this,
+                        node_group, 
+                        this_task.xfersize(),
+                        this_task.runtime()
+                    );
+                } 
             }
             // }
             // else if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_PSERVER) {
@@ -743,7 +764,7 @@ FFDevice::FFDevice(TaskGraphProtoBuf::Device_DeviceType type,
 FFRingAllreduce::FFRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, double local_runtime) :
     FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
-    run_time = local_runtime;
+    run_time = local_runtime * 1000000000ULL;
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
     finished_rounds = std::vector<int>(ng.size(), 0);
 }
@@ -1033,10 +1054,12 @@ void ar_finish_newring(void * arinfo)
 }
 
 // PARAMETER SERVER
-FFPSAllreduce::FFPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz, int pserver) :
+FFPSAllreduce::FFPSAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, /*int pserver,*/ double local_runtime) :
     FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), operator_size(sz),
-    pserver(pserver), curr_round(0) , finished_curr_round(0)
+    /*pserver(pserver),*/ curr_round(0) , finished_curr_round(0)
 {
+    run_time = local_runtime * 1000000000ULL;
+    pserver = ng[0];
     finished_rounds = std::vector<int>(ng.size(), 0);
 }
 
@@ -1150,9 +1173,10 @@ void ar_finish_ps(void * arinfo) {
 }
 
 
-FFDPSAllreduce::FFDPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz) :
+FFDPSAllreduce::FFDPSAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, double local_runtime) :
     FFTask(ffapp, FFTask::TASK_ALLREDUCE), node_group(ng), 
     finished_curr_round(0), curr_round(0) {
+    run_time = local_runtime * 1000000000ULL;
     operator_size = sz / ng.size() > 0 ? sz : ng.size();
     // finished_rounds = std::vector<int>(ng.size(), 0);
 }

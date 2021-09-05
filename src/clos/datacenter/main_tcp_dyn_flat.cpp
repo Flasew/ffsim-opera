@@ -230,7 +230,7 @@ int main(int argc, char **argv)
   TcpRtxTimerScanner tcpRtxScanner(timeFromMs(1000), eventlist);
   DemandRecorder demandrecorder = DemandRecorder(degree, &tcpRtxScanner);
 
-  FlatTopology *top = new FlatTopology(no_of_nodes, flowfile, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
+  FlatTopology *top = new FlatTopology(no_of_nodes, queuesize, nullptr /* &logfile */, &eventlist, ff, ECN);
   DynFlatScheduler sch = DynFlatScheduler(no_of_nodes, degree, top, optstrategy, &demandrecorder, 10000000ULL * reconf_delay, eventlist);
   // TcpSrc::demand_recorder = &sch.demandrecorder;
 

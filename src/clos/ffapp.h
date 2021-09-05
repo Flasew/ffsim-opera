@@ -116,7 +116,7 @@ class FFNewRingAllreduce : public FFTask {
 
 public:
     FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, 
-        const std::vector<std::vector<int>>& jumps, uint64_t sz, double local_runtime);
+        const std::vector<std::vector<int>>& jumps, uint64_t sz,  double local_runtime = 0);
     ~FFNewRingAllreduce() = default;
 
     std::vector<uint64_t> node_group; // group of nodes in the order of the ring
@@ -181,10 +181,10 @@ struct FFPSAllreduceFlow {
 class FFPSAllreduce : public FFTask {
 
 public:
-    FFPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz, int pserver);
+    FFPSAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz,  double local_runtime = 0);
     ~FFPSAllreduce() = default;
 
-    std::vector<int> node_group; // group of nodes
+    std::vector<uint64_t> node_group; // group of nodes
     uint32_t operator_size;      // total data size of the operator
     int pserver;
 
@@ -212,10 +212,10 @@ class FFDPSAllreduce;
 class FFDPSAllreduce : public FFTask {
 
 public:
-    FFDPSAllreduce(FFApplication * ffapp, std::vector<int> ng, uint64_t sz);
+    FFDPSAllreduce(FFApplication * ffapp, std::vector<uint64_t> ng, uint64_t sz, double local_runtime = 0);
     ~FFDPSAllreduce() = default;
 
-    std::vector<int> node_group; // group of nodes in the order of the ring
+    std::vector<uint64_t> node_group; // group of nodes in the order of the ring
     uint32_t operator_size;      // total data size of the operator
     int finished_partitions;     // number of finished partitions
 
@@ -233,12 +233,20 @@ void ar_finish_dps(void * ar_ptr);
 
 class FFApplication {
 public:
+
+    enum FFAllReduceStrategy {
+        FF_RING_AR,
+        FF_PS_AR,
+        FF_DPS_AR,
+        FF_DEFAULT_AR
+    };
+
     // FFApplication(Topology* top, int cwnd, double pull_rate,  
 	// 		NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph);
     // FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     //     TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
     FFApplication(Topology* top, int ss, ofstream * _fstream_out, // TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl, 
-        TcpRtxTimerScanner & rtx, EventList & eventlist);
+        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy = FFApplication::FF_DEFAULT_AR);
         
 	~FFApplication();
 
@@ -274,6 +282,7 @@ public:
 	// NdpSinkLoggerSampling & sinkLogger;
     // TcpSinkLoggerSampling & sinkLogger;
     // TcpTrafficLogger & tcpTrafficLogger;
+    FFAllReduceStrategy allreduce_strategy;
     ofstream * fstream_out;
     TcpRtxTimerScanner & tcpRtxScanner;
     std::unordered_map<uint64_t, std::vector<std::vector<int>>> selected_jumps;
