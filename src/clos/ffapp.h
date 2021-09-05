@@ -246,7 +246,7 @@ public:
     // FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     //     TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
     FFApplication(Topology* top, int ss, ofstream * _fstream_out, // TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl, 
-        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy = FFApplication::FF_DEFAULT_AR);
+        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars = FFApplication::FF_DEFAULT_AR);
         
 	~FFApplication();
 

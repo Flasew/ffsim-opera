@@ -23,7 +23,8 @@ FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, //T
     : topology(top), ssthresh(ss), eventlist(eventlist), 
       fstream_out(_fstream_out), tcpRtxScanner(rtx), 
       final_finish_time(0), n_finished_tasks(0), allreduce_strategy(ars) {
-
+    // std::cerr << "allreduce_strategy: " << allreduce_strategy << std::endl;
+    fancy_ring = false;
     // FFTask::ffapp = this;
     // FFTask::evl = this->eventlist;
    
@@ -151,6 +152,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
 
             // if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_RING) {
             if (fancy_ring) {
+                // cout << "fancy" << endl;
                 tasks[this_task.taskid()] = new FFNewRingAllreduce(
                     this, 
                     node_group, 
