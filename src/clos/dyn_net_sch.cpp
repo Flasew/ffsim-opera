@@ -276,6 +276,7 @@ void DynFlatScheduler::update_all_queue_bandwidth()
   // #if SIPML_OCS
   if (optstrategy == OptStrategy::SIPML_OCS)
   {
+#ifdef USE_GUROBI
     try
     {
       Matrix2D<double> normal_tm(nnodes, nnodes);
@@ -357,10 +358,12 @@ void DynFlatScheduler::update_all_queue_bandwidth()
         cout << e.getMessage() << endl;
       }
     }
+#endif
   }
 
   else if (optstrategy == OptStrategy::SIPML_RING)
   {
+#ifdef USE_GUROBI
     Matrix2D<double> normal_tm(nnodes, nnodes);
     normalize_tm(normal_tm);
     try
@@ -511,6 +514,7 @@ void DynFlatScheduler::update_all_queue_bandwidth()
     {
       cout << "Exception during optimization" << endl;
     }
+#endif
   }
   else
   {
