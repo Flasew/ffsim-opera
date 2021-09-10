@@ -178,6 +178,7 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
             for (int j = 0; j < this_task.nexttasks()->size() ; j++) {
                 node_group.push_back(reinterpret_cast<uint64_t>(this_task.nexttasks()->Get(j)));
             }
+            std::cerr << "ar size: " << this_task.xfersize() << std::endl;
 
             // if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_RING) {
             if (fancy_ring) {
@@ -832,6 +833,7 @@ void FFRingAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
@@ -840,6 +842,9 @@ void FFRingAllreduce::doNextEvent() {
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
+        if (operator_size < 9000 /* MTU */) {
+            operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
+        }
         start_time = ready_time;
         state = FFTask::TASK_RUNNING;
         for (size_t i = 0; i < node_group.size(); i++) {
@@ -966,12 +971,16 @@ void ar_finish_ring(void * arinfo) {
     ar->finished_rounds[f->id]++; 
     ar->finished_curr_round++;
     delete f;
-
     if (ar->finished_curr_round == (int)ar->node_group.size()) {
         // ar->finished_partitions++;
         ar->curr_round++;
         ar->finished_curr_round = 0;
-        if (ar->curr_round == 2 * ((int)ar->node_group.size() - 1)) {
+        if (ar->curr_round == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000) {
+            std::cerr << "early terminiate..." << std::endl;
+            ar->finish_time = ar->eventlist().now();
+            ar->cleanup();
+        }
+        else if (ar->curr_round == 2 * ((int)ar->node_group.size() - 1)) {
             ar->finish_time = ar->eventlist().now();
             ar->cleanup();
             // ar->state = FFTask::TASK_FINISHED;
@@ -1007,12 +1016,16 @@ FFNewRingAllreduce::FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64
 
 void FFNewRingAllreduce::doNextEvent()
 {
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
         // state = FFTask::TASK_FINISHED;
         cleanup();
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
+    }
+    if (operator_size < 9000 /* MTU */) {
+        operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
     }
     else {
         start_time = ready_time;
@@ -1094,7 +1107,11 @@ void ar_finish_newring(void * arinfo)
         // ar->finished_partitions++;
         ar->curr_round[ring_idx]++;
         ar->finished_curr_round[ring_idx] = 0;
-        if (ar->curr_round[ring_idx] == 2 * ((int)ar->node_group.size() - 1)) {
+        if (ar->curr_round[ring_idx] == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000) {
+            std::cerr << "early terminiate..." << std::endl;
+            ar->finished_rings++;
+        }
+        else if (ar->curr_round[ring_idx] == 2 * ((int)ar->node_group.size() - 1)) {
             ar->finished_rings++;
         }
         else {
@@ -1132,6 +1149,7 @@ void FFPSAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
@@ -1251,6 +1269,7 @@ void FFDPSAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
