@@ -70,6 +70,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
 {
   // demandrecorder.init(nnodes);
   FlatDegConstraintNetworkTopologyGenerator gen{nnodes, degree};
+  set_all_queues_pause_recved();
   auto init_conn = gen.generate_topology();
   for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
     for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
@@ -78,6 +79,8 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
       topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
     }
   }
+  finish_reconf();
+
   std::cout << "initconn" << std::endl;
 
   status = DynNetworkStatus::DYN_NET_LIVE;
