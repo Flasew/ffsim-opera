@@ -84,7 +84,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
   std::cout << "initconn" << std::endl;
 
   status = DynNetworkStatus::DYN_NET_LIVE;
-  eventlist.sourceIsPending(*this, n_nondelay * reconf_delay);
+  eventlist.sourceIsPending(*this, std::min(reconf_delay, timeFromMs(1)));
   if (optstrategy == OptStrategy::SIPML_OCS)
   {
 #ifdef USE_GUROBI
