@@ -1024,10 +1024,10 @@ void FFNewRingAllreduce::doNextEvent()
         cleanup();
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
-    if (operator_size < 9000 /* MTU */) {
-        operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
-    }
     else {
+        if (operator_size < 9000 /* MTU */) {
+            operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
+        }
         start_time = ready_time;
         state = FFTask::TASK_RUNNING;
         for (size_t i = 0; i < node_group.size(); i++) {
