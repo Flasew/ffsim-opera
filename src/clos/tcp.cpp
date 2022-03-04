@@ -260,8 +260,8 @@ void TcpSrc::receivePacket(Packet &pkt)
 	}
 	//  cout << "Base "<<timeAsMs(_base_rtt)<< " RTT " << timeAsMs(_rtt)<< " Queued " << queued_packets << endl;
 
-	if (_rto < timeFromMs(1))
-		_rto = timeFromMs(1);
+	if (_rto < timeFromMs(10))
+    _rto = timeFromMs(10);
 
 	// debug:
 	// cout << (uint64_t)this << " seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;

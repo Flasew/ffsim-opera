@@ -157,13 +157,16 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
         for (int i = 0; i < fbuf_tg->rings()->size(); i++) {
             auto& this_ring = *fbuf_tg->rings()->Get(i);
             uint64_t ring_sz = this_ring.ringsz();
+            std::cerr << "fancy ring, ring_sz " << ring_sz << ", routes ";
             std::vector<std::vector<int>> routes{};
             for (int j = 0; j < this_ring.ringpaths()->size(); j++) {
                 auto & this_path = *this_ring.ringpaths()->Get(j);
                 std::vector<int> ringdesc{};
                 for (int k = 0; k < this_path.jumps()->size(); k++) {
                     ringdesc.push_back(this_path.jumps()->Get(k));
+                    std::cerr << this_path.jumps()->Get(k) << ", ";
                 }
+                std::cerr << std::endl;
                 routes.push_back(ringdesc);
             }
             selected_jumps[ring_sz] = routes;
@@ -568,7 +571,7 @@ void FFTask::execute_compute() {
 void FFTask::cleanup() {
     this->state = FFTask::TASK_FINISHED;
     ffapp->n_finished_tasks++;
-    // std::cerr << ffapp << " finished one task, nfin " << ffapp->n_finished_tasks << " ntot " << ffapp->tasks.size() << std::endl;
+    std::cerr << ffapp << " finished one task, nfin " << ffapp->n_finished_tasks << " ntot " << ffapp->tasks.size() << " type " << this->type << " now " << eventlist().now() << std::endl;
     if (ffapp->final_finish_time < finish_time) {
         ffapp->final_finish_time = finish_time;
     }
@@ -639,7 +642,7 @@ void FFTask::start_flow() {
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(xfersize); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
-    flowSrc->_rto = timeFromMs(1);
+    flowSrc->_rto = timeFromMs(10);
     
     ffapp->tcpRtxScanner.registerTcp(*flowSrc);
 
@@ -842,7 +845,7 @@ void FFRingAllreduce::doNextEvent() {
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
-        if (operator_size < 9000 /* MTU */) {
+        if (operator_size < 9000 * node_group.size() /* MTU */) {
             operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
         }
         start_time = ready_time;
@@ -975,7 +978,7 @@ void ar_finish_ring(void * arinfo) {
         // ar->finished_partitions++;
         ar->curr_round++;
         ar->finished_curr_round = 0;
-        if (ar->curr_round == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000) {
+        if (ar->curr_round == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000 * ar->node_group.size()) {
             std::cerr << "early terminiate..." << std::endl;
             ar->finish_time = ar->eventlist().now();
             ar->cleanup();
@@ -1017,15 +1020,15 @@ FFNewRingAllreduce::FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64
 void FFNewRingAllreduce::doNextEvent()
 {
 
+    std::cerr << "AR " << this << " size " <<  node_group.size() << " node starting " << jumps.size() << " rings, now " << eventlist().now() << std::endl;
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
         // state = FFTask::TASK_FINISHED;
         cleanup();
-        // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
-        if (operator_size < 9000 /* MTU */) {
+        if (operator_size < 9000  * node_group.size() /* MTU */) {
             operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
         }
         start_time = ready_time;
@@ -1041,7 +1044,8 @@ void FFNewRingAllreduce::doNextEvent()
 void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, int ring_id, int id)
 {
     int src_node = ffapp->gpus[node_group[src_idx]];
-    int dst_node = ffapp->gpus[node_group[(src_idx + 1) % node_group.size()]];
+    int dst_node = (src_idx + total_jump[ring_id]) % ffapp->nnodes; //ffapp->gpus[node_group[(src_idx + 1) % node_group.size()]];
+    //std::cerr << "start flow src: " << src_node << " dst: " << dst_node << std::endl;
 
     FFNewRingAllreduceFlow * f = new FFNewRingAllreduceFlow();
     f->ar = this;
@@ -1054,7 +1058,7 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size/node_group.size()/jumps.size()); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
-    flowSrc->_rto = timeFromMs(1);
+    flowSrc->_rto = timeFromMs(10);
     
     ffapp->tcpRtxScanner.registerTcp(*flowSrc);
 
@@ -1107,7 +1111,7 @@ void ar_finish_newring(void * arinfo)
         // ar->finished_partitions++;
         ar->curr_round[ring_idx]++;
         ar->finished_curr_round[ring_idx] = 0;
-        if (ar->curr_round[ring_idx] == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000) {
+        if (ar->curr_round[ring_idx] == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000 * ar->node_group.size()) {
             std::cerr << "early terminiate..." << std::endl;
             ar->finished_rings++;
         }
@@ -1124,7 +1128,7 @@ void ar_finish_newring(void * arinfo)
             ar->finish_time = ar->eventlist().now();
             ar->cleanup();
             // ar->state = FFTask::TASK_FINISHED;
-            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            std::cerr << "AR " << ar << " finished at " << ar->finish_time << std::endl;
             // ar->ffapp->n_finished_tasks++;
             // if (ar->ffapp->final_finish_time < ar->finish_time) {
             //     ar->ffapp->final_finish_time = ar->finish_time;

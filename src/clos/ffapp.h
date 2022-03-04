@@ -304,7 +304,9 @@ public:
         (*buf).resize(static_cast<size_t>(size));
         ifs.seekg(0, std::ios::beg);
         ifs.read(&(*buf)[0], (*buf).size());
-        return !ifs.bad();
+        if (ifs.bad()) return false;
+        ifs.close();
+        return true;
     }
 
     size_t nnodes, ngpupernode, nswitches;
