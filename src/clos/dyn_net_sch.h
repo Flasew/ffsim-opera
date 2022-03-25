@@ -316,8 +316,13 @@ public:
    */
   void finish_reconf();
 
+  void do_reconf();
+
   void update_all_queue_bandwidth();
   void set_all_queues_pause_recved();
+  void set_all_tcp_pause();
+  void update_all_route();
+  void resume_tcp_flows();
   // void resume_lively_queues();
   // void pause_no_bw_queues();
 
@@ -336,6 +341,8 @@ public:
   EventList & eventlist;
 
   DemandRecorder * demandrecorder;
+
+  int non_empty_queues;
 };
 
 class FlatDegConstraintNetworkTopologyGenerator {

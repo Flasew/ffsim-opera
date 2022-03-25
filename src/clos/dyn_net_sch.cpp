@@ -69,6 +69,18 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
   topo(topo), reconf_delay(reconf_delay), optstrategy(method), eventlist(eventlist)
 {
   // demandrecorder.init(nnodes);
+
+  for (int i = 0; i < nnodes; i++)
+  {
+    for (int j = 0; j < nnodes; j++)
+    {
+      if (i == j) continue;
+      Queue * q = topo->queues[i][j];
+      ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
+      eq->set_dyn_sch(this);
+    }
+  }
+
   FlatDegConstraintNetworkTopologyGenerator gen{nnodes, degree};
   set_all_queues_pause_recved();
   auto init_conn = gen.generate_topology();
@@ -104,7 +116,23 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
       normalize_tm(normal_tm);
       //    cout << normal_tm;
 
-      cout << "nnodes" << nnodes << endl;
+      c	list<TcpSrc*>::iterator i = rtx_scanner->_tcps.begin();
+	while (i != rtx_scanner->_tcps.end())
+	{
+    TcpSrc * tcpsrc = *i;
+		if (tcpsrc->_finished)
+		{
+			tcpsrc->eventlist().cancelPendingSource(**i);
+			// delete *i;
+			i = rtx_scanner->_tcps.erase(i);
+		}
+		else
+		{
+      tm.add_elem_by(tcpsrc->_flow_src, tcpsrc->_flow_dst, tcpsrc->_flow_size - tcpsrc->_last_acked);
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      i++;
+		}
+	}out << "nnodes" << nnodes << endl;
 
       gmodel->set(GRB_IntParam_OutputFlag, 0);
       /* create the permutation decisions */
@@ -153,13 +181,23 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
           for (int src = 0; src < nnodes; src++)
           {
             expr += perms[sw][src][dst];
-          }
-          string s = "ingress_constraint_sw" + to_string(sw) + "_port" + to_string(dst);
-          gmodel->addConstr(expr, GRB_EQUAL, 1.0, s);
-        }
-      }
-
-      /* traffic completion time */
+          	list<TcpSrc*>::iterator i = rtx_scanner->_tcps.begin();
+	while (i != rtx_scanner->_tcps.end())
+	{
+    TcpSrc * tcpsrc = *i;
+		if (tcpsrc->_finished)
+		{
+			tcpsrc->eventlist().cancelPendingSource(**i);
+			// delete *i;
+			i = rtx_scanner->_tcps.erase(i);
+		}
+		else
+		{
+      tm.add_elem_by(tcpsrc->_flow_src, tcpsrc->_flow_dst, tcpsrc->_flow_size - tcpsrc->_last_acked);
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      i++;
+		}
+	} /* traffic completion time */
       GRBVar min_rate = gmodel->addVar(0.0, GRB_INFINITY, 0.0, GRB_CONTINUOUS, "min_rate");
       /* set objective */
       gmodel->setObjective(GRBLinExpr(min_rate), GRB_MAXIMIZE);
@@ -218,8 +256,8 @@ void DynFlatScheduler::doNextEvent()
   if (status == DynNetworkStatus::DYN_NET_LIVE)
   {
     start_reconf();
-    status = DynNetworkStatus::DYN_NET_RECONF;
-    eventlist.sourceIsPendingRel(*this, reconf_delay);
+    // status = DynNetworkStatus::DYN_NET_RECONF;
+    // eventlist.sourceIsPendingRel(*this, reconf_delay);
   }
   else
   {
@@ -231,8 +269,20 @@ void DynFlatScheduler::doNextEvent()
 
 void DynFlatScheduler::start_reconf()
 {
+  set_all_tcp_pause();
   set_all_queues_pause_recved();
-  update_all_queue_bandwidth();
+  // update_all_queue_bandwid
+}
+
+void DynFlatScheduler::do_reconf() 
+{
+  non_empty_queues--;
+  if (non_empty_queues == 0) {
+    update_all_queue_bandwidth();
+    update_all_route();
+    status = DynNetworkStatus::DYN_NET_RECONF;
+    eventlist.sourceIsPendingRel(*this, reconf_delay);
+  }
 }
 
 void DynFlatScheduler::finish_reconf()
@@ -258,12 +308,12 @@ void DynFlatScheduler::finish_reconf()
       }
     }
   }
+  resume_tcp_flows();
 }
 
 void DynFlatScheduler::set_all_queues_pause_recved()
 {
-  for (int i = 0; i < nnodes; i++)
-  {
+  for (int i = 0; i < nnodes; i++) {
     for (int j = 0; j < nnodes; j++)
     {
       if (i == j) continue;
@@ -288,6 +338,54 @@ inline static bool has_tx_endpoint(uint64_t e, size_t v, size_t n) {
 inline static bool has_rx_endpoint(uint64_t e, size_t v, size_t n) {
   return e % n == v;
 }
+
+void DynFlatScheduler::set_all_tcp_pause() 
+{
+  list<TcpSrc*>::iterator i = demandrecorder->rtx_scanner->_tcps.begin();
+	while (i != demandrecorder->rtx_scanner->_tcps.end())
+	{
+    TcpSrc * tcpsrc = *i;
+		if (tcpsrc->_finished)
+		{
+			tcpsrc->eventlist().cancelPendingSource(**i);
+			// delete *i;
+			i = demandrecorder->rtx_scanner->_tcps.erase(i);
+		}
+		else
+		{
+      tcpsrc->pause_flow();
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      i++;
+		}
+	}
+}
+
+void DynFlatScheduler::update_all_route() 
+{
+
+}
+
+void DynFlatScheduler::resume_tcp_flows() 
+{
+  list<TcpSrc*>::iterator i = demandrecorder->rtx_scanner->_tcps.begin();
+	while (i != demandrecorder->rtx_scanner->_tcps.end())
+	{
+    TcpSrc * tcpsrc = *i;
+		if (tcpsrc->_finished)
+		{
+			tcpsrc->eventlist().cancelPendingSource(**i);
+			// delete *i;
+			i = demandrecorder->rtx_scanner->_tcps.erase(i);
+		}
+		else
+		{
+      tcpsrc->resume_flow();
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      i++;
+		}
+	}
+}
+
 
 void DynFlatScheduler::update_all_queue_bandwidth()
 {

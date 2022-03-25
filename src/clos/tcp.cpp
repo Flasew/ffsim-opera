@@ -10,15 +10,15 @@
 ////////////////////////////////////////////////////////////////
 //  TCP SOURCE
 ////////////////////////////////////////////////////////////////
-DemandRecorder * TcpSrc::demand_recorder = nullptr;
+DemandRecorder *TcpSrc::demand_recorder = nullptr;
 
 TcpSrc::TcpSrc(TcpLogger *logger, TrafficLogger *pktlogger, ofstream *_fstream_out,
-							 EventList &eventlist, int flow_src, int flow_dst, 
+							 EventList &eventlist, int flow_src, int flow_dst,
 							 void (*acf)(void *), void *acd)
 		: EventSource(eventlist, "tcp"), _logger(logger), _flow(pktlogger), _flow_src(flow_src), _flow_dst(flow_dst), application_callback(acf), application_callback_data(acd)
 {
 	_mss = Packet::data_packet_size();
-	_maxcwnd = 0xffffffff; //MAX_SENT*_mss;
+	_maxcwnd = 0xffffffff; // MAX_SENT*_mss;
 	_sawtooth = 0;
 	_subflow_id = -1;
 	_rtt_avg = timeFromMs(0);
@@ -97,7 +97,7 @@ TcpSrc::~TcpSrc()
 #ifdef PACKET_SCATTER
 void TcpSrc::set_paths(vector<const Route *> *rt)
 {
-	//this should only be used with route
+	// this should only be used with route
 	_paths = new vector<const Route *>();
 
 	for (unsigned int i = 0; i < rt->size(); i++)
@@ -142,7 +142,12 @@ void TcpSrc::set_app_limit(int pktps)
 	}
 	_ssthresh = 0xffffffff;
 	_app_limited = pktps;
-	send_packets();
+	if (!tcp_flow_paused)
+		send_packets();
+	else
+	{
+		tcp_has_pending_send = true;
+	}
 }
 
 void TcpSrc::startflow()
@@ -152,7 +157,12 @@ void TcpSrc::startflow()
 	_unacked = _cwnd;
 	_established = false;
 
-	send_packets();
+	if (!tcp_flow_paused)
+		send_packets();
+	else
+	{
+		tcp_has_pending_send = true;
+	}
 }
 
 uint32_t TcpSrc::effective_window()
@@ -186,7 +196,7 @@ void TcpSrc::connect(const Route &routeout, const Route &routeback, TcpSink &sin
 
 	set_start_time(starttime); // record the start time in _start_time
 
-	//printf("Tcp %x msrc %x\n",this,_mSrc);
+	// printf("Tcp %x msrc %x\n",this,_mSrc);
 	eventlist().sourceIsPending(*this, starttime);
 }
 
@@ -221,8 +231,8 @@ void TcpSrc::receivePacket(Packet &pkt)
 	if (seqno == 1)
 	{
 		// debug:
-		//cout << "established" << endl;
-		//assert(!_established);
+		// cout << "established" << endl;
+		// assert(!_established);
 		_established = true;
 	}
 	else if (seqno > 1 && !_established)
@@ -230,9 +240,9 @@ void TcpSrc::receivePacket(Packet &pkt)
 		// cout << "XXX Should be _established " << seqno << endl;
 	}
 
-	//assert(seqno >= _last_acked);  // no dups or reordering allowed in this simple simulator
+	// assert(seqno >= _last_acked);  // no dups or reordering allowed in this simple simulator
 
-	//compute rtt
+	// compute rtt
 	uint64_t m = eventlist().now() - ts;
 
 	if (m != 0)
@@ -269,9 +279,9 @@ void TcpSrc::receivePacket(Packet &pkt)
 	if (seqno >= _flow_size && !_finished)
 	{
 		_last_acked =
-		_finished = true;
+				_finished = true;
 		// original:
-		//cout << "Flow " << nodename() << " finished at " << timeAsMs(eventlist().now()) << endl;
+		// cout << "Flow " << nodename() << " finished at " << timeAsMs(eventlist().now()) << endl;
 
 		// FCT output for processing: (src dst bytes fct_ms timestarted_ms)
 		*(fstream_out) << "FCT " << get_flow_src() << " " << get_flow_dst() << " " << get_flowsize() << " " << timeAsMs(eventlist().now() - get_start_time()) << " " << timeAsMs(get_start_time()) << " " << (double)get_flowsize() / timeAsSec(eventlist().now() - get_start_time()) * 8 / 1000000000UL << endl;
@@ -287,9 +297,9 @@ void TcpSrc::receivePacket(Packet &pkt)
 		{
 			if (seqno >= _last_packet_with_old_route)
 			{
-				//delete _old_route;
+				// delete _old_route;
 				_old_route = NULL;
-				//printf("Deleted old route\n");
+				// printf("Deleted old route\n");
 			}
 		}
 		_RFC2988_RTO_timeout = eventlist().now() + _rto; // RFC 2988 5.3
@@ -307,13 +317,13 @@ void TcpSrc::receivePacket(Packet &pkt)
 
 		_sent_packets.ack_packet(seqno);
 
-		//if ((cnt = _sent_packets.ack_packet(seqno)) > 2)
-		//  cout << "ACK "<<cnt<<" packets on " << _flow.id << " " << _highest_sent+1 << " packets in flight " << _sent_packets.crt_count << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
+		// if ((cnt = _sent_packets.ack_packet(seqno)) > 2)
+		//   cout << "ACK "<<cnt<<" packets on " << _flow.id << " " << _highest_sent+1 << " packets in flight " << _sent_packets.crt_count << " diff " << (_highest_sent+_mss-_last_acked)/1000 << " last_acked " << _last_acked << " at " << timeAsMs(eventlist().now()) << endl;
 #endif
 
 		if (!_in_fast_recovery)
 		{ // best behaviour: proper ack of a new packet, when we were expecting it
-			//clear timers
+			// clear timers
 
 			_last_acked = seqno;
 			_dupacks = 0;
@@ -328,7 +338,12 @@ void TcpSrc::receivePacket(Packet &pkt)
 			_effcwnd = _cwnd;
 			if (_logger)
 				_logger->logTcp(*this, TcpLogger::TCP_RCV);
-			send_packets();
+			if (!tcp_flow_paused)
+				send_packets();
+			else
+			{
+				tcp_has_pending_send = true;
+			}
 			return;
 		}
 		// We're in fast recovery, i.e. one packet has been
@@ -347,7 +362,12 @@ void TcpSrc::receivePacket(Packet &pkt)
 
 			if (_logger)
 				_logger->logTcp(*this, TcpLogger::TCP_RCV_FR_END);
-			send_packets();
+			if (!tcp_flow_paused)
+				send_packets();
+			else
+			{
+				tcp_has_pending_send = true;
+			}
 			return;
 		}
 		// In fast recovery, and still getting ACKs for the
@@ -363,8 +383,18 @@ void TcpSrc::receivePacket(Packet &pkt)
 		_cwnd += _mss;
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_FR);
-		retransmit_packet();
-		send_packets();
+		if (!tcp_flow_paused)
+			retransmit_packet();
+		else
+		{
+			tcp_has_pending_retrans = true;
+		}
+		if (!tcp_flow_paused)
+			send_packets();
+		else
+		{
+			tcp_has_pending_send = true;
+		}
 		return;
 	}
 	// It's a dup ack
@@ -383,7 +413,12 @@ void TcpSrc::receivePacket(Packet &pkt)
 			_effcwnd = _unacked; // starting to send packets again
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_DUP_FR);
-		send_packets();
+		if (!tcp_flow_paused)
+			send_packets();
+		else
+		{
+			tcp_has_pending_send = true;
+		}
 		return;
 	}
 	// Not yet in fast recovery. What should we do instead?
@@ -397,14 +432,19 @@ void TcpSrc::receivePacket(Packet &pkt)
 	{ // not yet serious worry
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_DUP);
-		send_packets();
+		if (!tcp_flow_paused)
+			send_packets();
+		else
+		{
+			tcp_has_pending_send = true;
+		}
 		return;
 	}
 	// _dupacks==3
 	if (_last_acked < _recoverq)
 	{
 		/* See RFC 3782: if we haven't recovered from timeouts
-	   etc. don't do fast recovery */
+		 etc. don't do fast recovery */
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_3DUPNOFR);
 		return;
@@ -412,7 +452,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 
 	// begin fast recovery
 
-	//only count drops in CA state
+	// only count drops in CA state
 	_drops++;
 
 	deflate_window();
@@ -425,7 +465,12 @@ void TcpSrc::receivePacket(Packet &pkt)
 	_sawtooth = 0;
 	_rtt_cum = timeFromMs(0);
 
-	retransmit_packet();
+	if (!tcp_flow_paused)
+		retransmit_packet();
+	else
+	{
+		tcp_has_pending_retrans = true;
+	}
 	_cwnd = _ssthresh + 3 * _mss;
 	_unacked = _ssthresh;
 	_effcwnd = 0;
@@ -455,7 +500,7 @@ void TcpSrc::inflate_window()
 	if (newly_acked < 0)
 		return;
 	if (_cwnd < _ssthresh)
-	{ //slow start
+	{ // slow start
 		int increase = min(_ssthresh - _cwnd, (uint32_t)newly_acked);
 		_cwnd += increase;
 		newly_acked -= increase;
@@ -472,10 +517,10 @@ void TcpSrc::inflate_window()
 
 		if (_mSrc == NULL)
 		{
-			//int tt = (newly_acked * _mss) % _cwnd;
-			_cwnd += (newly_acked * _mss) / _cwnd; //XXX beware large windows, when this increase gets to be very small
+			// int tt = (newly_acked * _mss) % _cwnd;
+			_cwnd += (newly_acked * _mss) / _cwnd; // XXX beware large windows, when this increase gets to be very small
 
-			//if (rand()%_cwnd < tt)
+			// if (rand()%_cwnd < tt)
 			//_cwnd++;
 		}
 		else
@@ -498,7 +543,7 @@ void TcpSrc::send_packets()
 
 	if (!_established)
 	{
-		//send SYN packet and wait for SYN/ACK
+		// send SYN packet and wait for SYN/ACK
 		Packet *p = TcpPacket::new_syn_pkt(_flow, *_route, 1, 1);
 		_highest_sent = 1;
 
@@ -508,7 +553,7 @@ void TcpSrc::send_packets()
 		{ // RFC2988 5.1
 			_RFC2988_RTO_timeout = eventlist().now() + _rto;
 		}
-		//cout << "Sending SYN, waiting for SYN/ACK" << endl;
+		// cout << "Sending SYN, waiting for SYN/ACK" << endl;
 		return;
 	}
 
@@ -519,16 +564,16 @@ void TcpSrc::send_packets()
 		{
 			c = d;
 		}
-		//if (c<1000)
-		//c = 1000;
+		// if (c<1000)
+		// c = 1000;
 
 		if (c == 0)
 		{
 			//      _RFC2988_RTO_timeout = timeInf;
 		}
 
-		//rtt in ms
-		//printf("%d\n",c);
+		// rtt in ms
+		// printf("%d\n",c);
 	}
 
 	while ((_last_acked + c >= _highest_sent + _mss) && (_highest_sent < _flow_size))
@@ -589,7 +634,7 @@ void TcpSrc::send_packets()
 		p->flow().logTraffic(*p, *this, TrafficLogger::PKT_CREATESEND);
 		p->set_ts(eventlist().now());
 
-		_highest_sent += _mss; //XX beware wrapping
+		_highest_sent += _mss; // XX beware wrapping
 		_packets_sent += _mss;
 
 		p->sendOn();
@@ -694,11 +739,11 @@ void TcpSrc::rtx_timer_hook(simtime_picosec now, simtime_picosec period)
 
 		eventlist().sourceIsPendingRel(*this, rtx_off);
 
-		//reset our rtx timerRFC 2988 5.5 & 5.6
+		// reset our rtx timerRFC 2988 5.5 & 5.6
 
 		_rto *= 2;
-		//if (_rto > timeFromMs(1000))
-		//  _rto = timeFromMs(1000);
+		// if (_rto > timeFromMs(1000))
+		//   _rto = timeFromMs(1000);
 		_RFC2988_RTO_timeout = now + _rto;
 	}
 }
@@ -732,7 +777,12 @@ void TcpSrc::doNextEvent()
 
 		_dupacks = 0;
 
-		retransmit_packet();
+		if (!tcp_flow_paused)
+			retransmit_packet();
+		else
+		{
+			tcp_has_pending_retrans = true;
+		}
 
 		if (_sawtooth > 0)
 			_rtt_avg = _rtt_cum / _sawtooth;
@@ -747,9 +797,36 @@ void TcpSrc::doNextEvent()
 	}
 	else
 	{
-		//cout << "Starting flow" << endl;
+		// cout << "Starting flow" << endl;
 		startflow();
 	}
+}
+
+void TcpSrc::pause_flow()
+{
+	tcp_flow_paused = true;
+}
+
+void TcpSrc::resume_flow()
+{
+	tcp_flow_paused = false;
+	if (tcp_has_pending_retrans)
+	{
+		retransmit_packet();
+		tcp_has_pending_retrans = false;
+	}
+	if (tcp_has_pending_send)
+	{
+		send_packets();
+		tcp_has_pending_send = false;
+	}
+}
+
+void TcpSrc::update_route(Route *routeout, Route *routein)
+{
+	replace_route(routeout);
+	delete _sink->_route;
+	_sink->_route = routein;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -816,14 +893,14 @@ void TcpSink::receivePacket(Packet &pkt)
 		_cumulative_ack = seqno + size - 1;
 		// if (_src->demand_recorder)
 		// 	_src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
-		//cout << "New cumulative ack is " << _cumulative_ack << endl;
+		// cout << "New cumulative ack is " << _cumulative_ack << endl;
 		// are there any additional received packets we can now ack?
 		while (!_received.empty() && (_received.front() == _cumulative_ack + 1))
 		{
 			_received.pop_front();
 			_cumulative_ack += size;
 			// if (_src->demand_recorder)
-				// _src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
+			// _src->demand_recorder->satisfied(_src->_flow_src, _src->_flow_dst, size);
 		}
 	}
 	else if (seqno < _cumulative_ack + 1)
@@ -834,7 +911,7 @@ void TcpSink::receivePacket(Packet &pkt)
 		if (_received.empty())
 		{
 			_received.push_front(seqno);
-			//it's a drop in this simulator there are no reorderings.
+			// it's a drop in this simulator there are no reorderings.
 			_drops += (1000 + seqno - _cumulative_ack - 1) / 1000;
 		}
 		else if (seqno > _received.back())
@@ -863,7 +940,7 @@ void TcpSink::send_ack(simtime_picosec ts, bool marked)
 {
 
 	// debug:
-	//cout << "Sink: sending an ACK" << endl;
+	// cout << "Sink: sending an ACK" << endl;
 
 	const Route *rt = _route;
 
@@ -896,7 +973,7 @@ void TcpSink::send_ack(simtime_picosec ts, bool marked)
 #ifdef PACKET_SCATTER
 void TcpSink::set_paths(vector<const Route *> *rt)
 {
-	//this should only be used with route
+	// this should only be used with route
 	_paths = new vector<const Route *>();
 
 	for (unsigned int i = 0; i < rt->size(); i++)
