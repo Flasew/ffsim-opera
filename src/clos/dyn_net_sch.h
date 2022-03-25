@@ -345,4 +345,15 @@ public:
   int non_empty_queues;
 };
 
+class FlatDegConstraintNetworkTopologyGenerator {
+public:
+    FlatDegConstraintNetworkTopologyGenerator(int num_nodes, int degree);
+    std::vector<size_t> generate_topology() const;
+public:
+    inline int get_id(int i, int j) const;
+    inline int get_if_in_use(int node, const std::vector<size_t> & conn) const;
+    int num_nodes;
+    int degree;
+};
+
 #endif

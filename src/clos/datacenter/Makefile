@@ -1,16 +1,27 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall -std=c++14 -O3 #-O0 -g
+CFLAGS=-Wall -std=c++17 -O3 #-O0 -g
 FF_HOME?=$(HOME)/FlexFlow
 GUROBI_DIR?=$(HOME)/gurobi912/linux64
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-INCLUDE= -I$(CRT)/.. -I$(CRT) -I$(GUROBI_DIR)/include/ -I$(FF_HOME)/fbuf2/include #-I/usr/local/Cellar/flatbuffers/2.0.0/include/ 
+INCLUDE= -I$(CRT)/.. -I$(CRT) -I$(FF_HOME)/fbuf2/include #-I/usr/local/Cellar/flatbuffers/2.0.0/include/ 
 #-I$(CRT)/ksp -I$(CRT)/ksp/boost
-LIB=-L.. -L$(GUROBI_DIR)/lib -lgurobi_c++ -lgurobi91 # -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
+LIB=-L.. 
+ifeq ($(USE_GUROBI), 1)
+	INCLUDE+= -I$(GUROBI_DIR)/include/ 
+	LIB+= -L$(GUROBI_DIR)/lib -lgurobi_c++ -lgurobi91 # -L$(FF_HOME)/protobuf/src/.libs -lprotobuf
+	CFLAGS+= -DHAVE_GUROBI
+endif
 #-Lksp
 OBJS=../eventlist.o ../tcppacket.o ../pipe.o ../queue.o ../queue_lossless.o ../queue_lossless_input.o ../queue_lossless_output.o ../ecnqueue.o ../tcp.o ../dctcp.o ../mtcp.o ../loggers.o ../logfile.o ../clock.o ../config.o ../network.o ../qcn.o ../exoqueue.o ../randomqueue.o ../cbr.o ../cbrpacket.o ../sent_packets.o ../ndp.o ../ndppacket.o ../eth_pause_packet.o ../compositequeue.o ../prioqueue.o ../cpqueue.o ../compositeprioqueue.o ../switch.o ../fairpullqueue.o ../route.o ../ffapp.o ../dyn_net_sch.o#../taskgraph.pb.o
 
-all: htsim_tcp_fc htsim_tcp_fattree htsim_tcp_os_fattree htsim_tcp_flat htsim_tcp_aggosft htsim_tcp_dyn_flat
+all: htsim_tcp_fc htsim_tcp_fattree htsim_tcp_os_fattree htsim_tcp_flat htsim_tcp_aggosft htsim_tcp_dyn_flat htsim_tcp_fattree_multijob htsim_tcp_aggos_fattree_multijob
+
+htsim_tcp_fattree_multijob: main_tcp_multijob_fattree.o firstfit.o fat_tree_topology.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_multijob_fattree.o fat_tree_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_fattree_multijob
+
+htsim_tcp_aggos_fattree_multijob: main_tcp_multijob_aggos_fattree.o firstfit.o agg_os_fattree.o
+	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_multijob_aggos_fattree.o agg_os_fattree.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_aggos_fattree_multijob
 
 htsim_tcp_dyn_flat: main_tcp_dyn_flat.o firstfit.o flat_topology.o
 	$(CC) $(CFLAGS) $(INCLUDE) firstfit.o main_tcp_dyn_flat.o flat_topology.o $(OBJS) $(LIB) -lhtsim -o htsim_tcp_dyn_flat
@@ -38,6 +49,12 @@ main_tcp_fc.o: main_tcp_fc.cpp
 
 main_tcp_fattree.o: main_tcp_fattree.cpp 
 	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_fattree.cpp
+
+main_tcp_multijob_fattree.o: main_tcp_multijob_fattree.cpp 
+	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_multijob_fattree.cpp
+
+main_tcp_multijob_aggos_fattree.o: main_tcp_multijob_aggos_fattree.cpp 
+	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_multijob_aggos_fattree.cpp
 
 main_tcp_os_fattree.o: main_tcp_os_fattree.cpp 
 	$(CC) $(INCLUDE) $(CFLAGS) -c  main_tcp_os_fattree.cpp

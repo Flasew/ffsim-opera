@@ -86,6 +86,13 @@ public:
     virtual void doNextEvent(); // call task event
     void execute_compute();
 
+    virtual void reset() {
+        state = FFTask::TASK_NOT_READY;
+        ready_time = eventlist().now();
+        start_time = 0;
+        finish_time = 0;
+    }
+
     FFTaskType type;
     FFTaskState state;
     FFDevice* device;
@@ -131,6 +138,15 @@ public:
     std::vector<std::vector<int>> finished_rounds;
 
     virtual void doNextEvent();
+    virtual void reset() {
+        FFTask::reset();
+        std::fill(finished_curr_round.begin(), finished_curr_round.end(), 0);
+        std::fill(curr_round.begin(), curr_round.end(), 0);
+        for (auto & v: finished_rounds) {
+            std::fill(v.begin(), v.end(), 0);
+        }
+        finished_rings = 0;
+    }
 
     void start_flow(int src_idx, const std::vector<int>& jump, int ring_id, int id);
 };
@@ -161,7 +177,13 @@ public:
     std::vector<int> finished_rounds;
 
     virtual void doNextEvent();
-
+    virtual void reset() {
+        FFTask::reset();
+        finished_curr_round = 0;
+        curr_round = 0;
+        finished_partitions = 0;
+        std::fill(finished_rounds.begin(), finished_rounds.end(), 0);
+    }
     // void start();
     // void start_flow(int src_idx, int round);
     void start_flow(int src_idx, int id);
@@ -193,7 +215,12 @@ public:
     int finished_curr_round;
 
     virtual void doNextEvent();
-
+    virtual void reset() {
+        FFTask::reset();
+        finished_curr_round = 0;
+        curr_round = 0;
+        std::fill(finished_rounds.begin(), finished_rounds.end(), 0);
+    }
     void start_flow(int node_idx, int direction);
 };
 
@@ -223,7 +250,12 @@ public:
     int curr_round;
 
     virtual void doNextEvent();
-
+    virtual void reset() {
+        FFTask::reset();
+        finished_curr_round = 0;
+        curr_round = 0;
+        finished_partitions = 0;
+    }
     // void start();
     // void start_flow(int src_idx, int round);
     void start_flow(int src_node, int dst_node);
@@ -246,7 +278,9 @@ public:
     // FFApplication(Topology* top, int ss, TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     //     TcpRtxTimerScanner & rtx, EventList & eventlist, std::string taskgraph);
     FFApplication(Topology* top, int ss, ofstream * _fstream_out, // TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl, 
-        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy = FFApplication::FF_DEFAULT_AR);
+        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars = FFApplication::FF_DEFAULT_AR);
+    FFApplication(Topology* top, int ss, ofstream * _fstream_out, std::vector<int> gpus, // TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl, 
+        TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars = FFApplication::FF_DEFAULT_AR);
         
 	~FFApplication();
 
@@ -254,6 +288,10 @@ public:
     // void load_taskgraph_protobuf(std::string & taskgraph);
     void load_taskgraph_flatbuf(std::string & taskgraph);
     void start_init_tasks();
+
+    void reset_and_restart();
+
+    static std::vector<int> choose_gpus(std::unordered_set<int> & candidates, int n);
 
     static bool LoadFileRaw(const char *name, std::string *buf) {
         std::ifstream ifs(name, std::ifstream::binary);
@@ -266,7 +304,9 @@ public:
         (*buf).resize(static_cast<size_t>(size));
         ifs.seekg(0, std::ios::beg);
         ifs.read(&(*buf)[0], (*buf).size());
-        return !ifs.bad();
+        if (ifs.bad()) return false;
+        ifs.close();
+        return true;
     }
 
     size_t nnodes, ngpupernode, nswitches;
@@ -278,6 +318,7 @@ public:
 	Topology * topology; 
     int ssthresh;
     EventList & eventlist;
+    unordered_map<uint64_t, unsigned int> counters;
 	// NdpRtxTimerScanner & ndpRtxScanner;
 	// NdpSinkLoggerSampling & sinkLogger;
     // TcpSinkLoggerSampling & sinkLogger;
@@ -287,8 +328,14 @@ public:
     TcpRtxTimerScanner & tcpRtxScanner;
     std::unordered_map<uint64_t, std::vector<std::vector<int>>> selected_jumps;
     bool fancy_ring;
+    bool finished_once;
 
+    static int total_apps;
+    static int finished_apps;
+
+    std::vector<int> gpus;
     simtime_picosec final_finish_time;
+    simtime_picosec first_iter_time;
     size_t n_finished_tasks;
 };
 

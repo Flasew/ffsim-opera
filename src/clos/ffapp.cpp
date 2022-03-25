@@ -1,6 +1,8 @@
 #include <fstream>
 #include <streambuf>
 #include <iostream>
+#include <random>
+#include <algorithm>
 #include <assert.h>
 
 #include "ffapp.h"
@@ -13,20 +15,32 @@
 
 using json = nlohmann::json;
 
-// FFApplication * ffapp;
+int FFApplication::total_apps = 0;
+int FFApplication::finished_apps = 0;
 
 // FFApplication::FFApplication(Topology* top, int cwnd, double pull_rate,  
 // 			NdpRtxTimerScanner & nrts, NdpSinkLoggerSampling & sl, EventList & eventlist, std::string taskgraph)
 //     : topology(top), cwnd(cwnd), pull_rate(pull_rate), ndpRtxScanner(nrts), sinkLogger(sl), eventlist(eventlist) {
 FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, //TcpSinkLoggerSampling & sl, TcpTrafficLogger & tl,
     TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars)
-    : topology(top), ssthresh(ss), eventlist(eventlist), 
-      fstream_out(_fstream_out), tcpRtxScanner(rtx), 
-      final_finish_time(0), n_finished_tasks(0), allreduce_strategy(ars) {
+: topology(top), ssthresh(ss), eventlist(eventlist), 
+  fstream_out(_fstream_out), tcpRtxScanner(rtx), 
+  final_finish_time(0), n_finished_tasks(0), allreduce_strategy(ars) {
+    // std::cerr << "allreduce_strategy: " << allreduce_strategy << std::endl;
+    FFApplication::total_apps++;
+    fancy_ring = false;
+    finished_once = false;
+}
 
-    // FFTask::ffapp = this;
-    // FFTask::evl = this->eventlist;
-   
+FFApplication::FFApplication(Topology* top, int ss, ofstream * _fstream_out, std::vector<int> gpus,
+    TcpRtxTimerScanner & rtx, EventList & eventlist, FFAllReduceStrategy ars)
+: topology(top), ssthresh(ss), eventlist(eventlist), 
+  fstream_out(_fstream_out), gpus(gpus), tcpRtxScanner(rtx), 
+  final_finish_time(0), n_finished_tasks(0), allreduce_strategy(ars) {
+    // std::cerr << "allreduce_strategy: " << allreduce_strategy << std::endl;
+    FFApplication::total_apps++;
+    fancy_ring = false;
+    finished_once = false;
 }
 
 FFApplication::~FFApplication() {
@@ -38,6 +52,18 @@ FFApplication::~FFApplication() {
         delete item.second;
     }
 
+}
+
+std::vector<int> FFApplication::choose_gpus(std::unordered_set<int> & candidates, int n)
+{
+    std::vector<int> result;
+    assert(n <= candidates.size());
+    std::sample(candidates.begin(), candidates.end(), std::back_inserter(result),
+        n, std::mt19937{std::random_device{}()});
+    for (int i : result) {
+        candidates.erase(candidates.find(i));
+    }
+    return result;
 }
 
 void FFApplication::load_taskgraph_json(std::string & taskgraph) {
@@ -108,6 +134,11 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
     nswitches = fbuf_tg->nswitch();
     nnodes = fbuf_tg->nnode();
 
+    if (gpus.empty()) {
+        gpus.resize(nnodes);
+        std::iota(std::begin(gpus), std::end(gpus), 0);
+    }
+
     // load device 
     for (int i = 0; i < fbuf_tg->devices()->size(); i++) {
         auto dev = fbuf_tg->devices()->Get(i);
@@ -126,20 +157,22 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
         for (int i = 0; i < fbuf_tg->rings()->size(); i++) {
             auto& this_ring = *fbuf_tg->rings()->Get(i);
             uint64_t ring_sz = this_ring.ringsz();
+            std::cerr << "fancy ring, ring_sz " << ring_sz << ", routes ";
             std::vector<std::vector<int>> routes{};
             for (int j = 0; j < this_ring.ringpaths()->size(); j++) {
                 auto & this_path = *this_ring.ringpaths()->Get(j);
                 std::vector<int> ringdesc{};
                 for (int k = 0; k < this_path.jumps()->size(); k++) {
                     ringdesc.push_back(this_path.jumps()->Get(k));
+                    std::cerr << this_path.jumps()->Get(k) << ", ";
                 }
+                std::cerr << std::endl;
                 routes.push_back(ringdesc);
             }
             selected_jumps[ring_sz] = routes;
         }
     }
     // load tasks
-    unordered_map<uint64_t, unsigned int> counters;
     for (int i = 0; i < fbuf_tg->tasks()->size(); i++) {
         auto &this_task = *fbuf_tg->tasks()->Get(i);
 
@@ -148,9 +181,11 @@ void FFApplication::load_taskgraph_flatbuf(std::string & taskgraph) {
             for (int j = 0; j < this_task.nexttasks()->size() ; j++) {
                 node_group.push_back(reinterpret_cast<uint64_t>(this_task.nexttasks()->Get(j)));
             }
+            std::cerr << "ar size: " << this_task.xfersize() << std::endl;
 
             // if (artask.algo() == TaskGraphProtoBuf::AllReduceTask_AllReduceAlg_ALLREDUCE_RING) {
             if (fancy_ring) {
+                // cout << "fancy" << endl;
                 tasks[this_task.taskid()] = new FFNewRingAllreduce(
                     this, 
                     node_group, 
@@ -329,11 +364,22 @@ void FFApplication::start_init_tasks() {
             if (t->type == FFTask::TASK_COMM) 
                 std::cerr << "STARTING COMM TASK!" << std::endl;
             t->state = FFTask::TASK_READY;
-            t->eventlist().sourceIsPending(*t, delta++);
+            t->eventlist().sourceIsPending(*t, t->eventlist().now() + delta++);
             count++;
         }
     }
     // std::cerr << "added " << count << " init tasks." << std::endl;
+}
+
+void FFApplication::reset_and_restart() {
+    n_finished_tasks = 0;
+    for (auto task: tasks) {
+        task.second->reset();
+    }
+    for (auto item: counters) {
+        tasks[item.first]->counter = item.second;
+    }
+    start_init_tasks();
 }
 
 FFTask::FFTask(FFApplication * ffapp, std::string type, FFDevice * device, uint64_t xfersize, 
@@ -525,6 +571,7 @@ void FFTask::execute_compute() {
 void FFTask::cleanup() {
     this->state = FFTask::TASK_FINISHED;
     ffapp->n_finished_tasks++;
+    std::cerr << ffapp << " finished one task, nfin " << ffapp->n_finished_tasks << " ntot " << ffapp->tasks.size() << " type " << this->type << " now " << eventlist().now() << std::endl;
     if (ffapp->final_finish_time < finish_time) {
         ffapp->final_finish_time = finish_time;
     }
@@ -539,7 +586,19 @@ void FFTask::cleanup() {
         }
     }
     if (ffapp->n_finished_tasks == ffapp->tasks.size()) {
-        eventlist().setEndtime(eventlist().now());
+        std::cerr << ffapp << " 0: finished one iter, nfin " << FFApplication::finished_apps << " ntot " << FFApplication::total_apps << std::endl;
+        if (!ffapp->finished_once) {
+            ffapp->finished_once = true;
+            ffapp->first_iter_time = ffapp->final_finish_time;
+            FFApplication::finished_apps++;
+        }
+        std::cerr << ffapp << " finished one iter, nfin " << FFApplication::finished_apps << " ntot " << FFApplication::total_apps << " now " << eventlist().now() << std::endl;
+        if (FFApplication::finished_apps == FFApplication::total_apps) {
+            eventlist().setEndtime(eventlist().now());
+        }
+        else {
+            ffapp->reset_and_restart();
+        }
     }
 }
 
@@ -583,7 +642,7 @@ void FFTask::start_flow() {
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(xfersize); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
-    flowSrc->_rto = timeFromMs(1);
+    flowSrc->_rto = timeFromMs(10);
     
     ffapp->tcpRtxScanner.registerTcp(*flowSrc);
 
@@ -703,8 +762,8 @@ FFDevice::FFDevice(FFApplication * ffapp, FlatBufTaskGraph::DeviceType devtype, 
         this->type = FFDeviceType::DEVICE_NW_COMM;
         this->node_id = 0;
         this->gpu_id = 0;
-        this->from_node = deviceproperty / (ffapp->nnodes + ffapp->nswitches);
-        this->to_node = deviceproperty % (ffapp->nnodes + ffapp->nswitches);
+        this->from_node = ffapp->gpus[deviceproperty / (ffapp->nnodes + ffapp->nswitches)];
+        this->to_node = ffapp->gpus[deviceproperty % (ffapp->nnodes + ffapp->nswitches)];
         this->from_gpu = 0;
         this->to_gpu = 0;
     }
@@ -777,13 +836,18 @@ void FFRingAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
-        state = FFTask::TASK_FINISHED;
+        // state = FFTask::TASK_FINISHED;
+        cleanup();
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
+        if (operator_size < 9000 * node_group.size() /* MTU */) {
+            operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
+        }
         start_time = ready_time;
         state = FFTask::TASK_RUNNING;
         for (size_t i = 0; i < node_group.size(); i++) {
@@ -847,10 +911,13 @@ void FFRingAllreduce::doNextEvent() {
 
 void FFRingAllreduce::start_flow(int src_idx, int id) {
     
-    int src_node = node_group[src_idx];
-    int dst_node = node_group[(src_idx + 1) % node_group.size()];
+    int src_node = ffapp->gpus[node_group[src_idx]];
+    int dst_node = ffapp->gpus[node_group[(src_idx + 1) % node_group.size()]];
 
-    // std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << "\n";
+    // std::cerr << "FFapp " << ffapp << " AR task: " << (uint64_t)this << 
+    //   " start flow (" << src_node << " [" << src_idx << "]" << ", " << 
+    //   dst_node << " [" << node_group[(src_idx + 1) % node_group.size()] << "]" << 
+    //   ") round " << curr_round << " nsize " << node_group.size() << "\n";
 
     FFRingAllreduceFlow * f = new FFRingAllreduceFlow();
     f->ar = this;
@@ -907,12 +974,16 @@ void ar_finish_ring(void * arinfo) {
     ar->finished_rounds[f->id]++; 
     ar->finished_curr_round++;
     delete f;
-
     if (ar->finished_curr_round == (int)ar->node_group.size()) {
         // ar->finished_partitions++;
         ar->curr_round++;
         ar->finished_curr_round = 0;
-        if (ar->curr_round == 2 * ((int)ar->node_group.size() - 1)) {
+        if (ar->curr_round == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000 * ar->node_group.size()) {
+            std::cerr << "early terminiate..." << std::endl;
+            ar->finish_time = ar->eventlist().now();
+            ar->cleanup();
+        }
+        else if (ar->curr_round == 2 * ((int)ar->node_group.size() - 1)) {
             ar->finish_time = ar->eventlist().now();
             ar->cleanup();
             // ar->state = FFTask::TASK_FINISHED;
@@ -948,13 +1019,18 @@ FFNewRingAllreduce::FFNewRingAllreduce(FFApplication * ffapp, std::vector<uint64
 
 void FFNewRingAllreduce::doNextEvent()
 {
+
+    std::cerr << "AR " << this << " size " <<  node_group.size() << " node starting " << jumps.size() << " rings, now " << eventlist().now() << std::endl;
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
-        state = FFTask::TASK_FINISHED;
-        // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
+        // state = FFTask::TASK_FINISHED;
+        cleanup();
     }
     else {
+        if (operator_size < 9000  * node_group.size() /* MTU */) {
+            operator_size *= (2.0 * (node_group.size() - 1) / node_group.size());
+        }
         start_time = ready_time;
         state = FFTask::TASK_RUNNING;
         for (size_t i = 0; i < node_group.size(); i++) {
@@ -967,8 +1043,9 @@ void FFNewRingAllreduce::doNextEvent()
 
 void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, int ring_id, int id)
 {
-    int src_node = node_group[src_idx];
-    int dst_node = node_group[(src_idx + total_jump[ring_id]) % node_group.size()];
+    int src_node = ffapp->gpus[node_group[src_idx]];
+    int dst_node = (src_idx + total_jump[ring_id]) % ffapp->nnodes; //ffapp->gpus[node_group[(src_idx + 1) % node_group.size()]];
+    //std::cerr << "start flow src: " << src_node << " dst: " << dst_node << std::endl;
 
     FFNewRingAllreduceFlow * f = new FFNewRingAllreduceFlow();
     f->ar = this;
@@ -981,29 +1058,30 @@ void FFNewRingAllreduce::start_flow(int src_idx, const std::vector<int>& jump, i
     TcpSink* flowSnk = new TcpSink();
     flowSrc->set_flowsize(operator_size/node_group.size()/jumps.size()); // bytes
     flowSrc->set_ssthresh(ffapp->ssthresh*Packet::data_packet_size());
-    flowSrc->_rto = timeFromMs(1);
+    flowSrc->_rto = timeFromMs(10);
     
     ffapp->tcpRtxScanner.registerTcp(*flowSrc);
 
     Route* routeout = new Route();
     int curr = src_idx;
     for (int j: jump) {
-        assert(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*node_group.size()*/] != nullptr);
-        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
-        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        assert(static_cast<FlatTopology*>(ffapp->topology)->queues[ffapp->gpus[curr]][ffapp->gpus[(curr+j)%ffapp->nnodes]/*node_group.size()*/] != nullptr);
+        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->queues[ffapp->gpus[curr]][ffapp->gpus[(curr+j)%ffapp->nnodes]/*%node_group.size()*/]);
+        routeout->push_back(static_cast<FlatTopology*>(ffapp->topology)->pipes[ffapp->gpus[curr]][ffapp->gpus[(curr+j)%ffapp->nnodes]/*%node_group.size()*/]);
         curr = (curr + j) % ffapp->nnodes /*% node_group.size()*/;
     }
-    assert(curr == (src_idx + total_jump[ring_id]) % ffapp->nnodes /*% node_group.size()*/);
+    // assert(curr == (src_idx + total_jump[ring_id]) % ffapp->nnodes /*% node_group.size()*/);
+    assert(ffapp->gpus[curr] == ffapp->gpus[(src_idx + total_jump[ring_id]) % ffapp->nnodes] /*% node_group.size()*/);
     routeout->push_back(flowSnk);
 
     Route* routein = new Route();
     curr = src_idx;
     for (int j: jump) {
-        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->queues[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
-        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->pipes[curr][(curr+j)%ffapp->nnodes/*%node_group.size()*/]);
+        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->queues[ffapp->gpus[curr]][ffapp->gpus[(curr+j)%ffapp->nnodes]/*%node_group.size()*/]);
+        routein->push_front(static_cast<FlatTopology*>(ffapp->topology)->pipes[ffapp->gpus[curr]][ffapp->gpus[(curr+j)%ffapp->nnodes]/*%node_group.size()*/]);
         curr = (curr + j) % ffapp->nnodes /*% node_group.size() */;
     }
-    assert(curr == (src_idx + total_jump[ring_id]) % ffapp->nnodes /*% node_group.size()*/);
+    assert(ffapp->gpus[curr] == ffapp->gpus[(src_idx + total_jump[ring_id]) % ffapp->nnodes] /*% node_group.size()*/);
     routein->push_back(flowSrc);
 
     flowSrc->connect(*routeout, *routein, *flowSnk, 
@@ -1033,7 +1111,11 @@ void ar_finish_newring(void * arinfo)
         // ar->finished_partitions++;
         ar->curr_round[ring_idx]++;
         ar->finished_curr_round[ring_idx] = 0;
-        if (ar->curr_round[ring_idx] == 2 * ((int)ar->node_group.size() - 1)) {
+        if (ar->curr_round[ring_idx] == 1 && (ar->operator_size / (2.0 * (ar->node_group.size() - 1) / ar->node_group.size())) <= 9000 * ar->node_group.size()) {
+            std::cerr << "early terminiate..." << std::endl;
+            ar->finished_rings++;
+        }
+        else if (ar->curr_round[ring_idx] == 2 * ((int)ar->node_group.size() - 1)) {
             ar->finished_rings++;
         }
         else {
@@ -1046,7 +1128,7 @@ void ar_finish_newring(void * arinfo)
             ar->finish_time = ar->eventlist().now();
             ar->cleanup();
             // ar->state = FFTask::TASK_FINISHED;
-            // // std::cerr << "AR " << (uint64_t)ar << " finished at " << ar->finish_time << std::endl;
+            std::cerr << "AR " << ar << " finished at " << ar->finish_time << std::endl;
             // ar->ffapp->n_finished_tasks++;
             // if (ar->ffapp->final_finish_time < ar->finish_time) {
             //     ar->ffapp->final_finish_time = ar->finish_time;
@@ -1071,10 +1153,12 @@ void FFPSAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
-        state = FFTask::TASK_FINISHED;
+        // state = FFTask::TASK_FINISHED;
+        cleanup();
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
@@ -1093,12 +1177,12 @@ void FFPSAllreduce::start_flow(int node_idx, int direction) {
 
     int src_node, dst_node;
     if (direction == 0) {
-        src_node = node_group[node_idx];
-        dst_node = pserver;
+        src_node = ffapp->gpus[node_group[node_idx]];
+        dst_node = ffapp->gpus[pserver];
     }
     else {
-        dst_node = node_group[node_idx];
-        src_node = pserver;
+        dst_node = ffapp->gpus[node_group[node_idx]];
+        src_node = ffapp->gpus[pserver];
     }
 
     // std::cerr << "AR task: " << (uint64_t)this << " start flow (" << src_node << ", " << dst_node << ") round " << curr_round << " nsize " << node_group.size() << " pserver " << pserver << "\n";
@@ -1189,10 +1273,12 @@ void FFDPSAllreduce::doNextEvent() {
     // this should only be called once...
     assert(curr_round == 0);
     
+
     if (node_group.size() == 1) {
         // finished_partitions = 1;
         finish_time = start_time = ready_time;
-        state = FFTask::TASK_FINISHED;
+        // state = FFTask::TASK_FINISHED;
+        cleanup();
         // std::cerr << "AR 1 node " << (uint64_t)this << " finished at " << this->finish_time << std::endl;
     }
     else {
@@ -1214,6 +1300,8 @@ void FFDPSAllreduce::start_flow(int src_node, int dst_node) {
 
     // f->src_idx = src_idx;
     // f->round = round;
+    src_node = ffapp->gpus[node_group[src_node]];
+    dst_node = ffapp->gpus[node_group[dst_node]];
 
     DCTCPSrc* flowSrc = new DCTCPSrc(NULL, NULL, ffapp->fstream_out, 
         eventlist(), src_node, dst_node, ar_finish_dps, this);

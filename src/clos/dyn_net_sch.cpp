@@ -2,6 +2,7 @@
 #include "ecnqueue.h"
 #include "queue_lossless.h"
 #include "tcp.h"
+#include <random>
 
 #ifdef USE_GUROBI
 #include "gurobi_c++.h"
@@ -15,6 +16,9 @@
   }                                                                         \
 } while (0);                                                                \
 
+static std::random_device rd; 
+static std::mt19937 gen = std::mt19937(rd()); 
+static std::uniform_real_distribution<double> unif(0, 1);
 
 extern uint32_t SPEED;
 
@@ -65,6 +69,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
   topo(topo), reconf_delay(reconf_delay), optstrategy(method), eventlist(eventlist)
 {
   // demandrecorder.init(nnodes);
+
   for (int i = 0; i < nnodes; i++)
   {
     for (int j = 0; j < nnodes; j++)
@@ -75,8 +80,23 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
       eq->set_dyn_sch(this);
     }
   }
+
+  FlatDegConstraintNetworkTopologyGenerator gen{nnodes, degree};
+  set_all_queues_pause_recved();
+  auto init_conn = gen.generate_topology();
+  for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
+    for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
+      if (src_port == dst_port) continue;
+      topo->queues[src_port][dst_port]->_bitrate = init_conn[src_port * nnodes + dst_port] * speedFromMbps((uint64_t)SPEED);
+      topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
+    }
+  }
+  finish_reconf();
+
+  std::cout << "initconn" << std::endl;
+
   status = DynNetworkStatus::DYN_NET_LIVE;
-  eventlist.sourceIsPending(*this, n_nondelay * reconf_delay);
+  eventlist.sourceIsPending(*this, std::min(reconf_delay, timeFromMs(1)));
   if (optstrategy == OptStrategy::SIPML_OCS)
   {
 #ifdef USE_GUROBI
@@ -177,7 +197,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
       // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
       i++;
 		}
-	}raffic completion time */
+	} /* traffic completion time */
       GRBVar min_rate = gmodel->addVar(0.0, GRB_INFINITY, 0.0, GRB_CONTINUOUS, "min_rate");
       /* set objective */
       gmodel->setObjective(GRBLinExpr(min_rate), GRB_MAXIMIZE);
@@ -718,4 +738,99 @@ void DynFlatScheduler::normalize_tm(Matrix2D<double> &normal_tm)
   // }
   normal_tm.mul_by(1.0/(double)max_entry);
   // std::cerr << "normalized tm: " << normal_tm << std::endl;
+}
+
+
+FlatDegConstraintNetworkTopologyGenerator::FlatDegConstraintNetworkTopologyGenerator(int num_nodes, int degree) 
+: num_nodes(num_nodes), degree(degree)
+{}
+
+std::vector<size_t> FlatDegConstraintNetworkTopologyGenerator::generate_topology() const
+{
+  std::vector<size_t> conn = std::vector<size_t>(num_nodes*num_nodes, 0);
+  
+  int allocated = 0;
+  int curr_node = 0;
+  std::unordered_set<int> visited_node;
+  visited_node.insert(0);
+
+  std::uniform_int_distribution<> distrib(0, num_nodes - 1);
+
+  while ((long)visited_node.size() != num_nodes) {
+    distrib(gen);
+    int next_step = distrib(gen);
+    if (next_step == curr_node) {
+      continue;
+    } 
+    if (visited_node.find(next_step) == visited_node.end()) {
+      if (conn[get_id(curr_node, next_step)] == degree) {
+        continue;
+      }
+      conn[get_id(curr_node, next_step)]++;
+      conn[get_id(next_step, curr_node)]++;
+      visited_node.insert(next_step);
+      curr_node = next_step;
+      allocated += 2;
+    }
+  }
+
+  assert(allocated == (num_nodes - 1) * 2);
+
+  std::vector<std::pair<int, int> > node_with_avail_if;
+  for (int i = 0; i < num_nodes; i++) {
+    int if_inuse = get_if_in_use(i, conn);
+    if (if_inuse < degree) {
+      node_with_avail_if.emplace_back(i, degree - if_inuse);
+    }
+  }
+
+  distrib = std::uniform_int_distribution<>(0, node_with_avail_if.size() - 1);
+  int a = 0, b = 0;
+
+  while (node_with_avail_if.size() > 1) {
+    a = distrib(gen);
+    while ((b = distrib(gen)) == a);
+
+    assert(conn[get_id(node_with_avail_if[a].first, node_with_avail_if[b].first)] < degree);
+    conn[get_id(node_with_avail_if[a].first, node_with_avail_if[b].first)]++;
+    conn[get_id(node_with_avail_if[b].first, node_with_avail_if[a].first)]++;
+    allocated += 2;
+
+    bool changed = false;
+    if (--node_with_avail_if[a].second == 0) {
+      if (a < b) {
+        b--;
+      }
+      node_with_avail_if.erase(node_with_avail_if.begin() + a);
+      changed = true;
+    }
+    if (--node_with_avail_if[b].second == 0) {
+      node_with_avail_if.erase(node_with_avail_if.begin() + b);
+      changed = true;
+    }
+    if (changed) {
+      distrib = std::uniform_int_distribution<>(0, node_with_avail_if.size() - 1);
+    }
+  }
+
+#ifdef DEBUG_PRINT
+  std::cout << "Topology generated: " << std::endl;
+  NetworkTopologyGenerator::print_conn_matrix(conn, num_nodes, 0);
+#endif
+  return conn;
+  
+}
+
+int FlatDegConstraintNetworkTopologyGenerator::get_id(int i, int j) const
+{
+  return i * num_nodes + j;
+}
+
+int FlatDegConstraintNetworkTopologyGenerator::get_if_in_use(int node, const std::vector<size_t> & conn) const
+{
+  int result = 0;
+  for (int i = 0; i < num_nodes; i++) {
+    result += conn[get_id(node, i)];
+  }
+  return result;
 }

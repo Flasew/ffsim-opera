@@ -270,8 +270,8 @@ void TcpSrc::receivePacket(Packet &pkt)
 	}
 	//  cout << "Base "<<timeAsMs(_base_rtt)<< " RTT " << timeAsMs(_rtt)<< " Queued " << queued_packets << endl;
 
-	if (_rto < timeFromMs(1))
-		_rto = timeFromMs(1);
+	if (_rto < timeFromMs(10))
+    _rto = timeFromMs(10);
 
 	// debug:
 	// cout << (uint64_t)this << " seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
@@ -713,10 +713,10 @@ void TcpSrc::rtx_timer_hook(simtime_picosec now, simtime_picosec period)
 	if (_highest_sent == 0)
 		return;
 
-	cout << "At " << now / (double)1000000000 << " RTO " << _rto / 1000000000 << " MDEV "
-			 << _mdev / 1000000000 << " RTT " << _rtt / 1000000000 << " SEQ " << _last_acked / _mss << " HSENT " << _highest_sent
-			 << " CWND " << _cwnd / _mss << " FAST RECOVERY? " << _in_fast_recovery << " Flow ID "
-			 << str() << endl;
+	  cout <<"At " << now/(double)1000000000<< " RTO " << _rto/1000000000 << " MDEV "
+	 << _mdev/1000000000 << " RTT "<< _rtt/1000000000 << " SEQ " << _last_acked / _mss << " HSENT "  << _highest_sent
+	 << " CWND "<< _cwnd/_mss << " FAST RECOVERY? " << 	_in_fast_recovery << " Flow ID "
+	 << str() << " SRC " << _flow_src << " DST " << _flow_dst << endl;
 
 	// here we can run into phase effects because the timer is checked
 	// only periodically for ALL flows but if we keep the difference

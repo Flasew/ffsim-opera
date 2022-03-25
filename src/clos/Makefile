@@ -5,9 +5,12 @@ FF_HOME?=$(HOME)/FlexFlow
 GUROBI_DIR?=$(HOME)/gurobi912/linux64
 CC=g++
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
-INC= -I$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/fbuf2/include/ -I$(GUROBI_DIR)/include/ #-I/usr/local/Cellar/flatbuffers/2.0.0/include/
-
-CFLAGS= -Wall $(INC) -std=c++14 -L$(GUROBI_DIR)/lib -lgurobi_c++ -lgurobi91 -O3 #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
+INC= -I$(CRT)/datacenter -I$(CRT) -I$(FF_HOME)/fbuf2/include/ 
+CFLAGS= -Wall $(INC) -std=c++17 -O3 #-O0 -g
+ifeq ($(USE_GUROBI), 1)
+	INC+= -I$(GUROBI_DIR)/include/ #-I/usr/local/Cellar/flatbuffers/2.0.0/include/
+	CFLAGS+= -L$(GUROBI_DIR)/lib -lgurobi_c++ -lgurobi91 -DHAVE_GUROBI #-O0 -g  #-L$(FF_HOME)/protobuf/src/.libs -lprotobuf 
+endif
 
 # all:	htsim lib parse_output
 all:	lib 
