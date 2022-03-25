@@ -3,6 +3,7 @@
 #include <math.h>
 #include "ecn.h"
 #include "queue_lossless.h"
+#include "dyn_net_sch.h"
 #include <iostream>
 
 ECNQueue::ECNQueue(linkspeed_bps bitrate, mem_b maxsize,
@@ -85,7 +86,7 @@ void ECNQueue::completeService()
 	Packet *pkt = _enqueued.back();
 	_enqueued.pop_back();
 
-	if (_state_send == LosslessQueue::PAUSE_RECEIVED)
+	if (_state_send == LosslessQueue::PAUSE_RECEIVED && !_enqueued.empty())
 		_state_send = LosslessQueue::PAUSED;
 
 	//mark on deque
@@ -100,9 +101,14 @@ void ECNQueue::completeService()
 	/* tell the packet to move on to the next pipe */
 	pkt->sendOn();
 
-	if (!_enqueued.empty() && _state_send == LosslessQueue::READY)
+	if (!_enqueued.empty() && _state_send != LosslessQueue::PAUSED)
 	{
 		/* schedule the next dequeue event */
 		beginService();
+	}
+	else {
+		if (dyn_sch != nullptr) {
+			dyn_sch->do_reconf();
+		}
 	}
 }

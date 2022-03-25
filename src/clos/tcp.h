@@ -31,6 +31,7 @@ class MultipathTcpSink;
 class TcpSrc : public PacketSink, public EventSource {
     friend class TcpSink;
  public:
+   
     TcpSrc(TcpLogger* logger, TrafficLogger* pktlogger, ofstream * _fstream_out, 
             EventList &eventlist, int flow_src, int flow_dst, 
             void (*acf)(void*) = nullptr, void* acd = nullptr);
@@ -68,6 +69,10 @@ class TcpSrc : public PacketSink, public EventSource {
     inline void set_start_time(simtime_picosec startTime) {_start_time = startTime;}
     inline simtime_picosec get_start_time() {return _start_time;};
 
+    inline void pause_flow();
+    inline void update_route(Route* routeout, Route *routein);
+    inline void resume_flow();
+
     // should really be private, but loggers want to see:
     uint64_t _highest_sent;  //seqno is in bytes
     uint64_t _packets_sent;
@@ -85,6 +90,11 @@ class TcpSrc : public PacketSink, public EventSource {
     ofstream * fstream_out;
 
     int32_t _app_limited;
+    
+    bool tcp_flow_paused = false;
+    bool tcp_has_pending_send = false;
+    bool tcp_has_pending_retrans = false;
+
 
     //round trip time estimate, needed for coupled congestion control
     simtime_picosec _rtt, _rto, _mdev,_base_rtt;
