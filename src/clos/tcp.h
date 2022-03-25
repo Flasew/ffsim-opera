@@ -69,9 +69,9 @@ class TcpSrc : public PacketSink, public EventSource {
     inline void set_start_time(simtime_picosec startTime) {_start_time = startTime;}
     inline simtime_picosec get_start_time() {return _start_time;};
 
-    inline void pause_flow();
-    inline void update_route(Route* routeout, Route *routein);
-    inline void resume_flow();
+    void pause_flow();
+    void update_route(Route* routeout, Route *routein);
+    void resume_flow();
 
     // should really be private, but loggers want to see:
     uint64_t _highest_sent;  //seqno is in bytes

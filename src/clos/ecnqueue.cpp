@@ -78,6 +78,10 @@ void ECNQueue::receivePacket(Packet &pkt)
 		beginService();
 	}
 }
+void ECNQueue::set_dyn_sch(DynFlatScheduler * ds)
+{
+	dyn_sch = ds;
+}
 
 void ECNQueue::completeService()
 {
