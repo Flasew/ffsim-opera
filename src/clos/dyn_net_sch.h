@@ -356,4 +356,68 @@ public:
     int degree;
 };
 
+class DemandHeuristicNetworkOptimizer {
+public:
+  DemandHeuristicNetworkOptimizer(int nnodes);
+  ~DemandHeuristicNetworkOptimizer() = default;
+  virtual bool optimize(int mcmc_iter, double sim_iter_time, bool force_run = false);
+  size_t edge_id(int i, int j) const;
+  size_t unordered_edge_id(int i, int j) const;
+  void optimize_demand(
+      std::vector<size_t> &conn,
+      std::unordered_map<size_t, uint64_t> &max_of_bidir,
+      std::unordered_map<size_t, size_t> &node_if_allocated); 
+  void connect_unused_node(std::vector<size_t> &conn, std::unordered_map<size_t, size_t> &node_if_allocated);
+  void connect_cc(std::unordered_map<uint64_t, uint64_t> &logical_id_to_demand, 
+                  std::vector<size_t> &conn);
+  void reset();
+  size_t get_if_in_use(size_t node, const std::vector<size_t> & conn);
+  bool add_link(size_t i, size_t j, std::vector<size_t> & conn);
+  void remove_link(size_t i, size_t j, std::vector<size_t> & conn);
+
+  virtual void store_tm() const;
+
+  inline static bool has_endpoint(uint64_t e, size_t v, size_t n) {
+    return e / n == v || e % n == v;
+  }
+
+  inline static bool maxed(const std::unordered_map<size_t, size_t> & node_if_allocated, 
+                           size_t d, size_t n) 
+  {
+    size_t counter = 0;
+    for (auto & item: node_if_allocated) {
+      if (item.second == d) {
+        counter++;
+      }
+    }
+    return counter >= (n - 1);
+  }
+
+  inline static bool maxed(const std::unordered_map<size_t, size_t> & node_if_allocated, 
+            const std::unordered_set<size_t> & nodes_to_care,
+            size_t d) 
+  {
+    size_t counter = 0;
+    for (auto & item: node_if_allocated) {
+      if (nodes_to_care.find(item.first) != nodes_to_care.end() && item.second == d) {
+        counter++;
+      }
+    }
+    return counter >= (nodes_to_care.size() - 1);
+  }
+
+
+  std::unordered_map<uint64_t, uint64_t> dev_busy_time;
+  std::unordered_map<size_t, uint64_t> physical_traffic_demand;
+  std::unordered_map<size_t, uint64_t> logical_traffic_demand;
+
+  int nnode;
+  size_t if_cnt;
+  double best_sim_time, curr_sim_time;
+  double alpha;
+  int num_iter_nochange;
+  int no_improvement_th;
+
+};
+
 #endif
