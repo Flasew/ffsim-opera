@@ -69,7 +69,8 @@ class TcpSrc : public PacketSink, public EventSource {
     inline void set_start_time(simtime_picosec startTime) {_start_time = startTime;}
     inline simtime_picosec get_start_time() {return _start_time;};
 
-    void pause_flow();
+    static void pause_flow();
+    static void resume_all_flow();
     void update_route(Route* routeout, Route *routein);
     void resume_flow();
 
@@ -91,7 +92,7 @@ class TcpSrc : public PacketSink, public EventSource {
 
     int32_t _app_limited;
     
-    bool tcp_flow_paused = false;
+    static bool tcp_flow_paused;
     bool tcp_has_pending_send = false;
     bool tcp_has_pending_retrans = false;
 
