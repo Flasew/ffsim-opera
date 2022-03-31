@@ -317,6 +317,7 @@ public:
   void finish_reconf();
 
   void do_reconf();
+  void _do_reconf();
 
   void update_all_queue_bandwidth();
   void set_all_queues_pause_recved();
@@ -344,7 +345,7 @@ public:
 
   DemandRecorder * demandrecorder;
 
-  int non_empty_queues;
+  uint64_t non_empty_queues;
 };
 
 class FlatDegConstraintNetworkTopologyGenerator {
@@ -356,6 +357,17 @@ public:
     inline int get_if_in_use(int node, const std::vector<size_t> & conn) const;
     int num_nodes;
     int degree;
+    static void print_conn_matrix(const std::vector<size_t> &conn, int nnode, int nswitch) {
+      int nnwdevs = nnode + nswitch;
+      for (int i = 0; i < nnwdevs; i++) {
+        if (i == nnode) std::cout << std::endl;
+        for (int j = 0; j < nnwdevs; j++) {
+          if (j == nnode) std::cout << "\t";
+          std::cout << conn[i * nnwdevs + j] << "\t";
+        }
+        std::cout << std::endl;
+      }
+    }
 };
 
 class DemandHeuristicNetworkOptimizer {

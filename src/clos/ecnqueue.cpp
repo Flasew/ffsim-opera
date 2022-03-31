@@ -105,14 +105,13 @@ void ECNQueue::completeService()
 	/* tell the packet to move on to the next pipe */
 	pkt->sendOn();
 
+	if (dyn_sch->status == DynFlatScheduler::DynNetworkStatus::DYN_NET_RECONF) {
+		dyn_sch->do_reconf();
+	}
+
 	if (!_enqueued.empty() && _state_send != LosslessQueue::PAUSED)
 	{
 		/* schedule the next dequeue event */
 		beginService();
-	}
-	else {
-		if (dyn_sch != nullptr) {
-			dyn_sch->do_reconf();
-		}
 	}
 }

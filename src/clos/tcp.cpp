@@ -11,6 +11,7 @@
 //  TCP SOURCE
 ////////////////////////////////////////////////////////////////
 DemandRecorder *TcpSrc::demand_recorder = nullptr;
+bool TcpSrc::tcp_flow_paused = false;
 
 TcpSrc::TcpSrc(TcpLogger *logger, TrafficLogger *pktlogger, ofstream *_fstream_out,
 							 EventList &eventlist, int flow_src, int flow_dst,
@@ -142,7 +143,7 @@ void TcpSrc::set_app_limit(int pktps)
 	}
 	_ssthresh = 0xffffffff;
 	_app_limited = pktps;
-	if (!tcp_flow_paused)
+	if (!TcpSrc::tcp_flow_paused)
 		send_packets();
 	else
 	{
@@ -157,7 +158,7 @@ void TcpSrc::startflow()
 	_unacked = _cwnd;
 	_established = false;
 
-	if (!tcp_flow_paused)
+	if (!TcpSrc::tcp_flow_paused)
 		send_packets();
 	else
 	{
@@ -338,7 +339,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 			_effcwnd = _cwnd;
 			if (_logger)
 				_logger->logTcp(*this, TcpLogger::TCP_RCV);
-			if (!tcp_flow_paused)
+			if (!TcpSrc::tcp_flow_paused)
 				send_packets();
 			else
 			{
@@ -362,7 +363,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 
 			if (_logger)
 				_logger->logTcp(*this, TcpLogger::TCP_RCV_FR_END);
-			if (!tcp_flow_paused)
+			if (!TcpSrc::tcp_flow_paused)
 				send_packets();
 			else
 			{
@@ -383,13 +384,13 @@ void TcpSrc::receivePacket(Packet &pkt)
 		_cwnd += _mss;
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_FR);
-		if (!tcp_flow_paused)
+		if (!TcpSrc::tcp_flow_paused)
 			retransmit_packet();
 		else
 		{
 			tcp_has_pending_retrans = true;
 		}
-		if (!tcp_flow_paused)
+		if (!TcpSrc::tcp_flow_paused)
 			send_packets();
 		else
 		{
@@ -413,7 +414,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 			_effcwnd = _unacked; // starting to send packets again
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_DUP_FR);
-		if (!tcp_flow_paused)
+		if (!TcpSrc::tcp_flow_paused)
 			send_packets();
 		else
 		{
@@ -432,7 +433,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 	{ // not yet serious worry
 		if (_logger)
 			_logger->logTcp(*this, TcpLogger::TCP_RCV_DUP);
-		if (!tcp_flow_paused)
+		if (!TcpSrc::tcp_flow_paused)
 			send_packets();
 		else
 		{
@@ -465,7 +466,7 @@ void TcpSrc::receivePacket(Packet &pkt)
 	_sawtooth = 0;
 	_rtt_cum = timeFromMs(0);
 
-	if (!tcp_flow_paused)
+	if (!TcpSrc::tcp_flow_paused)
 		retransmit_packet();
 	else
 	{
@@ -553,7 +554,7 @@ void TcpSrc::send_packets()
 		{ // RFC2988 5.1
 			_RFC2988_RTO_timeout = eventlist().now() + _rto;
 		}
-		// cout << "Sending SYN, waiting for SYN/ACK" << endl;
+		cout << "Sending SYN, waiting for SYN/ACK" << endl;
 		return;
 	}
 
@@ -777,7 +778,7 @@ void TcpSrc::doNextEvent()
 
 		_dupacks = 0;
 
-		if (!tcp_flow_paused)
+		if (!TcpSrc::tcp_flow_paused)
 			retransmit_packet();
 		else
 		{
@@ -804,19 +805,27 @@ void TcpSrc::doNextEvent()
 
 void TcpSrc::pause_flow()
 {
-	tcp_flow_paused = true;
+	TcpSrc::tcp_flow_paused = true;
+	// std::cerr << "PAUSE " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << get_flowsize() - _highest_sent << " " << std::endl;
+}
+
+void TcpSrc::resume_all_flow() 
+{
+	TcpSrc::tcp_flow_paused = false;
 }
 
 void TcpSrc::resume_flow()
 {
-	tcp_flow_paused = false;
+	std::cerr << "RESUME " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << get_flowsize() - _highest_sent << " " << std::endl;
 	if (tcp_has_pending_retrans)
 	{
+		std::cerr << "Retr called " << std::endl;
 		retransmit_packet();
 		tcp_has_pending_retrans = false;
 	}
 	if (tcp_has_pending_send)
 	{
+		std::cerr << "send called " << std::endl;
 		send_packets();
 		tcp_has_pending_send = false;
 	}
