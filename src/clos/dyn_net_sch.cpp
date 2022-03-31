@@ -637,21 +637,48 @@ void DynFlatScheduler::update_all_queue_bandwidth()
   else
   {
     Matrix2D<double> normal_tm(nnodes, nnodes);
-    normalize_tm(normal_tm);
-    std::vector<uint64_t> conn(nnodes * nnodes, 0);
-    // for (int i = 0; i < nnode; i++) {
-    //   for (int j = 0; j < nnode; j++) {
-    //     size_t eid = edge_id(i, j);
-    //     if (logical_traffic_demand.find(eid) != logical_traffic_demand.end()) {
-    //       size_t ueid = unordered_edge_id(i, j);
-    //       uint64_t traffic_amount = logical_traffic_demand[eid];
-    //       if (max_of_bidir.find(ueid) == max_of_bidir.end() 
-    //           || traffic_amount > max_of_bidir[ueid]) {
-    //         max_of_bidir[ueid] = traffic_amount;
-    //       }
-    //     }
-    //   }
-    // }
+    DemandHeuristicNetworkOptimizer dhopt(nnodes, this);
+    demandrecorder->get_unsatisfied_demand(normal_tm);
+    
+    for (int i = 0; i < nnodes; i++) {
+      for (int j = 0; j < nnodes; j++) {
+      // mod: pre-unscale the demand
+        if (normal_tm.get_elem(i, j) > 0)
+        dhopt.logical_traffic_demand[dhopt.edge_id(i, j)] = normal_tm.get_elem(i, j);
+      }
+    }
+
+    std::vector<size_t> conn = dhopt.optimize();
+
+    for (int i = 0; i < nnodes; i++) {
+      std::vector<std::vector<size_t>> paths = dhopt.get_routes_from_src(conn, i);
+      for (int j = 0; j < nnodes; j++) {
+        uint64_t route_id = dhopt.edge_id(i, j);
+        vector<size_t> *path_vector = new vector<size_t>();
+        for (int k = 0; k < path->hopnode()->size(); k++)
+        {
+          path_vector->push_back(path->hopnode()->Get(k));
+        cerr << path->hopnode()->Get(k) << ", ";
+      }
+      if (_routes.find(route_id) == _routes.end())
+      {
+        _routes[route_id] = vector<vector<size_t> *>();
+      }
+      _routes[route_id].push_back(path_vector);
+      cerr << endl;
+    }
+  }
+      
+    }
+    for ( int src_port = 0; src_port < nnodes; src_port ++ ) {
+      for ( int dst_port = 0; dst_port < nnodes; dst_port ++ ) {
+        if (src_port == dst_port) continue;
+        topo->queues[src_port][dst_port]->_bitrate = conn[src_port * nnodes + dst_port] * speedFromMbps((uint64_t)SPEED);
+        topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
+      }
+    }
+
+  #if 0    
     std::set<std::pair<double, uint64_t>, std::greater<std::pair<double, uint64_t>>> pq;
     std::unordered_map<size_t, size_t> node_if_allocated_tx;
     std::unordered_map<size_t, size_t> node_if_allocated_rx;
@@ -707,6 +734,7 @@ void DynFlatScheduler::update_all_queue_bandwidth()
         topo->queues[src_port][dst_port]->_ps_per_byte = (simtime_picosec)((pow(10.0, 12.0) * 8) / topo->queues[src_port][dst_port]->_bitrate);
       }
     }
+  #endif
   }
 }
 
@@ -839,13 +867,9 @@ int FlatDegConstraintNetworkTopologyGenerator::get_if_in_use(int node, const std
 
 
 
-DemandHeuristicNetworkOptimizer::DemandHeuristicNetworkOptimizer(int nnode) 
-: nnode(nnode)
+DemandHeuristicNetworkOptimizer::DemandHeuristicNetworkOptimizer(int nnode, DynFlatScheduler * sch) 
+: nnode(nnode), sch(sch)
 {
-  alpha = 0.5;
-  no_improvement_th = 50;
-  best_sim_time = std::numeric_limits<double>::max();
-  curr_sim_time = std::numeric_limits<double>::max();
 }
 
 /*
@@ -897,35 +921,15 @@ size_t DemandHeuristicNetworkOptimizer::unordered_edge_id(int i, int j) const
 
 typedef std::pair<uint64_t, uint64_t> DemandToIdMap;
 
-bool DemandHeuristicNetworkOptimizer::optimize(int mcmc_iter, double sim_iter_time, bool forced)
+std::vector<size_t> DemandHeuristicNetworkOptimizer::optimize()
 {
-  double diff = sim_iter_time - curr_sim_time;
-  std::cerr << "sim_iter_time: " << sim_iter_time << ", curr_sim_time: " << curr_sim_time 
-            << ", best_iter_time: " << best_sim_time << std::endl;
-  bool change = diff < 0 ? true : diff != 0 && unif(gen) < std::exp(-alpha * diff);
-  if (sim_iter_time < best_sim_time) {
-    best_sim_time = sim_iter_time;
-    change = true;
-  }
-  if (change) {
-    curr_sim_time = sim_iter_time;
-  }
-  else {
-    num_iter_nochange++; 
-  }
-
-  if (!forced && !change && num_iter_nochange < no_improvement_th)
-    return false;
-  
-  num_iter_nochange = 0;
-  
-  // TODO: copy machine-switch link?
   size_t ndevs = nnode;
   std::vector<size_t> conn = std::vector<size_t>(ndevs*ndevs, 0);
   std::unordered_map<size_t, uint64_t> max_of_bidir;
   std::unordered_map<size_t, size_t> node_if_allocated;
 
   optimize_demand(conn, max_of_bidir, node_if_allocated);
+
 #ifdef DEBUG_PRINT
   NetworkTopologyGenerator::print_conn_matrix(conn, nnode, 0);
 #endif
@@ -943,7 +947,7 @@ bool DemandHeuristicNetworkOptimizer::optimize(int mcmc_iter, double sim_iter_ti
   // nm->set_topology(conn); 
   // nm->update_route();
   // simulator->print_conn_matrix();
-  return true;
+  return conn;
 }
 
 void DemandHeuristicNetworkOptimizer::optimize_demand(
@@ -1333,12 +1337,54 @@ void DemandHeuristicNetworkOptimizer::connect_cc(
 
 void DemandHeuristicNetworkOptimizer::reset() 
 {
-  dev_busy_time.clear();
-  physical_traffic_demand.clear();
   logical_traffic_demand.clear();
+}
 
-  // best_sim_time = std::numeric_limits<double>::max();
-  // curr_sim_time = std::numeric_limits<double>::max();
-  // num_iter_nochange = 0;
-  
+
+std::vector<std::vector<size_t>>
+DemandHeuristicNetworkOptimizer::get_routes_from_src(const std::vector<size_t> & conn, int src)
+{
+  std::vector<uint64_t> dist(nnode, std::numeric_limits<uint64_t>::max());
+  std::vector<int> prev(nnode, -1);
+  std::vector<bool> visited(nnode, false);
+
+  std::queue<uint64_t> q;
+  q.push(src);
+  dist[src] = 0;
+
+  // BFS
+  while (!q.empty()) {
+    int min_node = q.front();
+    q.pop();
+    visited[min_node] = true;
+
+    for (int i = 0; i < nnode; i++) {
+      if (visited[i] || conn[min_node * nnode + i] == 0) {
+        continue;
+      }
+      double new_dist = dist[min_node] + 1; 
+      if (new_dist < dist[i] || (new_dist == dist[i] && unif(gen) < 0.5)) {
+        dist[i] = new_dist;
+        prev[i] = min_node;
+        q.push(i);
+      }
+    }
+  }
+
+  std::vector<std::vector<size_t>> final_result;
+  for (int i = 0; i < nnode; i++) {
+    if (i == src) {
+      final_result.emplace_back(std::vector<size_t>{});
+      continue;
+    }
+    std::vector<size_t> result{};
+    int curr = i;
+    while (prev[curr] != -1) {
+      result.insert(result.begin(), curr);
+      curr = prev[curr];
+    }
+    // assert(result.size() > 0);
+    final_result.emplace_back(result);
+  }
+  return final_result; 
 }

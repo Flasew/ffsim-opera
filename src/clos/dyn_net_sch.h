@@ -323,6 +323,8 @@ public:
   void set_all_tcp_pause();
   void update_all_route();
   void resume_tcp_flows();
+
+  void install_new_route_for_src(int src, std::vector<std::vector<size_t>> && route);
   // void resume_lively_queues();
   // void pause_no_bw_queues();
 
@@ -358,9 +360,9 @@ public:
 
 class DemandHeuristicNetworkOptimizer {
 public:
-  DemandHeuristicNetworkOptimizer(int nnodes);
+  DemandHeuristicNetworkOptimizer(int nnodes, DynFlatScheduler * sch);
   ~DemandHeuristicNetworkOptimizer() = default;
-  virtual bool optimize(int mcmc_iter, double sim_iter_time, bool force_run = false);
+  std::vector<size_t> optimize();
   size_t edge_id(int i, int j) const;
   size_t unordered_edge_id(int i, int j) const;
   void optimize_demand(
@@ -374,8 +376,7 @@ public:
   size_t get_if_in_use(size_t node, const std::vector<size_t> & conn);
   bool add_link(size_t i, size_t j, std::vector<size_t> & conn);
   void remove_link(size_t i, size_t j, std::vector<size_t> & conn);
-
-  virtual void store_tm() const;
+  std::vector<std::vector<size_t>> get_routes_from_src(const std::vector<size_t> & conn, int src);
 
   inline static bool has_endpoint(uint64_t e, size_t v, size_t n) {
     return e / n == v || e % n == v;
@@ -407,17 +408,12 @@ public:
   }
 
 
-  std::unordered_map<uint64_t, uint64_t> dev_busy_time;
-  std::unordered_map<size_t, uint64_t> physical_traffic_demand;
   std::unordered_map<size_t, uint64_t> logical_traffic_demand;
+
+  DynFlatScheduler * sch;
 
   int nnode;
   size_t if_cnt;
-  double best_sim_time, curr_sim_time;
-  double alpha;
-  int num_iter_nochange;
-  int no_improvement_th;
-
 };
 
 #endif
