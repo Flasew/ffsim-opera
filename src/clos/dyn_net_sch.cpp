@@ -433,8 +433,8 @@ void DynFlatScheduler::update_all_route()
       choice = rand()%dstpaths->size(); // comment this out if we want to use the first path
       routein = new Route(*(dstpaths->at(choice)));
       routein->push_back(tcpsrc);
-        tcpsrc->update_route();
-        // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
+      tcpsrc->update_route(routein, routeout);
+      // std::cerr << "adding " << tcpsrc->_flow_src << ", " << tcpsrc->_flow_dst << ": " << tcpsrc->_flow_size - tcpsrc->_last_acked << std::endl;
       delete srcpaths;
       delete dstpaths;
       i++;
