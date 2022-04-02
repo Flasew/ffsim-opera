@@ -85,7 +85,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
         continue;
       Queue *q = topo->queues[i][j];
       ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
-      std::cerr << "setting queue " << eq << std::endl;
+      // std::cerr << "setting queue " << eq << std::endl;
       eq->set_dyn_sch(this);
     }
   }
@@ -273,7 +273,7 @@ void DynFlatScheduler::doNextEvent()
   if (status == DynNetworkStatus::DYN_NET_LIVE)
   {
     start_reconf();
-    // status = DynNetworkStatus::DYN_NET_RECONF;
+    status = DynNetworkStatus::DYN_NET_RECONF;
     // eventlist.sourceIsPendingRel(*this, reconf_delay);
   }
   else
@@ -296,7 +296,28 @@ void DynFlatScheduler::start_reconf()
 
 void DynFlatScheduler::do_reconf()
 {
-  non_empty_queues--;
+  // non_empty_queues--;
+  non_empty_queues = 0;
+  for (int i = 0; i < nnodes; i++)
+  {
+    for (int j = 0; j < nnodes; j++)
+    {
+      if (i == j)
+        continue;
+      Queue *q = topo->queues[i][j];
+      ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
+      if (eq->queuesize() > 0)
+      {
+        // eq->_state_send = LosslessQueue::PAUSE_RECEIVED;
+        non_empty_queues += eq->_enqueued.size();
+        std::cerr << i << ", " << j << " qsz " << eq->_enqueued.size() << " bw " << eq->_bitrate << std::endl;
+      } 
+      else
+      {
+        // eq->_state_send = LosslessQueue::PAUSED;
+      }
+    }
+  }
   std::cerr << "non_empty_queues: " << non_empty_queues << std::endl;
   if (non_empty_queues == 0)
   {
@@ -324,9 +345,9 @@ void DynFlatScheduler::finish_reconf()
         continue;
       Queue *q = topo->queues[i][j];
       ECNQueue *eq = dynamic_cast<ECNQueue *>(q);
-      std::cerr << "queue " << i << ", " << j << " br " << eq->_bitrate << " ps per byte " << eq->_ps_per_byte << " size " << eq->_enqueued.size() << std::endl;
+      // std::cerr << "queue " << i << ", " << j << " br " << eq->_bitrate << " ps per byte " << eq->_ps_per_byte << " size " << eq->_enqueued.size() << std::endl;
       assert(eq->_enqueued.empty());
-      if (eq->_bitrate > 0)
+      // if (eq->_bitrate > 0)
       {
         eq->_state_send = LosslessQueue::READY;
         if (!eq->_enqueued.empty())
@@ -336,10 +357,10 @@ void DynFlatScheduler::finish_reconf()
           // std::cerr << "\t starting... " << std::endl;
         }
       }
-      else
-      {
-        eq->_state_send = LosslessQueue::PAUSED;
-      }
+      // else
+      // {
+      //   eq->_state_send = LosslessQueue::PAUSED;
+      // }
     }
   }
   resume_tcp_flows();
@@ -358,8 +379,9 @@ void DynFlatScheduler::set_all_queues_pause_recved()
       if (eq->queuesize() > 0)
       {
         // eq->_state_send = LosslessQueue::PAUSE_RECEIVED;
-        non_empty_queues += eq->queuesize();
-      }
+        non_empty_queues += eq->_enqueued.size();
+        std::cerr << i << ", " << j << " qsz " << eq->_enqueued.size() << " bw " << eq->_bitrate << std::endl;
+      } 
       else
       {
         // eq->_state_send = LosslessQueue::PAUSED;
@@ -406,7 +428,7 @@ i++;
 
 void DynFlatScheduler::update_all_route()
 {
-  TcpSrc::resume_all_flow();
+  // TcpSrc::resume_all_flow();
   list<TcpSrc *>::iterator i = demandrecorder->rtx_scanner->_tcps.begin();
   while (i != demandrecorder->rtx_scanner->_tcps.end())
   {
@@ -753,11 +775,14 @@ void DynFlatScheduler::update_all_queue_bandwidth()
       for (int j = 0; j < nnodes; j++)
       {
         uint64_t route_id = dhopt.edge_id(i, j);
-        vector<size_t> *path_vector = new vector<size_t>();
-        for (int k = 0; k < paths[j].size(); k++)
+        vector<size_t> *path_vector = new vector<size_t>{(size_t)i};
+        // cerr << i << ", " << j << " pathsize: " << paths[j].size() << std::endl;
+        for (int k = paths[j].size() - 1; k >= 0; k--)
         {
           path_vector->push_back(paths[j][k]);
+          // std::cerr << paths[j][k] << ", ";
         }
+        // std::cerr << std::endl;
         if (topo->_routes.find(route_id) == topo->_routes.end())
         {
           topo->_routes[route_id] = vector<vector<size_t> *>();
@@ -770,6 +795,7 @@ void DynFlatScheduler::update_all_queue_bandwidth()
           }
           topo->_routes[route_id].clear();
         }
+        assert(i == j || path_vector->size() > 0);
         topo->_routes[route_id].push_back(path_vector);
       }
     }
@@ -981,6 +1007,7 @@ int FlatDegConstraintNetworkTopologyGenerator::get_if_in_use(int node, const std
 DemandHeuristicNetworkOptimizer::DemandHeuristicNetworkOptimizer(int nnode, DynFlatScheduler *sch)
     : nnode(nnode), sch(sch)
 {
+  if_cnt = sch->degree;
 }
 
 /*

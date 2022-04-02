@@ -554,7 +554,7 @@ void TcpSrc::send_packets()
 		{ // RFC2988 5.1
 			_RFC2988_RTO_timeout = eventlist().now() + _rto;
 		}
-		cout << "Sending SYN, waiting for SYN/ACK" << endl;
+		// cout << "Sending SYN, waiting for SYN/ACK" << endl;
 		return;
 	}
 
@@ -833,7 +833,9 @@ void TcpSrc::resume_flow()
 
 void TcpSrc::update_route(Route *routeout, Route *routein)
 {
-	replace_route(routeout);
+	// replace_route(routeout);
+	delete _route;
+	_route = routeout;
 	delete _sink->_route;
 	_sink->_route = routein;
 }

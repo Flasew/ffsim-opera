@@ -103,10 +103,15 @@ void ECNQueue::completeService()
 		_logger->logQueue(*this, QueueLogger::PKT_SERVICE, *pkt);
 
 	/* tell the packet to move on to the next pipe */
-	pkt->sendOn();
 
-	if (dyn_sch->status == DynFlatScheduler::DynNetworkStatus::DYN_NET_RECONF) {
+	if (dyn_sch && dyn_sch->status == DynFlatScheduler::DynNetworkStatus::DYN_NET_RECONF) {
+		std::cerr << this << std::endl;
+	 	pkt->_nexthop = pkt->_route->size() - 1;
+	  pkt->sendOn();
 		dyn_sch->do_reconf();
+	}
+	else {
+		pkt->sendOn();
 	}
 
 	if (!_enqueued.empty() && _state_send != LosslessQueue::PAUSED)

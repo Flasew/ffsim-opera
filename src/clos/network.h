@@ -105,7 +105,6 @@ class Packet {
     uint32_t nexthop() const {return _nexthop;} // only intended to be used for debugging
     void set_route(const Route &route);
     string str() const;
- protected:
     void set_route(PacketFlow& flow, const Route &route, 
 	     int pkt_size, packetid_t id);
     void set_attrs(PacketFlow& flow, int pkt_size, packetid_t id);

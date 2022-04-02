@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-CFLAGS=-Wall -std=c++17 -O3 #-O0 -g
+CFLAGS=-Wall -std=c++17 -O0 -g
 FF_HOME?=$(HOME)/FlexFlow
 GUROBI_DIR?=$(HOME)/gurobi912/linux64
 CRT=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
