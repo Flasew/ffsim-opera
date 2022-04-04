@@ -359,7 +359,8 @@ vector<const Route *> *FlatTopology::get_paths(int src, int dest)
     routeout->set_reverse(routeback);
     routeback->set_reverse(routeout);
 
-    //print_route(*routeout);
+    // std::cerr << "get_paths: src " << src << " dst " << dest << std::endl;
+    // print_route(*routeout);
     paths->push_back(routeout);
 
     check_non_null(routeout);

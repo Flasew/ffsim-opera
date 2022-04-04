@@ -2,6 +2,7 @@
 #include "pipe.h"
 #include <iostream>
 #include <sstream>
+#include "dyn_net_sch.h"
 #include "ndppacket.h"
 
 Pipe::Pipe(simtime_picosec delay, EventList& eventlist)
@@ -34,6 +35,10 @@ uint64_t Pipe::reportBytes() {
     return temp;
 }
 
+void Pipe::set_dyn_sch(DynFlatScheduler * ds)
+{
+	dyn_sch = ds;
+}
 
 void Pipe::doNextEvent() {
     if (_inflight.size() == 0) 
@@ -71,6 +76,15 @@ void Pipe::doNextEvent() {
 
     // tell the packet to move itself on to the next hop
     pkt->sendOn();
+
+	if (dyn_sch && dyn_sch->status == DynFlatScheduler::DynNetworkStatus::DYN_NET_RECONF) {
+		// std::cerr << this << std::endl;
+	 	// pkt->_nexthop = pkt->_route->size() - 1;
+	  // pkt->sendOn();
+		dyn_sch->do_reconf();
+	}
+	else {
+	}
 
     if (!_inflight.empty()) {
 	// notify the eventlist we've another event pending

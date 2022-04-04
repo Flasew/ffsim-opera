@@ -13,7 +13,7 @@
 #include "network.h"
 #include "loggertypes.h"
 
-
+class DynFlatScheduler;
 class Pipe : public EventSource, public PacketSink {
  public:
     Pipe(simtime_picosec delay, EventList& eventlist);
@@ -24,11 +24,12 @@ class Pipe : public EventSource, public PacketSink {
 
     void set_pipe_downlink() { _pipe_is_downlink = true; }
     bool _pipe_is_downlink;
+    void set_dyn_sch(DynFlatScheduler * ds);
 
     uint64_t reportBytes(); // reports to the UtilMonitor
     uint64_t _B_delivered; // keep track of how many (non-hdr,ACK,NACK,PULL,RTX) packets were delivered to hosts
+    DynFlatScheduler * dyn_sch = nullptr;
 
- private:
     simtime_picosec _delay;
     typedef pair<simtime_picosec,Packet*> pktrecord_t;
     list<pktrecord_t> _inflight; // the packets in flight (or being serialized)

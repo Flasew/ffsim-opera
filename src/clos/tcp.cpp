@@ -275,7 +275,7 @@ void TcpSrc::receivePacket(Packet &pkt)
     _rto = timeFromMs(10);
 
 	// debug:
-	// cout << (uint64_t)this << " seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
+	// cerr << this << " hss " << _highest_sent << " seqno = " << seqno << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << ", packet size = " << pkt.size() << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
 
 	if (seqno >= _flow_size && !_finished)
 	{
@@ -554,7 +554,7 @@ void TcpSrc::send_packets()
 		{ // RFC2988 5.1
 			_RFC2988_RTO_timeout = eventlist().now() + _rto;
 		}
-		// cout << "Sending SYN, waiting for SYN/ACK" << endl;
+		// cerr << this << " src " << _flow_src << " dst " << _flow_dst << " Sending SYN, waiting for SYN/ACK, route sz " << p->_route->size() << endl;
 		return;
 	}
 
@@ -652,12 +652,13 @@ void TcpSrc::retransmit_packet()
 {
 	if (!_established)
 	{
+		// std::cerr << "hss " << _highest_sent << endl;
 		assert(_highest_sent == 1);
 
 		Packet *p = TcpPacket::new_syn_pkt(_flow, *_route, 1, 1);
 		p->sendOn();
 
-		// cerr << "Resending SYN, waiting for SYN/ACK" << endl;
+		cerr << "Resending SYN, waiting for SYN/ACK" << endl;
 		return;
 	}
 
@@ -816,24 +817,30 @@ void TcpSrc::resume_all_flow()
 
 void TcpSrc::resume_flow()
 {
-	std::cerr << "RESUME " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << get_flowsize() - _highest_sent << " " << std::endl;
-	if (tcp_has_pending_retrans)
-	{
-		std::cerr << "Retr called " << std::endl;
-		retransmit_packet();
-		tcp_has_pending_retrans = false;
-	}
+	std::cerr << "RESUME " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << (int64_t)get_flowsize() - _highest_sent << " " << std::endl;
+	
+	// if (_highest_sent == 0)
 	if (tcp_has_pending_send)
 	{
 		std::cerr << "send called " << std::endl;
+		std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " <<  _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
 		send_packets();
 		tcp_has_pending_send = false;
+	}
+	// else 
+	if (tcp_has_pending_retrans)
+	{
+		std::cerr << "Retr called " << std::endl;
+		std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
+		retransmit_packet();
+		tcp_has_pending_retrans = false;
 	}
 }
 
 void TcpSrc::update_route(Route *routeout, Route *routein)
 {
 	// replace_route(routeout);
+	std::cerr << "src " << _flow_src << " dst " << _flow_dst << "prev route size " << _route->size() << " new route size " << routeout->size() << endl;
 	delete _route;
 	_route = routeout;
 	delete _sink->_route;
@@ -897,7 +904,7 @@ void TcpSink::receivePacket(Packet &pkt)
 
 	_packets += p->size();
 
-	// cout << (uint64_t)this << " Sink: received seqno " << seqno << " size " << size << " time " << _src->eventlist().now() << endl;
+	// std::cerr << this << " Sink: received seqno " << seqno << " size " << size << " time " << _src->eventlist().now() << endl;
 
 	if (seqno == _cumulative_ack + 1)
 	{ // it's the next expected seq no
@@ -977,7 +984,7 @@ void TcpSink::send_ack(simtime_picosec ts, bool marked)
 	else
 		ack->set_flags(0);
 	_src->receivePacket(*ack);
-	// cout << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
+	// cerr << "Transmit ack on " << _src->_flow.id << " " << _cumulative_ack << endl;
 	// ack->sendOn();
 }
 
