@@ -658,7 +658,7 @@ void TcpSrc::retransmit_packet()
 		Packet *p = TcpPacket::new_syn_pkt(_flow, *_route, 1, 1);
 		p->sendOn();
 
-		cerr << "Resending SYN, waiting for SYN/ACK" << endl;
+		// cerr << "Resending SYN, waiting for SYN/ACK" << endl;
 		return;
 	}
 
@@ -817,21 +817,21 @@ void TcpSrc::resume_all_flow()
 
 void TcpSrc::resume_flow()
 {
-	std::cerr << "RESUME " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << (int64_t)get_flowsize() - _highest_sent << " " << std::endl;
+	// std::cerr << "RESUME " << get_flow_src() << " " << get_flow_dst() << " total: " << get_flowsize() << " left: " << (int64_t)get_flowsize() - _highest_sent << " " << std::endl;
 	
 	// if (_highest_sent == 0)
 	if (tcp_has_pending_send)
 	{
-		std::cerr << "send called " << std::endl;
-		std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " <<  _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
+		// std::cerr << "send called " << std::endl;
+		// std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " <<  _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
 		send_packets();
 		tcp_has_pending_send = false;
 	}
 	// else 
 	if (tcp_has_pending_retrans)
 	{
-		std::cerr << "Retr called " << std::endl;
-		std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
+		// std::cerr << "Retr called " << std::endl;
+		// std::cerr << this << " hss = " << _highest_sent << " lack " << _last_acked << " est " << _established << ", _flow_size = " <<  _flow_size << ", _mss = " << _mss << " cwnd " << _cwnd << " ssthresh " << _ssthresh << " time " << eventlist().now() << endl;
 		retransmit_packet();
 		tcp_has_pending_retrans = false;
 	}
@@ -840,7 +840,7 @@ void TcpSrc::resume_flow()
 void TcpSrc::update_route(Route *routeout, Route *routein)
 {
 	// replace_route(routeout);
-	std::cerr << "src " << _flow_src << " dst " << _flow_dst << "prev route size " << _route->size() << " new route size " << routeout->size() << endl;
+	// std::cerr << "src " << _flow_src << " dst " << _flow_dst << "prev route size " << _route->size() << " new route size " << routeout->size() << endl;
 	delete _route;
 	_route = routeout;
 	delete _sink->_route;

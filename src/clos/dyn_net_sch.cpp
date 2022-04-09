@@ -271,7 +271,7 @@ DynFlatScheduler::DynFlatScheduler(int nnodes, int degree, FlatTopology *topo,
 
 void DynFlatScheduler::doNextEvent()
 {
-  std::cerr << "At time " << eventlist.now() << " scheduler run, from " << status << std::endl;
+  // std::cerr << "At time " << eventlist.now() << " scheduler run, from " << status << std::endl;
   if (status == DynNetworkStatus::DYN_NET_LIVE)
   {
     start_reconf();
@@ -396,7 +396,7 @@ void DynFlatScheduler::set_all_queues_pause_recved()
         non_empty_queues += p->_inflight.size();
     }
   }
-  std::cerr << "all_queue_size: " << non_empty_queues << std::endl;
+  // std::cerr << "all_queue_size: " << non_empty_queues << std::endl;
 }
 
 inline static bool has_tx_endpoint(uint64_t e, size_t v, size_t n)
@@ -413,7 +413,7 @@ void DynFlatScheduler::set_all_tcp_pause()
 {
   TcpSrc::pause_flow();
   list<TcpSrc *>::iterator i = demandrecorder->rtx_scanner->_tcps.begin();
-  std::cerr << "all flows size: " << demandrecorder->rtx_scanner->_tcps.size() << std::endl;
+  // std::cerr << "all flows size: " << demandrecorder->rtx_scanner->_tcps.size() << std::endl;
 #if 0
 while (i != demandrecorder->rtx_scanner->_tcps.end())
 {
@@ -785,13 +785,13 @@ void DynFlatScheduler::update_all_queue_bandwidth()
         uint64_t route_id = dhopt.edge_id(i, j);
         vector<size_t> *path_vector = new vector<size_t>{};
         path_vector->push_back(i);
-        cerr << i << ", " << j << " pathsize: " << paths[j].size() << std::endl;
+        // cerr << i << ", " << j << " pathsize: " << paths[j].size() << std::endl;
         for (int k = 0; k < paths[j].size(); k++)
         {
           path_vector->push_back(paths[j][k]);
-          std::cerr << paths[j][k] << ", ";
+          // std::cerr << paths[j][k] << ", ";
         }
-        std::cerr << std::endl;
+        // std::cerr << std::endl;
         if (topo->_routes.find(route_id) == topo->_routes.end())
         {
           topo->_routes[route_id] = vector<vector<size_t> *>();
