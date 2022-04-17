@@ -16,6 +16,7 @@
 #include "ecnqueue.h"
 
 extern uint32_t RTT;
+extern uint32_t SPEED;
 
 string ntoa(double n);
 string itoa(uint64_t n);
@@ -55,11 +56,11 @@ void TestTopology::set_params(int no_of_nodes) {
 }
 
 Queue* TestTopology::alloc_src_queue(QueueLogger* queueLogger){
-    return  new PriorityQueue(speedFromMbps((uint64_t)HOST_NIC), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
+    return  new PriorityQueue(speedFromMbps((uint64_t)SPEED), memFromPkt(FEEDER_BUFFER), *eventlist, queueLogger);
 }
 
 Queue* TestTopology::alloc_queue(QueueLogger* queueLogger, mem_b queuesize){
-    return alloc_queue(queueLogger, HOST_NIC, queuesize);
+    return alloc_queue(queueLogger, SPEED, queuesize);
 }
 
 Queue* TestTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b queuesize){
@@ -70,7 +71,7 @@ Queue* TestTopology::alloc_queue(QueueLogger* queueLogger, uint64_t speed, mem_b
     else if (qt==CTRL_PRIO)
 	return new CtrlPrioQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger);
     else if (qt==ECN)
-	return new ECNQueue(speedFromMbps(speed), memFromPkt(2*SWITCH_BUFFER), *eventlist, queueLogger, memFromPkt(15));
+	return new ECNQueue(speedFromMbps(speed), queuesize, *eventlist, queueLogger, memFromPkt(50));
     else if (qt==LOSSLESS)
 	return new LosslessQueue(speedFromMbps(speed), memFromPkt(50), *eventlist, queueLogger, NULL);
     else if (qt==LOSSLESS_INPUT)
@@ -102,24 +103,24 @@ void TestTopology::init_network(){
     for (int l = 0; l < K; l++) {
 	  int k = j * K/2 + l; // k = l (when there is only one switch and j = 0)
 	  // Downlink
-	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	  //queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
 	  //queueLogger = NULL;
-	  logfile->addLogger(*queueLogger);
+	  //logfile->addLogger(*queueLogger);
 	  
 	  queues_nlp_ns[j][k] = alloc_queue(queueLogger, _queuesize);
 	  queues_nlp_ns[j][k]->setName("LS" + ntoa(j) + "->DST" +ntoa(k));
-	  logfile->writeName(*(queues_nlp_ns[j][k]));
+	  //logfile->writeName(*(queues_nlp_ns[j][k]));
 
-	  pipes_nlp_ns[j][k] = new Pipe(timeFromUs(RTT), *eventlist);
+	  pipes_nlp_ns[j][k] = new Pipe(timeFromNs(RTT), *eventlist);
 	  pipes_nlp_ns[j][k]->setName("Pipe-LS" + ntoa(j)  + "->DST" + ntoa(k));
-	  logfile->writeName(*(pipes_nlp_ns[j][k]));
+	  //logfile->writeName(*(pipes_nlp_ns[j][k]));
 	  
 	  // Uplink
-	  queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	  logfile->addLogger(*queueLogger);
+	  //queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
+	  //logfile->addLogger(*queueLogger);
 	  queues_ns_nlp[k][j] = alloc_src_queue(queueLogger);
 	  queues_ns_nlp[k][j]->setName("SRC" + ntoa(k) + "->LS" +ntoa(j));
-	  logfile->writeName(*(queues_ns_nlp[k][j]));
+	  //logfile->writeName(*(queues_ns_nlp[k][j]));
 
 	  if (qt==LOSSLESS){
 	      switches_lp[j]->addPort(queues_nlp_ns[j][k]);
@@ -129,9 +130,9 @@ void TestTopology::init_network(){
 	      new LosslessInputQueue(*eventlist,queues_ns_nlp[k][j]);
 	  }
 	  
-	  pipes_ns_nlp[k][j] = new Pipe(timeFromUs(RTT), *eventlist);
+	  pipes_ns_nlp[k][j] = new Pipe(timeFromNs(RTT), *eventlist);
 	  pipes_ns_nlp[k][j]->setName("Pipe-SRC" + ntoa(k) + "->LS" + ntoa(j));
-	  logfile->writeName(*(pipes_ns_nlp[k][j]));
+	  //logfile->writeName(*(pipes_ns_nlp[k][j]));
 	  
 	  if (ff){
 	     ff->add_queue(queues_nlp_ns[j][k]);
