@@ -1,35 +1,35 @@
-# opera-sim
-Packet-level simulation code to model Opera and other networks from the 2020 NSDI paper "Expanding across time to deliver bandwidth efficiency and low latency"
+# FlexNetPacket simulator
 
-## Requirements:
+This module contains the FlexNetPacket packet-level network simulator. It models the cluster that runs DNN training job based on TopoOpt, Fat-Tree, SiP-ML, Expander and abstract switch network topologies. The source code was extended from the Opera simulator from NSDI 2020, please check the original README file [here](OPERA_README.md).
 
-- Matlab files: Matlab 2018b or newer (may work with older Matlab versions or with GNU Octave, but not tested)
-- C++ files: g++-7 compiler
+## Compilation:
+To build the FlexNetPacket simulator, from the top level directory run:
+```
+export FF_HOME=<directory of FlexNet>
+cd src/clos
+make
+cd datacenter
+make
+```
 
-## Description:
+## Executables
 
-- The /FigureX directories contain example Matlab scripts to generate traffic and post-process simulation data as well as execution scripts for running simulations.
-- The /src directory contains the packet simulator source code. There is a separate simulator for each network type (e.g. Clos, expander, and Opera). The packet simulator is an extension of the htsim NDP simulator (https://github.com/nets-cs-pub-ro/NDP/tree/master/sim)
+The executables are found in the `src/clos/datacenter` folder. They have the name "htsim_...". The following table provides details on each executable:
 
-## Build instructions:
+| Executable | Network Topology |
+|------------|------------------|
+| `htsim_tcp_fattree`       | Fat-Tree network topology, single job |
+| `htsim_tcp_flat`          | Flat Network topology (switchless) for single job. Use this executable for TopoOpt and expander |
+| `htsim_tcp_fc`            | Fully connected topology for single job |
+| `htsim_tcp_os_fattree`    | Oversubscribed Fat-Tree where the ToR switches are oversubscribed |
+| `htsim_tcp_aggos_ft`      | Oversubscribed Fat-Tree where the aggregation layer is oversubscribed | 
+| `htsim_tcp_dyn_flat`      | Dynamic network used to simulate SiP-ML |
+| `htsim_tcp_fattree_multijob` | Fat-Tree network topology used to simulate multiple DNN jobs concurrently |
+| `htsim_tcp_aggos_fattree_multijob` | Oversubscribed (aggregation switches) Fat-Tree network topology used to simulate multiple DNN jobs concurrently |
 
-- To build the Opera simulator, for example, from the top level directory run:
-  ```
-  cd /src/opera
-  make
-  cd /datacenter
-  make
-  ```
-- The executable will be found in the /datacenter directory and named htsim_...
+## Brief description on source code
 
-## Typical workflow:
+FlexNetPacket's major extention from the htsim simulator allows it to take a taskgraph (in FlatBuffer) generated from FlexNet simulator. To achieve this, `src/clos/ffapp.*` was implemented as an API to read and process these such taskgraphs. In addition, a few network topologies are added, notably the dynamic network executable that simulates SiP-ML. The network scheduler code can be found at `src/clos/dyn_net_sch.*`.
 
-- Compile the simulator as described above (for Clos, expander, and Opera).
-- Build a topology file (e.g. run /topologies/opera_dynexp_topo_gen/MAIN.m). This must be done once for expander and Opera networks, is not needed for Clos networks.  This process takes a long time.  If you'd prefer to download the version of this file used to create the NSDI 2020 paper, you can download it from this link (it is too big to host on github): https://www.dropbox.com/s/az6ju4oiwvsljat/dynexp_N%3D108_k%3D12_5paths.txt?dl=0
-- Generate a file specifying the traffic (e.g. run /Figure7_datamining/opera/traffic_gen/generate_traffic.m). The file format is (where src_host and dst_host are indexed from zero):
-  ```
-  <src_host> <dst_host> <flow_size_bytes> <flow_start_time_nanosec> /newline
-  ```
-- Specify the simulation parameters and run (e.g. run /Figure7_datamining/opera/sim/run.sh).
-- Post-process the simulation data (e.g. run /Figure7_datamining/opera/plot/process_FCT_and_UTIL.m).
-- Plot the post-processed data (e.g. run /Figure7_datamining/opera/plot/plotter.m)
+Each topology's "main" function can be found in `src/clos/datacenter/main_tcp_*.cpp`, which provides detailed description on the input arguments for the executable. 
+
