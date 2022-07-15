@@ -104,7 +104,7 @@ void TestTopology::init_network(){
 	  int k = j * K/2 + l; // k = l (when there is only one switch and j = 0)
 	  // Downlink
 	  //queueLogger = new QueueLoggerSampling(timeFromMs(1000), *eventlist);
-	  //queueLogger = NULL;
+	  queueLogger = NULL;
 	  //logfile->addLogger(*queueLogger);
 	  
 	  queues_nlp_ns[j][k] = alloc_queue(queueLogger, _queuesize);
